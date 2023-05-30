@@ -7,9 +7,12 @@ import peers from './peers';
 import consumers from './consumers';
 import dataConsumers from './dataConsumers';
 import notifications from './notifications';
-
+import breakoutroom from './breakoutroom';
+import breakoutroompeers from './breakoutroompeers';
 const reducers = combineReducers(
 	{
+		breakoutroom,
+		breakoutroompeers,
 		room,
 		me,
 		producers,
@@ -17,7 +20,7 @@ const reducers = combineReducers(
 		peers,
 		consumers,
 		dataConsumers,
-		notifications
+		notifications,
 	});
 
 export default reducers;

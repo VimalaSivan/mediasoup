@@ -9,6 +9,7 @@ const initialState =
 
 const room = (state = initialState, action) =>
 {
+	//console.log('action test',action);
 	switch (action.type)
 	{
 		case 'SET_ROOM_URL':
@@ -36,13 +37,26 @@ const room = (state = initialState, action) =>
 		}
 
 		case 'SET_ROOM_STATS_PEER_ID':
-		{
+		{   
+
 			const { peerId } = action.payload;
 
 			if (state.statsPeerId === peerId)
-				return { ...state, statsPeerId: null };
+				return { ...state, statsPeerId: null,isOpenState:action.isOpenState };
 
-			return { ...state, statsPeerId: peerId };
+			return { ...state, statsPeerId: peerId,isOpenState:action.isOpenState };
+
+		}
+
+		case 'SET_BREAK_OUT_PEER_ID':
+		{   
+			const { peerId } = action.payload;
+
+			if (state.statsPeerId === peerId)
+				return { ...state, statsPeerId: null,isOpenbreak:action.isOpenbreak  };
+
+			return { ...state, statsPeerId: peerId,isOpenbreak:action.isOpenbreak  };
+
 		}
 
 		case 'SET_FACE_DETECTION':

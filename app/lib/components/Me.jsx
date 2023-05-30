@@ -28,7 +28,8 @@ class Me extends React.Component
 			audioProducer,
 			videoProducer,
 			faceDetection,
-			onSetStatsPeerId
+			onSetStatsPeerId,
+			onSetBreakoutPeerId
 		} = this.props;
 
 		let micState;
@@ -156,6 +157,7 @@ class Me extends React.Component
 						roomClient.setMaxSendingSpatialLayer(spatialLayer);
 					}}
 					onStatsClick={onSetStatsPeerId}
+					onBreakoutClick={onSetBreakoutPeerId}
 				/>
 
 				<ReactTooltip
@@ -202,7 +204,8 @@ Me.propTypes =
 	audioProducer    : appPropTypes.Producer,
 	videoProducer    : appPropTypes.Producer,
 	faceDetection    : PropTypes.bool.isRequired,
-	onSetStatsPeerId : PropTypes.func.isRequired
+	onSetStatsPeerId : PropTypes.func.isRequired,
+	onSetBreakoutPeerId : PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state) =>
@@ -225,7 +228,8 @@ const mapStateToProps = (state) =>
 const mapDispatchToProps = (dispatch) =>
 {
 	return {
-		onSetStatsPeerId : (peerId) => dispatch(stateActions.setRoomStatsPeerId(peerId))
+		onSetStatsPeerId : (peerId,isOpenState) => dispatch(stateActions.setRoomStatsPeerId(peerId,isOpenState)),
+		onSetBreakoutPeerId : (peerId,isOpenbreak) => dispatch(stateActions.setBreakoutPeerId(peerId,isOpenbreak))
 	};
 };
 

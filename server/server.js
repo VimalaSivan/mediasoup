@@ -6,8 +6,8 @@ process.env.DEBUG = process.env.DEBUG || '*INFO* *WARN* *ERROR*';
 const config = require('./config');
 
 /* eslint-disable no-console */
-console.log('process.env.DEBUG:', process.env.DEBUG);
-console.log('config.js:\n%s', JSON.stringify(config, null, '  '));
+//console.log('process.env.DEBUG:', process.env.DEBUG);
+//console.log('config.js:\n%s', JSON.stringify(config, null, '  '));
 /* eslint-enable no-console */
 
 const fs = require('fs');
@@ -33,6 +33,11 @@ const queue = new AwaitQueue();
 // Map of Room instances indexed by roomId.
 // @type {Map<Number, Room>}
 const rooms = new Map();
+
+
+// Map of breakout Room instances indexed by roomId.
+// @type {Map<Number, Room>}
+const breakoutrooms = new Map();
 
 // HTTPS server.
 // @type {https.Server}
@@ -80,8 +85,11 @@ async function run()
 	// Log rooms status every X seconds.
 	setInterval(() =>
 	{
+		//console.log("Main rooms Vimala",rooms);
+		//console.log("breakout rooms Vimala",breakoutrooms);
 		for (const room of rooms.values())
 		{
+			
 			room.logStatus();
 		}
 	}, 120000);
@@ -173,7 +181,8 @@ async function createExpressApp()
 			}
 
 			req.room = rooms.get(roomId);
-
+			
+			logger.info("req.room",req.room);
 			next();
 		});
 
@@ -481,9 +490,15 @@ async function runProtooWebSocketServer()
 	protooWebSocketServer.on('connectionrequest', (info, accept, reject) =>
 	{
 		// The client indicates the roomId and peerId in the URL query.
+		//console.log('websocket info',info);
 		const u = url.parse(info.request.url, true);
 		const roomId = u.query['roomId'];
 		const peerId = u.query['peerId'];
+		const roomName = u.query['roomName'];
+
+		//const roomId ="pqupbb9x";
+		//const peerId ="glwtakli";
+		//const breakoutroomId = 'zedz7dup';
 
 		if (!roomId || !peerId)
 		{
@@ -500,20 +515,31 @@ async function runProtooWebSocketServer()
 		}
 
 		logger.info(
-			'protoo connection request [roomId:%s, peerId:%s, address:%s, origin:%s]',
-			roomId, peerId, info.socket.remoteAddress, info.origin);
+			'protoo connection request [roomId:%s, roomName:%s, peerId:%s, address:%s, origin:%s]',
+			roomId, roomName, peerId, info.socket.remoteAddress, info.origin);
 
 		// Serialize this code into the queue to avoid that two peers connecting at
 		// the same time with the same roomId create two separate rooms with same
 		// roomId.
 		queue.push(async () =>
 		{
-			const room = await getOrCreateRoom({ roomId, consumerReplicas });
-
-			// Accept the protoo WebSocket connection.
-			const protooWebSocketTransport = accept();
-
-			room.handleProtooConnection({ peerId, protooWebSocketTransport });
+			// console.log("break details",roomName.includes('Break'));
+			// if(roomName.includes('Break')){
+			// 	const room = await getOrCreateBreakoutRoom({ roomId, roomName, consumerReplicas });
+			// 	// Accept the protoo WebSocket connection.
+			// 	const protooWebSocketTransport = accept();
+				
+			// 	//console.log("peerId Details2",peerId);
+			// 	room.handleProtooConnection({ peerId, protooWebSocketTransport });
+			// }
+			// else{
+				const room = await getOrCreateRoom({ roomId, roomName, consumerReplicas });
+				// Accept the protoo WebSocket connection.
+				const protooWebSocketTransport = accept();
+				
+				//console.log("peerId Details2",peerId);
+				room.handleProtooConnection({ peerId, protooWebSocketTransport });
+			//}
 		})
 			.catch((error) =>
 			{
@@ -540,10 +566,11 @@ function getMediasoupWorker()
 /**
  * Get a Room instance (or create one if it does not exist).
  */
-async function getOrCreateRoom({ roomId, consumerReplicas })
+async function getOrCreateRoom({ roomId, roomName, consumerReplicas })
 {
+	
 	let room = rooms.get(roomId);
-
+    //console.log("room Details",room);
 	// If the Room does not exist create a new one.
 	if (!room)
 	{
@@ -551,11 +578,35 @@ async function getOrCreateRoom({ roomId, consumerReplicas })
 
 		const mediasoupWorker = getMediasoupWorker();
 
-		room = await Room.create({ mediasoupWorker, roomId, consumerReplicas });
+		room = await Room.create({ mediasoupWorker, roomId, roomName, consumerReplicas });
 
 		rooms.set(roomId, room);
 		room.on('close', () => rooms.delete(roomId));
 	}
-
+	
 	return room;
+	
+}
+
+/**
+ * Get a Room instance (or create one if it does not exist).
+ */
+async function getOrCreateBreakoutRoom({ roomId,roomName, consumerReplicas })
+{
+	let breakoutroom = breakoutrooms.get(roomId);
+    //console.log("room Details",room);
+	// If the Room does not exist create a new one.
+	if (!breakoutroom)
+	{
+		logger.info('creating a new Breakout Room [breakoutroomId:%s]', roomId);
+
+		const mediasoupWorker = getMediasoupWorker();
+
+		breakoutroom = await Room.create({ mediasoupWorker, roomId,roomName, consumerReplicas });
+
+		breakoutrooms.set(roomId, breakoutroom);
+		breakoutroom.on('close', () => breakoutrooms.delete(roomId));
+	}
+
+	//return breakoutroom;
 }

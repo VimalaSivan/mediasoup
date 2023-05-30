@@ -7,7 +7,7 @@ const fs = require('fs');
 const mediasoup = require('mediasoup');
 const colors = require('colors/safe');
 const pidusage = require('pidusage');
-const heapdump = require('heapdump');
+//const heapdump = require('heapdump');
 
 const SOCKET_PATH_UNIX = '/tmp/mediasoup-demo.sock';
 const SOCKET_PATH_WIN = path.join('\\\\?\\pipe', process.cwd(), 'mediasoup-demo');
@@ -684,7 +684,7 @@ module.exports = async function()
 	global.producers = producers;
 	global.consumers = consumers;
 	global.dataProducers = dataProducers;
-	global.dataConsumers = dataConsumers;
+	//global.dataConsumers = dataConsumers;
 
 	const server = net.createServer((socket) =>
 	{

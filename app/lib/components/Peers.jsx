@@ -38,7 +38,10 @@ Peers.propTypes =
 
 const mapStateToProps = (state) =>
 {
+	console.log('bbbbbb', state);
 	const peersArray = Object.values(state.peers);
+	console.log("peersArray",peersArray);
+	console.log('zzzzzzzzzzzzz', state);
 
 	return {
 		peers           : peersArray,

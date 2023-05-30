@@ -4,7 +4,7 @@ const throttle = require('@sitespeed.io/throttle');
 const Logger = require('./Logger');
 const config = require('../config');
 const Bot = require('./Bot');
-
+const fs = require('fs');
 const logger = new Logger('Room');
 
 /**
@@ -25,7 +25,7 @@ class Room extends EventEmitter
 	 *   mediasoup Router must be created.
 	 * @param {String} roomId - Id of the Room instance.
 	 */
-	static async create({ mediasoupWorker, roomId, consumerReplicas })
+	static async create({ mediasoupWorker, roomId, roomName, consumerReplicas })
 	{
 		logger.info('create() [roomId:%s]', roomId);
 
@@ -51,9 +51,15 @@ class Room extends EventEmitter
 
 		const bot = await Bot.create({ mediasoupRouter });
 
+		//const breakoutRooms = protooRoom.breakoutRooms;
+		//console.log("breakoutRooms Details",breakoutRooms);
+
+
+
 		return new Room(
 			{
 				roomId,
+				roomName,
 				protooRoom,
 				webRtcServer : mediasoupWorker.appData.webRtcServer,
 				mediasoupRouter,
@@ -67,6 +73,7 @@ class Room extends EventEmitter
 	constructor(
 		{
 			roomId,
+			roomName,
 			protooRoom,
 			webRtcServer,
 			mediasoupRouter,
@@ -84,6 +91,10 @@ class Room extends EventEmitter
 		// @type {String}
 		this._roomId = roomId;
 
+		// Room id.
+		// @type {String}
+		this._roomName = roomName;
+
 		// Closed flag.
 		// @type {Boolean}
 		this._closed = false;
@@ -91,6 +102,8 @@ class Room extends EventEmitter
 		// protoo Room instance.
 		// @type {protoo.Room}
 		this._protooRoom = protooRoom;
+		
+		this._breakoutRoomsObj = new Map();
 
 		// Map of broadcasters indexed by id. Each Object has:
 		// - {String} id
@@ -167,6 +180,8 @@ class Room extends EventEmitter
 		// Emit 'close' event.
 		this.emit('close');
 
+		fs.writeFileSync("student.json", JSON.stringify([], null, 2))
+
 		// Stop network throttling.
 		if (this._networkThrottled)
 		{
@@ -195,6 +210,8 @@ class Room extends EventEmitter
 	handleProtooConnection({ peerId, consume, protooWebSocketTransport })
 	{
 		const existingPeer = this._protooRoom.getPeer(peerId);
+
+		
 
 		if (existingPeer)
 		{
@@ -234,6 +251,7 @@ class Room extends EventEmitter
 		peer.data.consumers = new Map();
 		peer.data.dataProducers = new Map();
 		peer.data.dataConsumers = new Map();
+		peer.data.breakoutroom = new Map();
 
 		peer.on('request', (request, accept, reject) =>
 		{
@@ -281,7 +299,7 @@ class Room extends EventEmitter
 					'last Peer in the room left, closing the room [roomId:%s]',
 					this._roomId);
 
-				this.close();
+				//this.close();
 			}
 		});
 	}
@@ -868,15 +886,18 @@ class Room extends EventEmitter
 
 			case 'join':
 			{
+				
 				// Ensure the Peer is not already joined.
 				if (peer.data.joined)
 					throw new Error('Peer already joined');
-
+				console.log('My try',request.data);
+				
 				const {
 					displayName,
 					device,
 					rtpCapabilities,
-					sctpCapabilities
+					sctpCapabilities,
+					breakoutroom
 				} = request.data;
 
 				// Store client data into the protoo Peer data object.
@@ -885,30 +906,116 @@ class Room extends EventEmitter
 				peer.data.device = device;
 				peer.data.rtpCapabilities = rtpCapabilities;
 				peer.data.sctpCapabilities = sctpCapabilities;
-
+				peer.data.breakoutroom = breakoutroom;
+				
+				
+				 
+				
+				//console.log('My try',breakoutroom);
+				//console.log('My try',request.data);
 				// Tell the new Peer about already joined Peers.
 				// And also create Consumers for existing Producers.
-
+				let newDatas = 	{};
 				const joinedPeers =
 				[
 					...this._getJoinedPeers(),
 					...this._broadcasters.values()
 				];
+				//console.log('joinedPeers',joinedPeers);
+				 //let newDatas = {};
+				//if (typeof breakoutroom.name !== 'undefined') {
+					// if(breakoutroom?.name?.includes('Break')){
+					// 	//let dataarr = JSON.stringify(breakoutroom);
+						
+						
+					// 	let dataarr = JSON.stringify(breakoutroom, null, 2);
+					// 	console.log('dataarr',dataarr);
+					// 	const file = fs.readFileSync('student.json')
+					// 	//fs.writeFileSync('student.json', dataarr);
+					// 	// fs.writeFileSync('student.json', dataarr, (err) => {
+					// 	// 	if (err) throw err;
+					// 	// 	console.log('Data written to file');
+					// 	// });
+					// 	if (file.length == 0) {
+					// 		//add data to json file
+					// 		fs.writeFileSync("student.json", JSON.stringify([breakoutroom]))
+					// 		newDatas = 	{};
+					// 	} else {
+					// 		//append data to jso file
+					// 		const json = JSON.parse(file.toString())
+					// 		//add json element to json object
+					// 		json.push(breakoutroom);
+					// 		fs.writeFileSync("student.json", JSON.stringify(json))
+					// 		newDatas = require('../student.json');
+					// 	}
+						
+						
+						
+					// 	//peer.data.breakoutroom = breakoutroom;
+					// 	//peer.data.breakoutroom.set(breakoutroom.id, breakoutroom);
+					// 	//newDatas = breakoutroom;
+					// 	//this._breakoutRoomsObj.set(breakoutroom.id, breakoutroom);
+					// }
+					// else{
 
-				// Reply now the request with the list of joined peers (all but the new one).
-				const peerInfos = joinedPeers
+					
+					
+					// 	//newDatas = 	{};
+						
+					// }  
+				// }
+				// else{
+
+					
+					
+				// 	newDatas = 	{};
+					
+				// }  
+				//console.log('peer newDatas',newDatas);
+				// Store the Broadcaster into the map.
+			// Read student.json file.
+				// fs.readFile("student.json", function(err, data) {
+				// 	// Check for the errors.
+				// 	if (err) throw err;
+				
+				// 	// Converting to JSON.
+				// 	const newDatas = JSON.parse(data);   
+				// 	console.log(newDatas); // Print users 
+
+
+				// });
+				let fileDetname = this._roomId;
+				let fileExists = fs.existsSync(fileDetname+'.json')  
+				
+				
+				if(fileExists)
+				{
+					console.log('fileExists',fileExists);
+					const file = fs.readFileSync(fileDetname+'.json')
+				
+					if (file.length == 0) {
+						newDatas = 	{};
+					}else{
+						newDatas = JSON.parse(fs.readFileSync(fileDetname+'.json', 'utf8'));
+						
+						///newDatas = require('../student.json');
+						// peer.data.breakoutroom.set(newDatas.id, newDatas);
+					}
+					}
+					const peerInfos = joinedPeers
 					.filter((joinedPeer) => joinedPeer.id !== peer.id)
 					.map((joinedPeer) => ({
 						id          : joinedPeer.id,
 						displayName : joinedPeer.data.displayName,
-						device      : joinedPeer.data.device
+						device      : joinedPeer.data.device,
+						breakoutroom : newDatas
 					}));
-
-				accept({ peers: peerInfos });
-
+					
+					accept({ peers: peerInfos });
+				//	
 				// Mark the new Peer as joined.
 				peer.data.joined = true;
-
+				
 				for (const joinedPeer of joinedPeers)
 				{
 					// Create Consumers for existing Producers.
@@ -944,16 +1051,18 @@ class Room extends EventEmitter
 						dataProducerPeer : null,
 						dataProducer     : this._bot.dataProducer
 					});
-
+					//console.log('peer addres',peer);
+					//console.log('peer.data.breakoutroom',peer.data.breakoutroom)
 				// Notify the new Peer to all other Peers.
 				for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
 				{
 					otherPeer.notify(
 						'newPeer',
 						{
-							id          : peer.id,
-							displayName : peer.data.displayName,
-							device      : peer.data.device
+							id           : peer.id,
+							displayName  : peer.data.displayName,
+							device       : peer.data.device,
+							breakoutroom : newDatas
 						})
 						.catch(() => {});
 				}
@@ -1416,7 +1525,88 @@ class Room extends EventEmitter
 
 				break;
 			}
+			case 'addbreakRooms':
+			{
+				
+				// Ensure the Peer is joined.
+				if (!peer.data.joined)
+					throw new Error('Peer not yet joined');
+					
+				const breakoutRoomData  = request.data;
+				
+				// Store the breakRooms into the custom data Object of the protoo
+				// Peer.
+				peer.data.breakoutroom = breakoutRoomData;
+				//peer.data.breakoutroom.set(breakoutRoomData.id,breakoutRoomData);
+				console.log('breakoutroom',breakoutRoomData)
+				//peer.data.breakoutroom.set(breakoutRoomData);
+				//accept({ breakoutroom: breakoutRoomData });
 
+				const joinedPeers =
+				[
+					...this._getJoinedPeers(),
+					...this._broadcasters.values()
+				];
+				// console.log('peers addr',peer);
+				// let dataarr = JSON.stringify(breakoutRoomData, null, 2);
+				// console.log('dataarr',dataarr);
+				// let fileDetname = this._roomId;
+				// let fileExists = fs.existsSync(fileDetname+'.json')
+				// if(fileExists){
+				// 	const file = fs.readFileSync(fileDetname+'.json')
+				
+				// 	//fs.writeFileSync('student.json', dataarr);
+				// 	// fs.writeFileSync('student.json', dataarr, (err) => {
+				// 	// 	if (err) throw err;
+				// 	// 	console.log('Data written to file');
+				// 	// });
+				// 	if (file.length == 0) {
+				// 		//add data to json file
+				// 		fs.writeFileSync(fileDetname+'.json', JSON.stringify([breakoutRoomData], null, 2))
+				// 		newDatas = 	{};
+				// 	} else {
+				// 		//append data to jso file
+				// 		const json = JSON.parse(file.toString())
+				// 		//add json element to json object
+				// 		json.push(breakoutRoomData);
+				// 		fs.writeFileSync(fileDetname+'.json', JSON.stringify(json), null, 2)
+				// 		//newDatas = require('../student.json');
+				// 		newDatas = JSON.parse(fs.readFileSync(fileDetname+'.json', 'utf8'));
+				// 	}
+				// }
+				// else{
+				// 	fs.writeFileSync(fileDetname+'.json', JSON.stringify([breakoutRoomData], null, 2))
+				// }
+				
+				
+
+				// // for (const joinedPeer of joinedPeers)
+				// // {
+				// // 	console.log('joinedPeers',joinedPeer.data.breakoutroom);
+
+				// // 		// Store the Consumer into the protoo consumerPeer data Object.
+				// // 		peer.data.breakoutroom.set(joinedPeer.data.breakoutroom);
+				// // }
+
+
+				// // Notify other joined Peers.
+				// for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
+				// {
+					
+						
+				// 		otherPeer.notify(
+				// 			'newaddedRoom',
+				// 			{
+				// 				breakoutRoomData:breakoutRoomData
+				// 			})
+				// 			.catch(() => {});
+				// }
+				
+				
+				accept();
+
+				break;
+			}
 			case 'getTransportStats':
 			{
 				const { transportId } = request.data;
@@ -1812,7 +2002,7 @@ class Room extends EventEmitter
 		}
 
 		// Store the DataConsumer into the protoo dataConsumerPeer data Object.
-		dataConsumerPeer.data.dataConsumers.set(dataConsumer.id, dataConsumer);
+		//dataConsumerPeer.data.dataConsumers.set(dataConsumer.id, dataConsumer);
 
 		// Set DataConsumer events.
 		dataConsumer.on('transportclose', () =>

@@ -9,42 +9,42 @@ import * as e2e from './e2e';
 
 const VIDEO_CONSTRAINS =
 {
-	qvga : { width: { ideal: 320 }, height: { ideal: 240 } },
-	vga  : { width: { ideal: 640 }, height: { ideal: 480 } },
-	hd   : { width: { ideal: 1280 }, height: { ideal: 720 } }
+	qvga: { width: { ideal: 320 }, height: { ideal: 240 } },
+	vga: { width: { ideal: 640 }, height: { ideal: 480 } },
+	hd: { width: { ideal: 1280 }, height: { ideal: 720 } }
 };
 
 const PC_PROPRIETARY_CONSTRAINTS =
 {
-	optional : [ { googDscp: true } ]
+	optional: [{ googDscp: true }]
 };
 
 // Used for simulcast webcam video.
 const WEBCAM_SIMULCAST_ENCODINGS =
-[
-	{ scaleResolutionDownBy: 4, maxBitrate: 500000 },
-	{ scaleResolutionDownBy: 2, maxBitrate: 1000000 },
-	{ scaleResolutionDownBy: 1, maxBitrate: 5000000 }
-];
+	[
+		{ scaleResolutionDownBy: 4, maxBitrate: 500000 },
+		{ scaleResolutionDownBy: 2, maxBitrate: 1000000 },
+		{ scaleResolutionDownBy: 1, maxBitrate: 5000000 }
+	];
 
 // Used for VP9 webcam video.
 const WEBCAM_KSVC_ENCODINGS =
-[
-	{ scalabilityMode: 'S3T3_KEY' }
-];
+	[
+		{ scalabilityMode: 'S3T3_KEY' }
+	];
 
 // Used for simulcast screen sharing.
 const SCREEN_SHARING_SIMULCAST_ENCODINGS =
-[
-	{ dtx: true, maxBitrate: 1500000 },
-	{ dtx: true, maxBitrate: 6000000 }
-];
+	[
+		{ dtx: true, maxBitrate: 1500000 },
+		{ dtx: true, maxBitrate: 6000000 }
+	];
 
 // Used for VP9 screen sharing.
 const SCREEN_SHARING_SVC_ENCODINGS =
-[
-	{ scalabilityMode: 'S3T3', dtx: true }
-];
+	[
+		{ scalabilityMode: 'S3T3', dtx: true }
+	];
 
 const EXTERNAL_VIDEO_SRC = '/resources/videos/video-audio-stereo.mp4';
 
@@ -52,20 +52,20 @@ const logger = new Logger('RoomClient');
 
 let store;
 
-export default class RoomClient
-{
+export default class RoomClient {
 	/**
 	 * @param  {Object} data
 	 * @param  {Object} data.store - The Redux store.
 	 */
-	static init(data)
-	{
+	static init(data) {
 		store = data.store;
+		console.log('store data', data);
 	}
 
 	constructor(
 		{
 			roomId,
+			roomName,
 			peerId,
 			displayName,
 			device,
@@ -81,13 +81,19 @@ export default class RoomClient
 			datachannel,
 			externalVideo,
 			e2eKey,
-			consumerReplicas
+			consumerReplicas,
+			breakoutRooms
 		}
-	)
-	{
+	) {
+		
+		
 		logger.debug(
 			'constructor() [roomId:"%s", peerId:"%s", displayName:"%s", device:%s]',
 			roomId, peerId, displayName, device.flag);
+
+		// Closed flag.
+		// @type {Boolean}
+		this.roomId = roomId;
 
 		// Closed flag.
 		// @type {Boolean}
@@ -96,6 +102,14 @@ export default class RoomClient
 		// Display name.
 		// @type {String}
 		this._displayName = displayName;
+
+		// Display name.
+		// @type {String}
+		this._roomName = roomName;
+
+		// Display name.
+		// @type {String}
+		this.breakoutRooms = breakoutRooms;
 
 		// Device info.
 		// @type {Object}
@@ -138,8 +152,7 @@ export default class RoomClient
 		// @type {Number}
 		this._nextDataChannelTestNumber = 0;
 
-		if (externalVideo)
-		{
+		if (externalVideo) {
 			this._externalVideo = document.createElement('video');
 
 			this._externalVideo.controls = true;
@@ -167,7 +180,9 @@ export default class RoomClient
 
 		// Protoo URL.
 		// @type {String}
-		this._protooUrl = getProtooUrl({ roomId, peerId, consumerReplicas });
+		this._protooUrl = getProtooUrl({ roomId, roomName, peerId, consumerReplicas });
+
+		
 
 		// protoo-client Peer instance.
 		// @type {protooClient.Peer}
@@ -223,25 +238,25 @@ export default class RoomClient
 		// - {String} [resolution] - 'qvga' / 'vga' / 'hd'.
 		this._webcam =
 		{
-			device     : null,
-			resolution : 'hd'
+			device: null,
+			resolution: 'hd'
 		};
 
 		// Set custom SVC scalability mode.
-		if (svc)
-		{
+		if (svc) {
 			WEBCAM_KSVC_ENCODINGS[0].scalabilityMode = `${svc}_KEY`;
 			SCREEN_SHARING_SVC_ENCODINGS[0].scalabilityMode = svc;
 		}
 
-		if (this._e2eKey && e2e.isSupported())
-		{
+		if (this._e2eKey && e2e.isSupported()) {
 			e2e.setCryptoKey('setCryptoKey', this._e2eKey, true);
 		}
+
+		console.log('breakoutRooms new', breakoutRooms);
 	}
 
-	close()
-	{
+	close() {
+		
 		if (this._closed)
 			return;
 
@@ -261,45 +276,55 @@ export default class RoomClient
 
 		store.dispatch(
 			stateActions.setRoomState('closed'));
+			
+
+		
 	}
+	closePeer() {
+		
 
-	async join()
-	{
+		logger.debug('closePeer()');
+
+		// Close protoo Peer
+		this._protoo.close();
+
+		
+	}
+	async join() {
+		console.log('roomId vimala',this.breakoutRooms);
+		console.log(this._protooUrl,"this._protooUrl");
 		const protooTransport = new protooClient.WebSocketTransport(this._protooUrl);
-
+		console.log(protooTransport,"protooTransport");
 		this._protoo = new protooClient.Peer(protooTransport);
-
+		console.log('this._protoo',this._protoo);
 		store.dispatch(
 			stateActions.setRoomState('connecting'));
 
 		this._protoo.on('open', () => this._joinRoom());
 
-		this._protoo.on('failed', () =>
-		{
+		this._protoo.on('failed', () => {
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : 'WebSocket connection failed'
+					type: 'error',
+					text: 'WebSocket connection failed'
 				}));
 		});
 
-		this._protoo.on('disconnected', () =>
-		{
+		this._protoo.on('disconnected', () => {
+			
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : 'WebSocket disconnected'
+					type: 'error',
+					text: 'WebSocket disconnected'
 				}));
 
 			// Close mediasoup Transports.
-			if (this._sendTransport)
-			{
+			if (this._sendTransport) {
 				this._sendTransport.close();
 				this._sendTransport = null;
 			}
 
-			if (this._recvTransport)
-			{
+			if (this._recvTransport) {
 				this._recvTransport.close();
 				this._recvTransport = null;
 			}
@@ -308,494 +333,494 @@ export default class RoomClient
 				stateActions.setRoomState('closed'));
 		});
 
-		this._protoo.on('close', () =>
-		{
+		this._protoo.on('close', () => {
 			if (this._closed)
 				return;
-
+			//localStorage.removeItem("testObject");
+			window.sessionStorage.removeItem("testObject");
 			this.close();
 		});
 
 		// eslint-disable-next-line no-unused-vars
-		this._protoo.on('request', async (request, accept, reject) =>
-		{
+		this._protoo.on('request', async (request, accept, reject) => {
 			logger.debug(
 				'proto "request" event [method:%s, data:%o]',
 				request.method, request.data);
 
-			switch (request.method)
-			{
+			switch (request.method) {
 				case 'newConsumer':
-				{
-					if (!this._consume)
 					{
-						reject(403, 'I do not want to consume');
+						if (!this._consume) {
+							reject(403, 'I do not want to consume');
 
-						break;
-					}
-
-					const {
-						peerId,
-						producerId,
-						id,
-						kind,
-						rtpParameters,
-						type,
-						appData,
-						producerPaused
-					} = request.data;
-
-					try
-					{
-						const consumer = await this._recvTransport.consume(
-							{
-								id,
-								producerId,
-								kind,
-								rtpParameters,
-								// NOTE: Force streamId to be same in mic and webcam and different
-								// in screen sharing so libwebrtc will just try to sync mic and
-								// webcam streams from the same remote peer.
-								streamId : `${peerId}-${appData.share ? 'share' : 'mic-webcam'}`,
-								appData  : { ...appData, peerId } // Trick.
-							});
-
-						if (this._e2eKey && e2e.isSupported())
-						{
-							e2e.setupReceiverTransform(consumer.rtpReceiver);
+							break;
 						}
 
-						// Store in the map.
-						this._consumers.set(consumer.id, consumer);
+						const {
+							peerId,
+							producerId,
+							id,
+							kind,
+							rtpParameters,
+							type,
+							appData,
+							producerPaused
+						} = request.data;
+						console.log('Dharshan Data',request.data);
+						try {
+							const consumer = await this._recvTransport.consume(
+								{
+									id,
+									producerId,
+									kind,
+									rtpParameters,
+									// NOTE: Force streamId to be same in mic and webcam and different
+									// in screen sharing so libwebrtc will just try to sync mic and
+									// webcam streams from the same remote peer.
+									streamId: `${peerId}-${appData.share ? 'share' : 'mic-webcam'}`,
+									appData: { ...appData, peerId } // Trick.
+								});
 
-						consumer.on('transportclose', () =>
-						{
-							this._consumers.delete(consumer.id);
-						});
+							if (this._e2eKey && e2e.isSupported()) {
+								e2e.setupReceiverTransform(consumer.rtpReceiver);
+							}
 
-						const { spatialLayers, temporalLayers } =
-							mediasoupClient.parseScalabilityMode(
-								consumer.rtpParameters.encodings[0].scalabilityMode);
+							// Store in the map.
+							this._consumers.set(consumer.id, consumer);
 
-						store.dispatch(stateActions.addConsumer(
-							{
-								id                     : consumer.id,
-								type                   : type,
-								locallyPaused          : false,
-								remotelyPaused         : producerPaused,
-								rtpParameters          : consumer.rtpParameters,
-								spatialLayers          : spatialLayers,
-								temporalLayers         : temporalLayers,
-								preferredSpatialLayer  : spatialLayers - 1,
-								preferredTemporalLayer : temporalLayers - 1,
-								priority               : 1,
-								codec                  : consumer.rtpParameters.codecs[0].mimeType.split('/')[1],
-								track                  : consumer.track
-							},
-							peerId));
-
-						// We are ready. Answer the protoo request so the server will
-						// resume this Consumer (which was paused for now if video).
-						accept();
-
-						// If audio-only mode is enabled, pause it.
-						if (consumer.kind === 'video' && store.getState().me.audioOnly)
-							this._pauseConsumer(consumer);
-					}
-					catch (error)
-					{
-						logger.error('"newConsumer" request failed:%o', error);
-
-						store.dispatch(requestActions.notify(
-							{
-								type : 'error',
-								text : `Error creating a Consumer: ${error}`
-							}));
-
-						throw error;
-					}
-
-					break;
-				}
-
-				case 'newDataConsumer':
-				{
-					if (!this._consume)
-					{
-						reject(403, 'I do not want to data consume');
-
-						break;
-					}
-
-					if (!this._useDataChannel)
-					{
-						reject(403, 'I do not want DataChannels');
-
-						break;
-					}
-
-					const {
-						peerId, // NOTE: Null if bot.
-						dataProducerId,
-						id,
-						sctpStreamParameters,
-						label,
-						protocol,
-						appData
-					} = request.data;
-
-					try
-					{
-						const dataConsumer = await this._recvTransport.consumeData(
-							{
-								id,
-								dataProducerId,
-								sctpStreamParameters,
-								label,
-								protocol,
-								appData : { ...appData, peerId } // Trick.
+							consumer.on('transportclose', () => {
+								this._consumers.delete(consumer.id);
 							});
 
-						// Store in the map.
-						this._dataConsumers.set(dataConsumer.id, dataConsumer);
+							const { spatialLayers, temporalLayers } =
+								mediasoupClient.parseScalabilityMode(
+									consumer.rtpParameters.encodings[0].scalabilityMode);
 
-						dataConsumer.on('transportclose', () =>
-						{
-							this._dataConsumers.delete(dataConsumer.id);
-						});
+							store.dispatch(stateActions.addConsumer(
+								{
+									id: consumer.id,
+									type: type,
+									locallyPaused: false,
+									remotelyPaused: producerPaused,
+									rtpParameters: consumer.rtpParameters,
+									spatialLayers: spatialLayers,
+									temporalLayers: temporalLayers,
+									preferredSpatialLayer: spatialLayers - 1,
+									preferredTemporalLayer: temporalLayers - 1,
+									priority: 1,
+									codec: consumer.rtpParameters.codecs[0].mimeType.split('/')[1],
+									track: consumer.track
+								},
+								peerId));
 
-						dataConsumer.on('open', () =>
-						{
-							logger.debug('DataConsumer "open" event');
-						});
+							// We are ready. Answer the protoo request so the server will
+							// resume this Consumer (which was paused for now if video).
+							accept();
 
-						dataConsumer.on('close', () =>
-						{
-							logger.warn('DataConsumer "close" event');
-
-							this._dataConsumers.delete(dataConsumer.id);
+							// If audio-only mode is enabled, pause it.
+							if (consumer.kind === 'video' && store.getState().me.audioOnly)
+								this._pauseConsumer(consumer);
+						}
+						catch (error) {
+							logger.error('"newConsumer" request failed:%o', error);
 
 							store.dispatch(requestActions.notify(
 								{
-									type : 'error',
-									text : 'DataConsumer closed'
+									type: 'error',
+									text: `Error creating a Consumer: ${error}`
 								}));
-						});
 
-						dataConsumer.on('error', (error) =>
-						{
-							logger.error('DataConsumer "error" event:%o', error);
+							throw error;
+						}
 
-							store.dispatch(requestActions.notify(
+						break;
+					}
+
+				case 'newDataConsumer':
+					{
+						if (!this._consume) {
+							reject(403, 'I do not want to data consume');
+
+							break;
+						}
+
+						if (!this._useDataChannel) {
+							reject(403, 'I do not want DataChannels');
+
+							break;
+						}
+
+						const {
+							peerId, // NOTE: Null if bot.
+							dataProducerId,
+							id,
+							sctpStreamParameters,
+							label,
+							protocol,
+							appData
+						} = request.data;
+
+						try {
+							const dataConsumer = await this._recvTransport.consumeData(
 								{
-									type : 'error',
-									text : `DataConsumer error: ${error}`
-								}));
-						});
+									id,
+									dataProducerId,
+									sctpStreamParameters,
+									label,
+									protocol,
+									appData: { ...appData, peerId } // Trick.
+								});
 
-						dataConsumer.on('message', (message) =>
-						{
-							logger.debug(
-								'DataConsumer "message" event [streamId:%d]',
-								dataConsumer.sctpStreamParameters.streamId);
+							// Store in the map.
+							this._dataConsumers.set(dataConsumer.id, dataConsumer);
 
-							// TODO: For debugging.
-							window.DC_MESSAGE = message;
+							dataConsumer.on('transportclose', () => {
+								this._dataConsumers.delete(dataConsumer.id);
+							});
 
-							if (message instanceof ArrayBuffer)
-							{
-								const view = new DataView(message);
-								const number = view.getUint32();
+							dataConsumer.on('open', () => {
+								logger.debug('DataConsumer "open" event');
+							});
 
-								if (number == Math.pow(2, 32) - 1)
-								{
-									logger.warn('dataChannelTest finished!');
+							dataConsumer.on('close', () => {
+								logger.warn('DataConsumer "close" event');
 
-									this._nextDataChannelTestNumber = 0;
+								this._dataConsumers.delete(dataConsumer.id);
+
+								store.dispatch(requestActions.notify(
+									{
+										type: 'error',
+										text: 'DataConsumer closed'
+									}));
+							});
+
+							dataConsumer.on('error', (error) => {
+								logger.error('DataConsumer "error" event:%o', error);
+
+								store.dispatch(requestActions.notify(
+									{
+										type: 'error',
+										text: `DataConsumer error: ${error}`
+									}));
+							});
+
+							dataConsumer.on('message', (message) => {
+								logger.debug(
+									'DataConsumer "message" event [streamId:%d]',
+									dataConsumer.sctpStreamParameters.streamId);
+
+								// TODO: For debugging.
+								window.DC_MESSAGE = message;
+
+								if (message instanceof ArrayBuffer) {
+									const view = new DataView(message);
+									const number = view.getUint32();
+
+									if (number == Math.pow(2, 32) - 1) {
+										logger.warn('dataChannelTest finished!');
+
+										this._nextDataChannelTestNumber = 0;
+
+										return;
+									}
+
+									if (number > this._nextDataChannelTestNumber) {
+										logger.warn(
+											'dataChannelTest: %s packets missing',
+											number - this._nextDataChannelTestNumber);
+									}
+
+									this._nextDataChannelTestNumber = number + 1;
+
+									return;
+								}
+								else if (typeof message !== 'string') {
+									logger.warn('ignoring DataConsumer "message" (not a string)');
 
 									return;
 								}
 
-								if (number > this._nextDataChannelTestNumber)
-								{
-									logger.warn(
-										'dataChannelTest: %s packets missing',
-										number - this._nextDataChannelTestNumber);
-								}
-
-								this._nextDataChannelTestNumber = number + 1;
-
-								return;
-							}
-							else if (typeof message !== 'string')
-							{
-								logger.warn('ignoring DataConsumer "message" (not a string)');
-
-								return;
-							}
-
-							switch (dataConsumer.label)
-							{
-								case 'chat':
-								{
-									const { peers } = store.getState();
-									const peersArray = Object.keys(peers)
-										.map((_peerId) => peers[_peerId]);
-									const sendingPeer = peersArray
-										.find((peer) => peer.dataConsumers.includes(dataConsumer.id));
-
-									if (!sendingPeer)
-									{
-										logger.warn('DataConsumer "message" from unknown peer');
-
-										break;
-									}
-
-									store.dispatch(requestActions.notify(
+								switch (dataConsumer.label) {
+									case 'chat':
 										{
-											title   : `${sendingPeer.displayName} says:`,
-											text    : message,
-											timeout : 5000
-										}));
+											const { peers } = store.getState();
+											const peersArray = Object.keys(peers)
+												.map((_peerId) => peers[_peerId]);
+											const sendingPeer = peersArray
+												.find((peer) => peer.dataConsumers.includes(dataConsumer.id));
 
-									break;
-								}
+											if (!sendingPeer) {
+												logger.warn('DataConsumer "message" from unknown peer');
 
-								case 'bot':
-								{
-									store.dispatch(requestActions.notify(
+												break;
+											}
+
+											store.dispatch(requestActions.notify(
+												{
+													title: `${sendingPeer.displayName} says:`,
+													text: message,
+													timeout: 5000
+												}));
+
+											break;
+										}
+
+									case 'bot':
 										{
-											title   : 'Message from Bot:',
-											text    : message,
-											timeout : 5000
-										}));
+											store.dispatch(requestActions.notify(
+												{
+													title: 'Message from Bot:',
+													text: message,
+													timeout: 5000
+												}));
 
-									break;
+											break;
+										}
 								}
-							}
-						});
+							});
 
-						// TODO: REMOVE
-						window.DC = dataConsumer;
+							// TODO: REMOVE
+							window.DC = dataConsumer;
 
-						store.dispatch(stateActions.addDataConsumer(
-							{
-								id                   : dataConsumer.id,
-								sctpStreamParameters : dataConsumer.sctpStreamParameters,
-								label                : dataConsumer.label,
-								protocol             : dataConsumer.protocol
-							},
-							peerId));
+							store.dispatch(stateActions.addDataConsumer(
+								{
+									id: dataConsumer.id,
+									sctpStreamParameters: dataConsumer.sctpStreamParameters,
+									label: dataConsumer.label,
+									protocol: dataConsumer.protocol
+								},
+								peerId));
 
-						// We are ready. Answer the protoo request.
-						accept();
+							// We are ready. Answer the protoo request.
+							accept();
+						}
+						catch (error) {
+							logger.error('"newDataConsumer" request failed:%o', error);
+
+							store.dispatch(requestActions.notify(
+								{
+									type: 'error',
+									text: `Error creating a DataConsumer: ${error}`
+								}));
+
+							throw error;
+						}
+
+						break;
 					}
-					catch (error)
+					case 'addnewRoom':
 					{
-						logger.error('"newDataConsumer" request failed:%o', error);
-
-						store.dispatch(requestActions.notify(
-							{
-								type : 'error',
-								text : `Error creating a DataConsumer: ${error}`
-							}));
-
-						throw error;
+						console.log('addnewRoom');
+						break;
 					}
-
-					break;
-				}
 			}
 		});
 
-		this._protoo.on('notification', (notification) =>
-		{
+		this._protoo.on('notification', (notification) => {
 			logger.debug(
 				'proto "notification" event [method:%s, data:%o]',
 				notification.method, notification.data);
 
-			switch (notification.method)
-			{
+			switch (notification.method) {
 				case 'producerScore':
-				{
-					const { producerId, score } = notification.data;
+					{
+						const { producerId, score } = notification.data;
 
-					store.dispatch(
-						stateActions.setProducerScore(producerId, score));
+						store.dispatch(
+							stateActions.setProducerScore(producerId, score));
 
-					break;
-				}
+						break;
+					}
 
 				case 'newPeer':
-				{
-					const peer = notification.data;
+					{
+						const peer = notification.data;
 
-					store.dispatch(
-						stateActions.addPeer(
-							{ ...peer, consumers: [], dataConsumers: [] }));
+						store.dispatch(
+							stateActions.addPeer(
+								{ ...peer, consumers: [], dataConsumers: []}));
 
-					store.dispatch(requestActions.notify(
-						{
-							text : `${peer.displayName} has joined the room`
-						}));
+						store.dispatch(requestActions.notify(
+							{
+								text: `${peer.displayName} has joined the room`
+							}));
 
-					break;
-				}
+						break;
+					}
+				case 'newaddedRoom':
+					{
+						console.log("notification.data", notification.data);
+						const breakoutRoomData = notification.data.breakoutRoomData;
+						store.dispatch(
+							stateActions.addRoom({ ...breakoutRoomData }));
 
+						store.dispatch(requestActions.notify(
+							{
+								text: `New Breakout room added`
+							}));
+
+						break;
+					}
 				case 'peerClosed':
-				{
-					const { peerId } = notification.data;
+					{
+						const { peerId } = notification.data;
 
-					store.dispatch(
-						stateActions.removePeer(peerId));
+						store.dispatch(
+							stateActions.removePeer(peerId));
+						
+							//localStorage.removeItem("testObject");
+							window.sessionStorage.removeItem("testObject");
 
-					break;
-				}
+						break;
+					}
 
 				case 'peerDisplayNameChanged':
-				{
-					const { peerId, displayName, oldDisplayName } = notification.data;
+					{
+						console.log("peerDisplayNameChanged data", notification.data);
+						const { peerId, displayName, oldDisplayName } = notification.data;
 
-					store.dispatch(
-						stateActions.setPeerDisplayName(displayName, peerId));
+						store.dispatch(
+							stateActions.setPeerDisplayName(displayName, peerId));
 
-					store.dispatch(requestActions.notify(
-						{
-							text : `${oldDisplayName} is now ${displayName}`
-						}));
+						store.dispatch(requestActions.notify(
+							{
+								text: `${oldDisplayName} is now ${displayName}`
+							}));
 
-					break;
-				}
+						break;
+					}
 
 				case 'downlinkBwe':
-				{
-					logger.debug('\'downlinkBwe\' event:%o', notification.data);
+					{
+						logger.debug('\'downlinkBwe\' event:%o', notification.data);
 
-					break;
-				}
+						break;
+					}
 
 				case 'consumerClosed':
-				{
-					const { consumerId } = notification.data;
-					const consumer = this._consumers.get(consumerId);
+					{
+						const { consumerId } = notification.data;
+						const consumer = this._consumers.get(consumerId);
 
-					if (!consumer)
+						if (!consumer)
+							break;
+
+						consumer.close();
+						this._consumers.delete(consumerId);
+
+						const { peerId } = consumer.appData;
+
+						store.dispatch(
+							stateActions.removeConsumer(consumerId, peerId));
+							//localStorage.removeItem("testObject");
+							window.sessionStorage.removeItem("testObject");
+
 						break;
-
-					consumer.close();
-					this._consumers.delete(consumerId);
-
-					const { peerId } = consumer.appData;
-
-					store.dispatch(
-						stateActions.removeConsumer(consumerId, peerId));
-
-					break;
-				}
+					}
 
 				case 'consumerPaused':
-				{
-					const { consumerId } = notification.data;
-					const consumer = this._consumers.get(consumerId);
+					{
+						const { consumerId } = notification.data;
+						const consumer = this._consumers.get(consumerId);
 
-					if (!consumer)
+						if (!consumer)
+							break;
+
+						consumer.pause();
+
+						store.dispatch(
+							stateActions.setConsumerPaused(consumerId, 'remote'));
+
 						break;
-
-					consumer.pause();
-
-					store.dispatch(
-						stateActions.setConsumerPaused(consumerId, 'remote'));
-
-					break;
-				}
+					}
 
 				case 'consumerResumed':
-				{
-					const { consumerId } = notification.data;
-					const consumer = this._consumers.get(consumerId);
+					{
+						const { consumerId } = notification.data;
+						const consumer = this._consumers.get(consumerId);
 
-					if (!consumer)
+						if (!consumer)
+							break;
+
+						consumer.resume();
+
+						store.dispatch(
+							stateActions.setConsumerResumed(consumerId, 'remote'));
+
 						break;
-
-					consumer.resume();
-
-					store.dispatch(
-						stateActions.setConsumerResumed(consumerId, 'remote'));
-
-					break;
-				}
+					}
 
 				case 'consumerLayersChanged':
-				{
-					const { consumerId, spatialLayer, temporalLayer } = notification.data;
-					const consumer = this._consumers.get(consumerId);
+					{
+						const { consumerId, spatialLayer, temporalLayer } = notification.data;
+						const consumer = this._consumers.get(consumerId);
 
-					if (!consumer)
+						if (!consumer)
+							break;
+
+						store.dispatch(stateActions.setConsumerCurrentLayers(
+							consumerId, spatialLayer, temporalLayer));
+
 						break;
-
-					store.dispatch(stateActions.setConsumerCurrentLayers(
-						consumerId, spatialLayer, temporalLayer));
-
-					break;
-				}
+					}
 
 				case 'consumerScore':
-				{
-					const { consumerId, score } = notification.data;
+					{
+						const { consumerId, score } = notification.data;
 
-					store.dispatch(
-						stateActions.setConsumerScore(consumerId, score));
+						store.dispatch(
+							stateActions.setConsumerScore(consumerId, score));
 
-					break;
-				}
+						break;
+					}
 
 				case 'dataConsumerClosed':
-				{
-					const { dataConsumerId } = notification.data;
-					const dataConsumer = this._dataConsumers.get(dataConsumerId);
+					{
+						const { dataConsumerId } = notification.data;
+						const dataConsumer = this._dataConsumers.get(dataConsumerId);
 
-					if (!dataConsumer)
+						if (!dataConsumer)
+							break;
+
+						dataConsumer.close();
+						this._dataConsumers.delete(dataConsumerId);
+
+						const { peerId } = dataConsumer.appData;
+
+						store.dispatch(
+							stateActions.removeDataConsumer(dataConsumerId, peerId));
+							
+							//localStorage.removeItem("testObject");
+							window.sessionStorage.removeItem("testObject");
 						break;
-
-					dataConsumer.close();
-					this._dataConsumers.delete(dataConsumerId);
-
-					const { peerId } = dataConsumer.appData;
-
-					store.dispatch(
-						stateActions.removeDataConsumer(dataConsumerId, peerId));
-
-					break;
-				}
+					}
 
 				case 'activeSpeaker':
-				{
-					const { peerId } = notification.data;
+					{
+						const { peerId } = notification.data;
 
-					store.dispatch(
-						stateActions.setRoomActiveSpeaker(peerId));
+						store.dispatch(
+							stateActions.setRoomActiveSpeaker(peerId));
 
-					break;
-				}
+						break;
+					}
 
 				default:
-				{
-					logger.error(
-						'unknown protoo notification.method "%s"', notification.method);
-				}
+					{
+						logger.error(
+							'unknown protoo notification.method "%s"', notification.method);
+					}
 			}
 		});
 	}
 
-	async enableMic()
-	{
+	async enableMic() {
 		logger.debug('enableMic()');
 
 		if (this._micProducer)
 			return;
 
-		if (!this._mediasoupDevice.canProduce('audio'))
-		{
+		if (!this._mediasoupDevice.canProduce('audio')) {
 			logger.error('enableMic() | cannot produce audio');
 
 			return;
@@ -803,18 +828,15 @@ export default class RoomClient
 
 		let track;
 
-		try
-		{
-			if (!this._externalVideo)
-			{
+		try {
+			if (!this._externalVideo) {
 				logger.debug('enableMic() | calling getUserMedia()');
 
 				const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
 				track = stream.getAudioTracks()[0];
 			}
-			else
-			{
+			else {
 				const stream = await this._getExternalVideoStream();
 
 				track = stream.getAudioTracks()[0].clone();
@@ -823,55 +845,51 @@ export default class RoomClient
 			this._micProducer = await this._sendTransport.produce(
 				{
 					track,
-					codecOptions :
+					codecOptions:
 					{
-						opusStereo : 1,
-						opusDtx    : 1
+						opusStereo: 1,
+						opusDtx: 1
 					}
 					// NOTE: for testing codec selection.
 					// codec : this._mediasoupDevice.rtpCapabilities.codecs
 					// 	.find((codec) => codec.mimeType.toLowerCase() === 'audio/pcma')
 				});
 
-			if (this._e2eKey && e2e.isSupported())
-			{
+			if (this._e2eKey && e2e.isSupported()) {
 				e2e.setupSenderTransform(this._micProducer.rtpSender);
 			}
 
 			store.dispatch(stateActions.addProducer(
 				{
-					id            : this._micProducer.id,
-					paused        : this._micProducer.paused,
-					track         : this._micProducer.track,
-					rtpParameters : this._micProducer.rtpParameters,
-					codec         : this._micProducer.rtpParameters.codecs[0].mimeType.split('/')[1]
+					id: this._micProducer.id,
+					paused: this._micProducer.paused,
+					track: this._micProducer.track,
+					rtpParameters: this._micProducer.rtpParameters,
+					codec: this._micProducer.rtpParameters.codecs[0].mimeType.split('/')[1]
 				}));
 
-			this._micProducer.on('transportclose', () =>
-			{
+			this._micProducer.on('transportclose', () => {
 				this._micProducer = null;
 			});
 
-			this._micProducer.on('trackended', () =>
-			{
+			this._micProducer.on('trackended', () => {
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : 'Microphone disconnected!'
+						type: 'error',
+						text: 'Microphone disconnected!'
 					}));
 
 				this.disableMic()
-					.catch(() => {});
+					.catch(() => { });
 			});
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('enableMic() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error enabling microphone: ${error}`
+					type: 'error',
+					text: `Error enabling microphone: ${error}`
 				}));
 
 			if (track)
@@ -879,8 +897,7 @@ export default class RoomClient
 		}
 	}
 
-	async disableMic()
-	{
+	async disableMic() {
 		logger.debug('disableMic()');
 
 		if (!this._micProducer)
@@ -890,78 +907,70 @@ export default class RoomClient
 
 		store.dispatch(
 			stateActions.removeProducer(this._micProducer.id));
+		
 
-		try
-		{
+		try {
 			await this._protoo.request(
 				'closeProducer', { producerId: this._micProducer.id });
 		}
-		catch (error)
-		{
+		catch (error) {
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error closing server-side mic Producer: ${error}`
+					type: 'error',
+					text: `Error closing server-side mic Producer: ${error}`
 				}));
 		}
 
 		this._micProducer = null;
 	}
 
-	async muteMic()
-	{
+	async muteMic() {
 		logger.debug('muteMic()');
 
 		this._micProducer.pause();
 
-		try
-		{
+		try {
 			await this._protoo.request(
 				'pauseProducer', { producerId: this._micProducer.id });
 
 			store.dispatch(
 				stateActions.setProducerPaused(this._micProducer.id));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('muteMic() | failed: %o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error pausing server-side mic Producer: ${error}`
+					type: 'error',
+					text: `Error pausing server-side mic Producer: ${error}`
 				}));
 		}
 	}
 
-	async unmuteMic()
-	{
+	async unmuteMic() {
 		logger.debug('unmuteMic()');
 
 		this._micProducer.resume();
 
-		try
-		{
+		try {
 			await this._protoo.request(
 				'resumeProducer', { producerId: this._micProducer.id });
 
 			store.dispatch(
 				stateActions.setProducerResumed(this._micProducer.id));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('unmuteMic() | failed: %o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error resuming server-side mic Producer: ${error}`
+					type: 'error',
+					text: `Error resuming server-side mic Producer: ${error}`
 				}));
 		}
 	}
 
-	async enableWebcam()
-	{
+	async enableWebcam() {
 		logger.debug('enableWebcam()');
 
 		if (this._webcamProducer)
@@ -969,8 +978,7 @@ export default class RoomClient
 		else if (this._shareProducer)
 			await this.disableShare();
 
-		if (!this._mediasoupDevice.canProduce('video'))
-		{
+		if (!this._mediasoupDevice.canProduce('video')) {
 			logger.error('enableWebcam() | cannot produce video');
 
 			return;
@@ -982,10 +990,8 @@ export default class RoomClient
 		store.dispatch(
 			stateActions.setWebcamInProgress(true));
 
-		try
-		{
-			if (!this._externalVideo)
-			{
+		try {
+			if (!this._externalVideo) {
 				await this._updateWebcams();
 				device = this._webcam.device;
 
@@ -998,17 +1004,16 @@ export default class RoomClient
 
 				const stream = await navigator.mediaDevices.getUserMedia(
 					{
-						video :
+						video:
 						{
-							deviceId : { ideal: device.deviceId },
+							deviceId: { ideal: device.deviceId },
 							...VIDEO_CONSTRAINS[resolution]
 						}
 					});
 
 				track = stream.getVideoTracks()[0];
 			}
-			else
-			{
+			else {
 				device = { label: 'external video' };
 
 				const stream = await this._getExternalVideoStream();
@@ -1020,32 +1025,27 @@ export default class RoomClient
 			let codec;
 			const codecOptions =
 			{
-				videoGoogleStartBitrate : 1000
+				videoGoogleStartBitrate: 1000
 			};
 
-			if (this._forceH264)
-			{
+			if (this._forceH264) {
 				codec = this._mediasoupDevice.rtpCapabilities.codecs
 					.find((c) => c.mimeType.toLowerCase() === 'video/h264');
 
-				if (!codec)
-				{
+				if (!codec) {
 					throw new Error('desired H264 codec+configuration is not supported');
 				}
 			}
-			else if (this._forceVP9)
-			{
+			else if (this._forceVP9) {
 				codec = this._mediasoupDevice.rtpCapabilities.codecs
 					.find((c) => c.mimeType.toLowerCase() === 'video/vp9');
 
-				if (!codec)
-				{
+				if (!codec) {
 					throw new Error('desired VP9 codec+configuration is not supported');
 				}
 			}
 
-			if (this._useSimulcast)
-			{
+			if (this._useSimulcast) {
 				// If VP9 is the only available video codec then use SVC.
 				const firstVideoCodec = this._mediasoupDevice
 					.rtpCapabilities
@@ -1055,12 +1055,10 @@ export default class RoomClient
 				if (
 					(this._forceVP9 && codec) ||
 					firstVideoCodec.mimeType.toLowerCase() === 'video/vp9'
-				)
-				{
+				) {
 					encodings = WEBCAM_KSVC_ENCODINGS;
 				}
-				else
-				{
+				else {
 					encodings = WEBCAM_SIMULCAST_ENCODINGS;
 				}
 			}
@@ -1073,47 +1071,43 @@ export default class RoomClient
 					codec
 				});
 
-			if (this._e2eKey && e2e.isSupported())
-			{
+			if (this._e2eKey && e2e.isSupported()) {
 				e2e.setupSenderTransform(this._webcamProducer.rtpSender);
 			}
 
 			store.dispatch(stateActions.addProducer(
 				{
-					id            : this._webcamProducer.id,
-					deviceLabel   : device.label,
-					type          : this._getWebcamType(device),
-					paused        : this._webcamProducer.paused,
-					track         : this._webcamProducer.track,
-					rtpParameters : this._webcamProducer.rtpParameters,
-					codec         : this._webcamProducer.rtpParameters.codecs[0].mimeType.split('/')[1]
+					id: this._webcamProducer.id,
+					deviceLabel: device.label,
+					type: this._getWebcamType(device),
+					paused: this._webcamProducer.paused,
+					track: this._webcamProducer.track,
+					rtpParameters: this._webcamProducer.rtpParameters,
+					codec: this._webcamProducer.rtpParameters.codecs[0].mimeType.split('/')[1]
 				}));
 
-			this._webcamProducer.on('transportclose', () =>
-			{
+			this._webcamProducer.on('transportclose', () => {
 				this._webcamProducer = null;
 			});
 
-			this._webcamProducer.on('trackended', () =>
-			{
+			this._webcamProducer.on('trackended', () => {
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : 'Webcam disconnected!'
+						type: 'error',
+						text: 'Webcam disconnected!'
 					}));
 
 				this.disableWebcam()
-					.catch(() => {});
+					.catch(() => { });
 			});
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('enableWebcam() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error enabling webcam: ${error}`
+					type: 'error',
+					text: `Error enabling webcam: ${error}`
 				}));
 
 			if (track)
@@ -1124,8 +1118,7 @@ export default class RoomClient
 			stateActions.setWebcamInProgress(false));
 	}
 
-	async disableWebcam()
-	{
+	async disableWebcam() {
 		logger.debug('disableWebcam()');
 
 		if (!this._webcamProducer)
@@ -1136,32 +1129,28 @@ export default class RoomClient
 		store.dispatch(
 			stateActions.removeProducer(this._webcamProducer.id));
 
-		try
-		{
+		try {
 			await this._protoo.request(
 				'closeProducer', { producerId: this._webcamProducer.id });
 		}
-		catch (error)
-		{
+		catch (error) {
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error closing server-side webcam Producer: ${error}`
+					type: 'error',
+					text: `Error closing server-side webcam Producer: ${error}`
 				}));
 		}
 
 		this._webcamProducer = null;
 	}
 
-	async changeWebcam()
-	{
+	async changeWebcam() {
 		logger.debug('changeWebcam()');
 
 		store.dispatch(
 			stateActions.setWebcamInProgress(true));
 
-		try
-		{
+		try {
 			await this._updateWebcams();
 
 			const array = Array.from(this._webcams.keys());
@@ -1195,9 +1184,9 @@ export default class RoomClient
 
 			const stream = await navigator.mediaDevices.getUserMedia(
 				{
-					video :
+					video:
 					{
-						deviceId : { exact: this._webcam.device.deviceId },
+						deviceId: { exact: this._webcam.device.deviceId },
 						...VIDEO_CONSTRAINS[this._webcam.resolution]
 					}
 				});
@@ -1209,14 +1198,13 @@ export default class RoomClient
 			store.dispatch(
 				stateActions.setProducerTrack(this._webcamProducer.id, track));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('changeWebcam() | failed: %o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Could not change webcam: ${error}`
+					type: 'error',
+					text: `Could not change webcam: ${error}`
 				}));
 		}
 
@@ -1224,17 +1212,14 @@ export default class RoomClient
 			stateActions.setWebcamInProgress(false));
 	}
 
-	async changeWebcamResolution()
-	{
+	async changeWebcamResolution() {
 		logger.debug('changeWebcamResolution()');
 
 		store.dispatch(
 			stateActions.setWebcamInProgress(true));
 
-		try
-		{
-			switch (this._webcam.resolution)
-			{
+		try {
+			switch (this._webcam.resolution) {
 				case 'qvga':
 					this._webcam.resolution = 'vga';
 					break;
@@ -1252,9 +1237,9 @@ export default class RoomClient
 
 			const stream = await navigator.mediaDevices.getUserMedia(
 				{
-					video :
+					video:
 					{
-						deviceId : { exact: this._webcam.device.deviceId },
+						deviceId: { exact: this._webcam.device.deviceId },
 						...VIDEO_CONSTRAINS[this._webcam.resolution]
 					}
 				});
@@ -1266,14 +1251,13 @@ export default class RoomClient
 			store.dispatch(
 				stateActions.setProducerTrack(this._webcamProducer.id, track));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('changeWebcamResolution() | failed: %o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Could not change webcam resolution: ${error}`
+					type: 'error',
+					text: `Could not change webcam resolution: ${error}`
 				}));
 		}
 
@@ -1281,8 +1265,7 @@ export default class RoomClient
 			stateActions.setWebcamInProgress(false));
 	}
 
-	async enableShare()
-	{
+	async enableShare() {
 		logger.debug('enableShare()');
 
 		if (this._shareProducer)
@@ -1290,8 +1273,7 @@ export default class RoomClient
 		else if (this._webcamProducer)
 			await this.disableWebcam();
 
-		if (!this._mediasoupDevice.canProduce('video'))
-		{
+		if (!this._mediasoupDevice.canProduce('video')) {
 			logger.error('enableShare() | cannot produce video');
 
 			return;
@@ -1302,27 +1284,25 @@ export default class RoomClient
 		store.dispatch(
 			stateActions.setShareInProgress(true));
 
-		try
-		{
+		try {
 			logger.debug('enableShare() | calling getUserMedia()');
 
 			const stream = await navigator.mediaDevices.getDisplayMedia(
 				{
-					audio : false,
-					video :
+					audio: false,
+					video:
 					{
-						displaySurface : 'monitor',
-						logicalSurface : true,
-						cursor         : true,
-						width          : { max: 1920 },
-						height         : { max: 1080 },
-						frameRate      : { max: 30 }
+						displaySurface: 'monitor',
+						logicalSurface: true,
+						cursor: true,
+						width: { max: 1920 },
+						height: { max: 1080 },
+						frameRate: { max: 30 }
 					}
 				});
 
 			// May mean cancelled (in some implementations).
-			if (!stream)
-			{
+			if (!stream) {
 				store.dispatch(
 					stateActions.setShareInProgress(true));
 
@@ -1335,32 +1315,27 @@ export default class RoomClient
 			let codec;
 			const codecOptions =
 			{
-				videoGoogleStartBitrate : 1000
+				videoGoogleStartBitrate: 1000
 			};
 
-			if (this._forceH264)
-			{
+			if (this._forceH264) {
 				codec = this._mediasoupDevice.rtpCapabilities.codecs
 					.find((c) => c.mimeType.toLowerCase() === 'video/h264');
 
-				if (!codec)
-				{
+				if (!codec) {
 					throw new Error('desired H264 codec+configuration is not supported');
 				}
 			}
-			else if (this._forceVP9)
-			{
+			else if (this._forceVP9) {
 				codec = this._mediasoupDevice.rtpCapabilities.codecs
 					.find((c) => c.mimeType.toLowerCase() === 'video/vp9');
 
-				if (!codec)
-				{
+				if (!codec) {
 					throw new Error('desired VP9 codec+configuration is not supported');
 				}
 			}
 
-			if (this._useSharingSimulcast)
-			{
+			if (this._useSharingSimulcast) {
 				// If VP9 is the only available video codec then use SVC.
 				const firstVideoCodec = this._mediasoupDevice
 					.rtpCapabilities
@@ -1370,12 +1345,10 @@ export default class RoomClient
 				if (
 					(this._forceVP9 && codec) ||
 					firstVideoCodec.mimeType.toLowerCase() === 'video/vp9'
-				)
-				{
+				) {
 					encodings = SCREEN_SHARING_SVC_ENCODINGS;
 				}
-				else
-				{
+				else {
 					encodings = SCREEN_SHARING_SIMULCAST_ENCODINGS
 						.map((encoding) => ({ ...encoding, dtx: true }));
 				}
@@ -1387,54 +1360,49 @@ export default class RoomClient
 					encodings,
 					codecOptions,
 					codec,
-					appData :
+					appData:
 					{
-						share : true
+						share: true
 					}
 				});
 
-			if (this._e2eKey && e2e.isSupported())
-			{
+			if (this._e2eKey && e2e.isSupported()) {
 				e2e.setupSenderTransform(this._shareProducer.rtpSender);
 			}
 
 			store.dispatch(stateActions.addProducer(
 				{
-					id            : this._shareProducer.id,
-					type          : 'share',
-					paused        : this._shareProducer.paused,
-					track         : this._shareProducer.track,
-					rtpParameters : this._shareProducer.rtpParameters,
-					codec         : this._shareProducer.rtpParameters.codecs[0].mimeType.split('/')[1]
+					id: this._shareProducer.id,
+					type: 'share',
+					paused: this._shareProducer.paused,
+					track: this._shareProducer.track,
+					rtpParameters: this._shareProducer.rtpParameters,
+					codec: this._shareProducer.rtpParameters.codecs[0].mimeType.split('/')[1]
 				}));
 
-			this._shareProducer.on('transportclose', () =>
-			{
+			this._shareProducer.on('transportclose', () => {
 				this._shareProducer = null;
 			});
 
-			this._shareProducer.on('trackended', () =>
-			{
+			this._shareProducer.on('trackended', () => {
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : 'Share disconnected!'
+						type: 'error',
+						text: 'Share disconnected!'
 					}));
 
 				this.disableShare()
-					.catch(() => {});
+					.catch(() => { });
 			});
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('enableShare() | failed:%o', error);
 
-			if (error.name !== 'NotAllowedError')
-			{
+			if (error.name !== 'NotAllowedError') {
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : `Error sharing: ${error}`
+						type: 'error',
+						text: `Error sharing: ${error}`
 					}));
 			}
 
@@ -1446,8 +1414,7 @@ export default class RoomClient
 			stateActions.setShareInProgress(false));
 	}
 
-	async disableShare()
-	{
+	async disableShare() {
 		logger.debug('disableShare()');
 
 		if (!this._shareProducer)
@@ -1458,25 +1425,22 @@ export default class RoomClient
 		store.dispatch(
 			stateActions.removeProducer(this._shareProducer.id));
 
-		try
-		{
+		try {
 			await this._protoo.request(
 				'closeProducer', { producerId: this._shareProducer.id });
 		}
-		catch (error)
-		{
+		catch (error) {
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error closing server-side share Producer: ${error}`
+					type: 'error',
+					text: `Error closing server-side share Producer: ${error}`
 				}));
 		}
 
 		this._shareProducer = null;
 	}
 
-	async enableAudioOnly()
-	{
+	async enableAudioOnly() {
 		logger.debug('enableAudioOnly()');
 
 		store.dispatch(
@@ -1484,8 +1448,7 @@ export default class RoomClient
 
 		this.disableWebcam();
 
-		for (const consumer of this._consumers.values())
-		{
+		for (const consumer of this._consumers.values()) {
 			if (consumer.kind !== 'video')
 				continue;
 
@@ -1499,8 +1462,7 @@ export default class RoomClient
 			stateActions.setAudioOnlyInProgress(false));
 	}
 
-	async disableAudioOnly()
-	{
+	async disableAudioOnly() {
 		logger.debug('disableAudioOnly()');
 
 		store.dispatch(
@@ -1510,13 +1472,11 @@ export default class RoomClient
 			!this._webcamProducer &&
 			this._produce &&
 			(cookiesManager.getDevices() || {}).webcamEnabled
-		)
-		{
+		) {
 			this.enableWebcam();
 		}
 
-		for (const consumer of this._consumers.values())
-		{
+		for (const consumer of this._consumers.values()) {
 			if (consumer.kind !== 'video')
 				continue;
 
@@ -1530,33 +1490,28 @@ export default class RoomClient
 			stateActions.setAudioOnlyInProgress(false));
 	}
 
-	async muteAudio()
-	{
+	async muteAudio() {
 		logger.debug('muteAudio()');
 
 		store.dispatch(
 			stateActions.setAudioMutedState(true));
 	}
 
-	async unmuteAudio()
-	{
+	async unmuteAudio() {
 		logger.debug('unmuteAudio()');
 
 		store.dispatch(
 			stateActions.setAudioMutedState(false));
 	}
 
-	async restartIce()
-	{
+	async restartIce() {
 		logger.debug('restartIce()');
 
 		store.dispatch(
 			stateActions.setRestartIceInProgress(true));
 
-		try
-		{
-			if (this._sendTransport)
-			{
+		try {
+			if (this._sendTransport) {
 				const iceParameters = await this._protoo.request(
 					'restartIce',
 					{ transportId: this._sendTransport.id });
@@ -1564,8 +1519,7 @@ export default class RoomClient
 				await this._sendTransport.restartIce({ iceParameters });
 			}
 
-			if (this._recvTransport)
-			{
+			if (this._recvTransport) {
 				const iceParameters = await this._protoo.request(
 					'restartIce',
 					{ transportId: this._recvTransport.id });
@@ -1575,17 +1529,16 @@ export default class RoomClient
 
 			store.dispatch(requestActions.notify(
 				{
-					text : 'ICE restarted'
+					text: 'ICE restarted'
 				}));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('restartIce() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `ICE restart failed: ${error}`
+					type: 'error',
+					text: `ICE restart failed: ${error}`
 				}));
 		}
 
@@ -1593,106 +1546,93 @@ export default class RoomClient
 			stateActions.setRestartIceInProgress(false));
 	}
 
-	async setMaxSendingSpatialLayer(spatialLayer)
-	{
+	async setMaxSendingSpatialLayer(spatialLayer) {
 		logger.debug('setMaxSendingSpatialLayer() [spatialLayer:%s]', spatialLayer);
 
-		try
-		{
+		try {
 			if (this._webcamProducer)
 				await this._webcamProducer.setMaxSpatialLayer(spatialLayer);
 			else if (this._shareProducer)
 				await this._shareProducer.setMaxSpatialLayer(spatialLayer);
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('setMaxSendingSpatialLayer() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error setting max sending video spatial layer: ${error}`
+					type: 'error',
+					text: `Error setting max sending video spatial layer: ${error}`
 				}));
 		}
 	}
 
-	async setConsumerPreferredLayers(consumerId, spatialLayer, temporalLayer)
-	{
+	async setConsumerPreferredLayers(consumerId, spatialLayer, temporalLayer) {
 		logger.debug(
 			'setConsumerPreferredLayers() [consumerId:%s, spatialLayer:%s, temporalLayer:%s]',
 			consumerId, spatialLayer, temporalLayer);
 
-		try
-		{
+		try {
 			await this._protoo.request(
 				'setConsumerPreferredLayers', { consumerId, spatialLayer, temporalLayer });
 
 			store.dispatch(stateActions.setConsumerPreferredLayers(
 				consumerId, spatialLayer, temporalLayer));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('setConsumerPreferredLayers() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error setting Consumer preferred layers: ${error}`
+					type: 'error',
+					text: `Error setting Consumer preferred layers: ${error}`
 				}));
 		}
 	}
 
-	async setConsumerPriority(consumerId, priority)
-	{
+	async setConsumerPriority(consumerId, priority) {
 		logger.debug(
 			'setConsumerPriority() [consumerId:%s, priority:%d]',
 			consumerId, priority);
 
-		try
-		{
+		try {
 			await this._protoo.request('setConsumerPriority', { consumerId, priority });
 
 			store.dispatch(stateActions.setConsumerPriority(consumerId, priority));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('setConsumerPriority() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error setting Consumer priority: ${error}`
+					type: 'error',
+					text: `Error setting Consumer priority: ${error}`
 				}));
 		}
 	}
 
-	async requestConsumerKeyFrame(consumerId)
-	{
+	async requestConsumerKeyFrame(consumerId) {
 		logger.debug('requestConsumerKeyFrame() [consumerId:%s]', consumerId);
 
-		try
-		{
+		try {
 			await this._protoo.request('requestConsumerKeyFrame', { consumerId });
 
 			store.dispatch(requestActions.notify(
 				{
-					text : 'Keyframe requested for video consumer'
+					text: 'Keyframe requested for video consumer'
 				}));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('requestConsumerKeyFrame() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error requesting key frame for Consumer: ${error}`
+					type: 'error',
+					text: `Error requesting key frame for Consumer: ${error}`
 				}));
 		}
 	}
 
-	async enableChatDataProducer()
-	{
+	async enableChatDataProducer() {
 		logger.debug('enableChatDataProducer()');
 
 		if (!this._useDataChannel)
@@ -1702,81 +1642,73 @@ export default class RoomClient
 		// if (this._chatDataProducer)
 		// 	return;
 
-		try
-		{
+		try {
 			// Create chat DataProducer.
 			this._chatDataProducer = await this._sendTransport.produceData(
 				{
-					ordered        : false,
-					maxRetransmits : 1,
-					label          : 'chat',
-					priority       : 'medium',
-					appData        : { info: 'my-chat-DataProducer' }
+					ordered: false,
+					maxRetransmits: 1,
+					label: 'chat',
+					priority: 'medium',
+					appData: { info: 'my-chat-DataProducer' }
 				});
 
 			store.dispatch(stateActions.addDataProducer(
 				{
-					id                   : this._chatDataProducer.id,
-					sctpStreamParameters : this._chatDataProducer.sctpStreamParameters,
-					label                : this._chatDataProducer.label,
-					protocol             : this._chatDataProducer.protocol
+					id: this._chatDataProducer.id,
+					sctpStreamParameters: this._chatDataProducer.sctpStreamParameters,
+					label: this._chatDataProducer.label,
+					protocol: this._chatDataProducer.protocol
 				}));
 
-			this._chatDataProducer.on('transportclose', () =>
-			{
+			this._chatDataProducer.on('transportclose', () => {
 				this._chatDataProducer = null;
 			});
 
-			this._chatDataProducer.on('open', () =>
-			{
+			this._chatDataProducer.on('open', () => {
 				logger.debug('chat DataProducer "open" event');
 			});
 
-			this._chatDataProducer.on('close', () =>
-			{
+			this._chatDataProducer.on('close', () => {
 				logger.error('chat DataProducer "close" event');
 
 				this._chatDataProducer = null;
 
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : 'Chat DataProducer closed'
+						type: 'error',
+						text: 'Chat DataProducer closed'
 					}));
 			});
 
-			this._chatDataProducer.on('error', (error) =>
-			{
+			this._chatDataProducer.on('error', (error) => {
 				logger.error('chat DataProducer "error" event:%o', error);
 
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : `Chat DataProducer error: ${error}`
+						type: 'error',
+						text: `Chat DataProducer error: ${error}`
 					}));
 			});
 
-			this._chatDataProducer.on('bufferedamountlow', () =>
-			{
+			this._chatDataProducer.on('bufferedamountlow', () => {
 				logger.debug('chat DataProducer "bufferedamountlow" event');
 			});
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('enableChatDataProducer() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error enabling chat DataProducer: ${error}`
+					type: 'error',
+					text: `Error enabling chat DataProducer: ${error}`
 				}));
 
 			throw error;
 		}
 	}
 
-	async enableBotDataProducer()
-	{
+	async enableBotDataProducer() {
 		logger.debug('enableBotDataProducer()');
 
 		if (!this._useDataChannel)
@@ -1786,150 +1718,133 @@ export default class RoomClient
 		// if (this._botDataProducer)
 		// 	return;
 
-		try
-		{
+		try {
 			// Create chat DataProducer.
 			this._botDataProducer = await this._sendTransport.produceData(
 				{
-					ordered           : false,
-					maxPacketLifeTime : 2000,
-					label             : 'bot',
-					priority          : 'medium',
-					appData           : { info: 'my-bot-DataProducer' }
+					ordered: false,
+					maxPacketLifeTime: 2000,
+					label: 'bot',
+					priority: 'medium',
+					appData: { info: 'my-bot-DataProducer' }
 				});
 
 			store.dispatch(stateActions.addDataProducer(
 				{
-					id                   : this._botDataProducer.id,
-					sctpStreamParameters : this._botDataProducer.sctpStreamParameters,
-					label                : this._botDataProducer.label,
-					protocol             : this._botDataProducer.protocol
+					id: this._botDataProducer.id,
+					sctpStreamParameters: this._botDataProducer.sctpStreamParameters,
+					label: this._botDataProducer.label,
+					protocol: this._botDataProducer.protocol
 				}));
 
-			this._botDataProducer.on('transportclose', () =>
-			{
+			this._botDataProducer.on('transportclose', () => {
 				this._botDataProducer = null;
 			});
 
-			this._botDataProducer.on('open', () =>
-			{
+			this._botDataProducer.on('open', () => {
 				logger.debug('bot DataProducer "open" event');
 			});
 
-			this._botDataProducer.on('close', () =>
-			{
+			this._botDataProducer.on('close', () => {
 				logger.error('bot DataProducer "close" event');
 
 				this._botDataProducer = null;
 
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : 'Bot DataProducer closed'
+						type: 'error',
+						text: 'Bot DataProducer closed'
 					}));
 			});
 
-			this._botDataProducer.on('error', (error) =>
-			{
+			this._botDataProducer.on('error', (error) => {
 				logger.error('bot DataProducer "error" event:%o', error);
 
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : `Bot DataProducer error: ${error}`
+						type: 'error',
+						text: `Bot DataProducer error: ${error}`
 					}));
 			});
 
-			this._botDataProducer.on('bufferedamountlow', () =>
-			{
+			this._botDataProducer.on('bufferedamountlow', () => {
 				logger.debug('bot DataProducer "bufferedamountlow" event');
 			});
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('enableBotDataProducer() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error enabling bot DataProducer: ${error}`
+					type: 'error',
+					text: `Error enabling bot DataProducer: ${error}`
 				}));
 
 			throw error;
 		}
 	}
 
-	async sendChatMessage(text)
-	{
+	async sendChatMessage(text) {
 		logger.debug('sendChatMessage() [text:"%s]', text);
 
-		if (!this._chatDataProducer)
-		{
+		if (!this._chatDataProducer) {
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : 'No chat DataProducer'
+					type: 'error',
+					text: 'No chat DataProducer'
 				}));
 
 			return;
 		}
 
-		try
-		{
+		try {
 			this._chatDataProducer.send(text);
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('chat DataProducer.send() failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `chat DataProducer.send() failed: ${error}`
+					type: 'error',
+					text: `chat DataProducer.send() failed: ${error}`
 				}));
 		}
 	}
 
-	async sendBotMessage(text)
-	{
+	async sendBotMessage(text) {
 		logger.debug('sendBotMessage() [text:"%s]', text);
 
-		if (!this._botDataProducer)
-		{
+		if (!this._botDataProducer) {
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : 'No bot DataProducer'
+					type: 'error',
+					text: 'No bot DataProducer'
 				}));
 
 			return;
 		}
 
-		try
-		{
+		try {
 			this._botDataProducer.send(text);
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('bot DataProducer.send() failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `bot DataProducer.send() failed: ${error}`
+					type: 'error',
+					text: `bot DataProducer.send() failed: ${error}`
 				}));
 		}
 	}
 
-	async changeDisplayName(displayName)
-	{
+	async changeDisplayName(displayName) {
 		logger.debug('changeDisplayName() [displayName:"%s"]', displayName);
 
 		// Store in cookie.
 		cookiesManager.setUser({ displayName });
 
-		try
-		{
+		try {
 			await this._protoo.request('changeDisplayName', { displayName });
 
 			this._displayName = displayName;
@@ -1939,17 +1854,16 @@ export default class RoomClient
 
 			store.dispatch(requestActions.notify(
 				{
-					text : 'Display name changed'
+					text: 'Display name changed'
 				}));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('changeDisplayName() | failed: %o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Could not change display name: ${error}`
+					type: 'error',
+					text: `Could not change display name: ${error}`
 				}));
 
 			// We need to refresh the component for it to render the previous
@@ -1958,9 +1872,47 @@ export default class RoomClient
 				stateActions.setDisplayName());
 		}
 	}
+	async addbreakRooms(breakRooms) {
+		logger.debug('addbreakRooms() [breakRooms:"%s"]', breakRooms);
 
-	async getSendTransportRemoteStats()
-	{
+		try {
+			await this._protoo.request('addbreakRooms', breakRooms);
+			//console.log('_protooUrl', this._protooUrl);
+			//this._breakoutRooms.set(breakRooms.id,breakRooms);
+			//this._breakoutRooms.push({breakRooms });
+			// Store in cookie.
+			//cookiesManager.setBreakouts({...breakRooms});
+			console.log('_breakoutRooms', this._displayName);
+			console.log('_breakoutRooms', this._breakoutRooms);
+			store.dispatch(
+				stateActions.addRoom({ ...breakRooms }));
+
+			store.dispatch(
+					stateActions.setRoomState('connected'));
+
+			store.dispatch(requestActions.notify(
+				{
+					text: 'Break Room added'
+				}));
+
+			
+		}
+		catch (error) {
+			logger.error('addbreakRooms() | failed: %o', error);
+			store.dispatch(requestActions.notify(
+				{
+					type: 'error',
+					text: `Could not add breakout room: ${error}`
+				}));
+
+			// We need to refresh the component for it to render the previous
+			// displayName again.
+			// store.dispatch(
+			// 	stateActions.addRoom());
+
+		}
+	}
+	async getSendTransportRemoteStats() {
 		logger.debug('getSendTransportRemoteStats()');
 
 		if (!this._sendTransport)
@@ -1970,8 +1922,7 @@ export default class RoomClient
 			'getTransportStats', { transportId: this._sendTransport.id });
 	}
 
-	async getRecvTransportRemoteStats()
-	{
+	async getRecvTransportRemoteStats() {
 		logger.debug('getRecvTransportRemoteStats()');
 
 		if (!this._recvTransport)
@@ -1981,8 +1932,7 @@ export default class RoomClient
 			'getTransportStats', { transportId: this._recvTransport.id });
 	}
 
-	async getAudioRemoteStats()
-	{
+	async getAudioRemoteStats() {
 		logger.debug('getAudioRemoteStats()');
 
 		if (!this._micProducer)
@@ -1992,8 +1942,7 @@ export default class RoomClient
 			'getProducerStats', { producerId: this._micProducer.id });
 	}
 
-	async getVideoRemoteStats()
-	{
+	async getVideoRemoteStats() {
 		logger.debug('getVideoRemoteStats()');
 
 		const producer = this._webcamProducer || this._shareProducer;
@@ -2005,8 +1954,7 @@ export default class RoomClient
 			'getProducerStats', { producerId: producer.id });
 	}
 
-	async getConsumerRemoteStats(consumerId)
-	{
+	async getConsumerRemoteStats(consumerId) {
 		logger.debug('getConsumerRemoteStats()');
 
 		const consumer = this._consumers.get(consumerId);
@@ -2017,8 +1965,7 @@ export default class RoomClient
 		return this._protoo.request('getConsumerStats', { consumerId });
 	}
 
-	async getChatDataProducerRemoteStats()
-	{
+	async getChatDataProducerRemoteStats() {
 		logger.debug('getChatDataProducerRemoteStats()');
 
 		const dataProducer = this._chatDataProducer;
@@ -2030,8 +1977,7 @@ export default class RoomClient
 			'getDataProducerStats', { dataProducerId: dataProducer.id });
 	}
 
-	async getBotDataProducerRemoteStats()
-	{
+	async getBotDataProducerRemoteStats() {
 		logger.debug('getBotDataProducerRemoteStats()');
 
 		const dataProducer = this._botDataProducer;
@@ -2043,8 +1989,7 @@ export default class RoomClient
 			'getDataProducerStats', { dataProducerId: dataProducer.id });
 	}
 
-	async getDataConsumerRemoteStats(dataConsumerId)
-	{
+	async getDataConsumerRemoteStats(dataConsumerId) {
 		logger.debug('getDataConsumerRemoteStats()');
 
 		const dataConsumer = this._dataConsumers.get(dataConsumerId);
@@ -2055,8 +2000,7 @@ export default class RoomClient
 		return this._protoo.request('getDataConsumerStats', { dataConsumerId });
 	}
 
-	async getSendTransportLocalStats()
-	{
+	async getSendTransportLocalStats() {
 		logger.debug('getSendTransportLocalStats()');
 
 		if (!this._sendTransport)
@@ -2065,8 +2009,7 @@ export default class RoomClient
 		return this._sendTransport.getStats();
 	}
 
-	async getRecvTransportLocalStats()
-	{
+	async getRecvTransportLocalStats() {
 		logger.debug('getRecvTransportLocalStats()');
 
 		if (!this._recvTransport)
@@ -2075,8 +2018,7 @@ export default class RoomClient
 		return this._recvTransport.getStats();
 	}
 
-	async getAudioLocalStats()
-	{
+	async getAudioLocalStats() {
 		logger.debug('getAudioLocalStats()');
 
 		if (!this._micProducer)
@@ -2085,8 +2027,7 @@ export default class RoomClient
 		return this._micProducer.getStats();
 	}
 
-	async getVideoLocalStats()
-	{
+	async getVideoLocalStats() {
 		logger.debug('getVideoLocalStats()');
 
 		const producer = this._webcamProducer || this._shareProducer;
@@ -2097,8 +2038,7 @@ export default class RoomClient
 		return producer.getStats();
 	}
 
-	async getConsumerLocalStats(consumerId)
-	{
+	async getConsumerLocalStats(consumerId) {
 		const consumer = this._consumers.get(consumerId);
 
 		if (!consumer)
@@ -2107,62 +2047,54 @@ export default class RoomClient
 		return consumer.getStats();
 	}
 
-	async applyNetworkThrottle({ uplink, downlink, rtt, secret })
-	{
+	async applyNetworkThrottle({ uplink, downlink, rtt, secret }) {
 		logger.debug(
 			'applyNetworkThrottle() [uplink:%s, downlink:%s, rtt:%s]',
 			uplink, downlink, rtt);
 
-		try
-		{
+		try {
 			await this._protoo.request(
 				'applyNetworkThrottle',
 				{ uplink, downlink, rtt, secret });
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('applyNetworkThrottle() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error applying network throttle: ${error}`
+					type: 'error',
+					text: `Error applying network throttle: ${error}`
 				}));
 		}
 	}
 
-	async resetNetworkThrottle({ silent = false, secret })
-	{
+	async resetNetworkThrottle({ silent = false, secret }) {
 		logger.debug('resetNetworkThrottle()');
 
-		try
-		{
+		try {
 			await this._protoo.request('resetNetworkThrottle', { secret });
 		}
-		catch (error)
-		{
-			if (!silent)
-			{
+		catch (error) {
+			if (!silent) {
 				logger.error('resetNetworkThrottle() | failed:%o', error);
 
 				store.dispatch(requestActions.notify(
 					{
-						type : 'error',
-						text : `Error resetting network throttle: ${error}`
+						type: 'error',
+						text: `Error resetting network throttle: ${error}`
 					}));
 			}
 		}
 	}
 
-	async _joinRoom()
-	{
+	async _joinRoom() {
 		logger.debug('_joinRoom()');
 
-		try
-		{
+		try {
+			console.log('cookiesManager.getBreakouts()', (cookiesManager.getBreakouts() || {}));
 			this._mediasoupDevice = new mediasoupClient.Device(
 				{
-					handlerName : this._handlerName
+					handlerName: this._handlerName
 				});
 
 			const routerRtpCapabilities =
@@ -2183,15 +2115,14 @@ export default class RoomClient
 				setTimeout(() => audioTrack.stop(), 120000);
 			}
 			// Create mediasoup Transport for sending (unless we don't want to produce).
-			if (this._produce)
-			{
+			if (this._produce) {
 				const transportInfo = await this._protoo.request(
 					'createWebRtcTransport',
 					{
-						forceTcp         : this._forceTcp,
-						producing        : true,
-						consuming        : false,
-						sctpCapabilities : this._useDataChannel
+						forceTcp: this._forceTcp,
+						producing: true,
+						consuming: false,
+						sctpCapabilities: this._useDataChannel
 							? this._mediasoupDevice.sctpCapabilities
 							: undefined
 					});
@@ -2209,56 +2140,53 @@ export default class RoomClient
 						id,
 						iceParameters,
 						iceCandidates,
-						dtlsParameters :
+						dtlsParameters:
 						{
 							...dtlsParameters,
 							// Remote DTLS role. We know it's always 'auto' by default so, if
 							// we want, we can force local WebRTC transport to be 'client' by
 							// indicating 'server' here and vice-versa.
-							role : 'auto'
+							role: 'auto'
 						},
 						sctpParameters,
-						iceServers             : [],
-						proprietaryConstraints : PC_PROPRIETARY_CONSTRAINTS,
-						additionalSettings 	   :
+						iceServers: [],
+						proprietaryConstraints: PC_PROPRIETARY_CONSTRAINTS,
+						additionalSettings:
 							{ encodedInsertableStreams: this._e2eKey && e2e.isSupported() }
 					});
 
 				this._sendTransport.on(
 					'connect', ({ dtlsParameters }, callback, errback) => // eslint-disable-line no-shadow
-					{
-						this._protoo.request(
-							'connectWebRtcTransport',
-							{
-								transportId : this._sendTransport.id,
-								dtlsParameters
-							})
-							.then(callback)
-							.catch(errback);
-					});
+				{
+					this._protoo.request(
+						'connectWebRtcTransport',
+						{
+							transportId: this._sendTransport.id,
+							dtlsParameters
+						})
+						.then(callback)
+						.catch(errback);
+				});
 
 				this._sendTransport.on(
-					'produce', async ({ kind, rtpParameters, appData }, callback, errback) =>
-					{
-						try
-						{
-							// eslint-disable-next-line no-shadow
-							const { id } = await this._protoo.request(
-								'produce',
-								{
-									transportId : this._sendTransport.id,
-									kind,
-									rtpParameters,
-									appData
-								});
+					'produce', async ({ kind, rtpParameters, appData }, callback, errback) => {
+					try {
+						// eslint-disable-next-line no-shadow
+						const { id } = await this._protoo.request(
+							'produce',
+							{
+								transportId: this._sendTransport.id,
+								kind,
+								rtpParameters,
+								appData
+							});
 
-							callback({ id });
-						}
-						catch (error)
-						{
-							errback(error);
-						}
-					});
+						callback({ id });
+					}
+					catch (error) {
+						errback(error);
+					}
+				});
 
 				this._sendTransport.on('producedata', async (
 					{
@@ -2269,19 +2197,17 @@ export default class RoomClient
 					},
 					callback,
 					errback
-				) =>
-				{
+				) => {
 					logger.debug(
 						'"producedata" event: [sctpStreamParameters:%o, appData:%o]',
 						sctpStreamParameters, appData);
 
-					try
-					{
+					try {
 						// eslint-disable-next-line no-shadow
 						const { id } = await this._protoo.request(
 							'produceData',
 							{
-								transportId : this._sendTransport.id,
+								transportId: this._sendTransport.id,
 								sctpStreamParameters,
 								label,
 								protocol,
@@ -2290,23 +2216,21 @@ export default class RoomClient
 
 						callback({ id });
 					}
-					catch (error)
-					{
+					catch (error) {
 						errback(error);
 					}
 				});
 			}
 
 			// Create mediasoup Transport for receiving (unless we don't want to consume).
-			if (this._consume)
-			{
+			if (this._consume) {
 				const transportInfo = await this._protoo.request(
 					'createWebRtcTransport',
 					{
-						forceTcp         : this._forceTcp,
-						producing        : false,
-						consuming        : true,
-						sctpCapabilities : this._useDataChannel
+						forceTcp: this._forceTcp,
+						producing: false,
+						consuming: true,
+						sctpCapabilities: this._useDataChannel
 							? this._mediasoupDevice.sctpCapabilities
 							: undefined
 					});
@@ -2324,51 +2248,56 @@ export default class RoomClient
 						id,
 						iceParameters,
 						iceCandidates,
-						dtlsParameters :
+						dtlsParameters:
 						{
 							...dtlsParameters,
 							// Remote DTLS role. We know it's always 'auto' by default so, if
 							// we want, we can force local WebRTC transport to be 'client' by
 							// indicating 'server' here and vice-versa.
-							role : 'auto'
+							role: 'auto'
 						},
 						sctpParameters,
-						iceServers 	       : [],
-						additionalSettings :
+						iceServers: [],
+						additionalSettings:
 							{ encodedInsertableStreams: this._e2eKey && e2e.isSupported() }
 					});
 
 				this._recvTransport.on(
 					'connect', ({ dtlsParameters }, callback, errback) => // eslint-disable-line no-shadow
-					{
-						this._protoo.request(
-							'connectWebRtcTransport',
-							{
-								transportId : this._recvTransport.id,
-								dtlsParameters
-							})
-							.then(callback)
-							.catch(errback);
-					});
+				{
+					this._protoo.request(
+						'connectWebRtcTransport',
+						{
+							transportId: this._recvTransport.id,
+							dtlsParameters
+						})
+						.then(callback)
+						.catch(errback);
+				});
 			}
-
+			console.log("local _breakoutRooms", this.breakoutRooms);
 			// Join now into the room.
 			// NOTE: Don't send our RTP capabilities if we don't want to consume.
 			const { peers } = await this._protoo.request(
 				'join',
 				{
-					displayName     : this._displayName,
-					device          : this._device,
-					rtpCapabilities : this._consume
+					displayName: this._displayName,
+					device: this._device,
+					rtpCapabilities: this._consume
 						? this._mediasoupDevice.rtpCapabilities
-						: undefined,
-					sctpCapabilities : this._useDataChannel && this._consume
+						: undefined,	
+					sctpCapabilities: this._useDataChannel && this._consume
 						? this._mediasoupDevice.sctpCapabilities
-						: undefined
+						: undefined,
+				    breakoutroom:	this.breakoutRooms
 				});
+
+			
 
 			store.dispatch(
 				stateActions.setRoomState('connected'));
+
+			
 
 			// Clean all the existing notifcations.
 			store.dispatch(
@@ -2376,25 +2305,39 @@ export default class RoomClient
 
 			store.dispatch(requestActions.notify(
 				{
-					text    : 'You are in the room!',
-					timeout : 3000
+					text: 'You are in the room!',
+					timeout: 3000
 				}));
-
-			for (const peer of peers)
-			{
+			console.log("local peers", peers);
+			for (const peer of peers) {
 				store.dispatch(
 					stateActions.addPeer(
 						{ ...peer, consumers: [], dataConsumers: [] }));
 			}
-
+			 var retrievedObject = window.sessionStorage.getItem('testObject');
+			 console.log('retrievedObject: ', JSON.parse(retrievedObject));
+			 if(JSON.parse(retrievedObject)){
+				for (const breaks of JSON.parse(retrievedObject)) {
+					store.dispatch(
+						stateActions.addRoom({ ...breaks }));
+					 
+				}
+			 }
+			
+			// const breskaaa  = await this._protoo.request('addbreakRooms', this._breakoutRooms);
+		
+			//  if(breskaaa){
+			// store.dispatch(
+			// 	stateActions.addRoom(
+			// 		{ ...breskaaa }));
+			//  	}
 			// Enable mic/webcam.
-			if (this._produce)
-			{
+			if (this._produce) {
 				// Set our media capabilities.
 				store.dispatch(stateActions.setMediaCapabilities(
 					{
-						canSendMic    : this._mediasoupDevice.canProduce('audio'),
-						canSendWebcam : this._mediasoupDevice.canProduce('video')
+						canSendMic: this._mediasoupDevice.canProduce('audio'),
+						canSendWebcam: this._mediasoupDevice.canProduce('video')
 					}));
 
 				this.enableMic();
@@ -2404,10 +2347,8 @@ export default class RoomClient
 				if (!devicesCookie || devicesCookie.webcamEnabled || this._externalVideo)
 					this.enableWebcam();
 
-				this._sendTransport.on('connectionstatechange', (connectionState) =>
-				{
-					if (connectionState === 'connected')
-					{
+				this._sendTransport.on('connectionstatechange', (connectionState) => {
+					if (connectionState === 'connected') {
 						this.enableChatDataProducer();
 						this.enableBotDataProducer();
 					}
@@ -2415,30 +2356,27 @@ export default class RoomClient
 			}
 
 			// NOTE: For testing.
-			if (window.SHOW_INFO)
-			{
+			if (window.SHOW_INFO) {
 				const { me } = store.getState();
-
+				console.log("SHOW_INFO",);
 				store.dispatch(
 					stateActions.setRoomStatsPeerId(me.id));
 			}
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('_joinRoom() failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Could not join the room: ${error}`
+					type: 'error',
+					text: `Could not join the room: ${error}`
 				}));
 
 			this.close();
 		}
 	}
 
-	async _updateWebcams()
-	{
+	async _updateWebcams() {
 		logger.debug('_updateWebcams()');
 
 		// Reset the list.
@@ -2448,8 +2386,7 @@ export default class RoomClient
 
 		const devices = await navigator.mediaDevices.enumerateDevices();
 
-		for (const device of devices)
-		{
+		for (const device of devices) {
 			if (device.kind !== 'videoinput')
 				continue;
 
@@ -2472,29 +2409,24 @@ export default class RoomClient
 			stateActions.setCanChangeWebcam(this._webcams.size > 1));
 	}
 
-	_getWebcamType(device)
-	{
-		if (/(back|rear)/i.test(device.label))
-		{
+	_getWebcamType(device) {
+		if (/(back|rear)/i.test(device.label)) {
 			logger.debug('_getWebcamType() | it seems to be a back camera');
 
 			return 'back';
 		}
-		else
-		{
+		else {
 			logger.debug('_getWebcamType() | it seems to be a front camera');
 
 			return 'front';
 		}
 	}
 
-	async _pauseConsumer(consumer)
-	{
+	async _pauseConsumer(consumer) {
 		if (consumer.paused)
 			return;
 
-		try
-		{
+		try {
 			await this._protoo.request('pauseConsumer', { consumerId: consumer.id });
 
 			consumer.pause();
@@ -2502,25 +2434,22 @@ export default class RoomClient
 			store.dispatch(
 				stateActions.setConsumerPaused(consumer.id, 'local'));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('_pauseConsumer() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error pausing Consumer: ${error}`
+					type: 'error',
+					text: `Error pausing Consumer: ${error}`
 				}));
 		}
 	}
 
-	async _resumeConsumer(consumer)
-	{
+	async _resumeConsumer(consumer) {
 		if (!consumer.paused)
 			return;
 
-		try
-		{
+		try {
 			await this._protoo.request('resumeConsumer', { consumerId: consumer.id });
 
 			consumer.resume();
@@ -2528,25 +2457,22 @@ export default class RoomClient
 			store.dispatch(
 				stateActions.setConsumerResumed(consumer.id, 'local'));
 		}
-		catch (error)
-		{
+		catch (error) {
 			logger.error('_resumeConsumer() | failed:%o', error);
 
 			store.dispatch(requestActions.notify(
 				{
-					type : 'error',
-					text : `Error resuming Consumer: ${error}`
+					type: 'error',
+					text: `Error resuming Consumer: ${error}`
 				}));
 		}
 	}
 
-	async _getExternalVideoStream()
-	{
+	async _getExternalVideoStream() {
 		if (this._externalVideoStream)
 			return this._externalVideoStream;
 
-		if (this._externalVideo.readyState < 3)
-		{
+		if (this._externalVideo.readyState < 3) {
 			await new Promise((resolve) => (
 				this._externalVideo.addEventListener('canplay', resolve)
 			));

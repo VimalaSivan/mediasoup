@@ -54,7 +54,11 @@ export const Peer = PropTypes.shape(
 		device      : Device.isRequired,
 		consumers   : PropTypes.arrayOf(PropTypes.string).isRequired
 	});
-
+export const breakoutRooms = PropTypes.shape(
+	{
+		id          : PropTypes.string,
+		name        : PropTypes.string
+	});
 export const Consumer = PropTypes.shape(
 	{
 		id                    : PropTypes.string.isRequired,

@@ -15,7 +15,8 @@ const Peer = (props) =>
 		videoConsumer,
 		audioMuted,
 		faceDetection,
-		onSetStatsPeerId
+		onSetStatsPeerId,
+		onSetBreakoutPeerId
 	} = props;
 
 	const audioEnabled = (
@@ -87,6 +88,7 @@ const Peer = (props) =>
 					roomClient.requestConsumerKeyFrame(videoConsumer.id);
 				}}
 				onStatsClick={onSetStatsPeerId}
+				onBreakoutClick={onSetBreakoutPeerId}
 			/>
 		</div>
 	);
@@ -100,7 +102,8 @@ Peer.propTypes =
 	videoConsumer    : appPropTypes.Consumer,
 	audioMuted       : PropTypes.bool,
 	faceDetection    : PropTypes.bool.isRequired,
-	onSetStatsPeerId : PropTypes.func.isRequired
+	onSetStatsPeerId : PropTypes.func.isRequired,
+	onSetBreakoutPeerId : PropTypes.func.isRequired
 };
 
 const mapStateToProps = (state, { id }) =>
@@ -113,7 +116,7 @@ const mapStateToProps = (state, { id }) =>
 		consumersArray.find((consumer) => consumer.track.kind === 'audio');
 	const videoConsumer =
 		consumersArray.find((consumer) => consumer.track.kind === 'video');
-
+	console.log("audioConsumer",audioConsumer);
 	return {
 		peer,
 		audioConsumer,
@@ -126,7 +129,8 @@ const mapStateToProps = (state, { id }) =>
 const mapDispatchToProps = (dispatch) =>
 {
 	return {
-		onSetStatsPeerId : (peerId) => dispatch(stateActions.setRoomStatsPeerId(peerId))
+		onSetStatsPeerId : (peerId,isOpenState) => dispatch(stateActions.setRoomStatsPeerId(peerId,isOpenState)),
+		onSetBreakoutPeerId : (peerId,isOpenbreak) => dispatch(stateActions.setBreakoutPeerId(peerId,isOpenbreak))
 	};
 };
 

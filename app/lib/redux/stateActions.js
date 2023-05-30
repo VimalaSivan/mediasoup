@@ -5,7 +5,20 @@ export const setRoomUrl = (url) =>
 		payload : { url }
 	};
 };
-
+export const addRoom = (room) =>
+{
+	return {
+		type    : 'ADD_ROOM',
+		payload : { room }
+	};
+};
+export const setPeerBreakout = (room, peerId) =>
+{
+	return {
+		type    : 'SET_PEER_BREAKOUT',
+		payload : { room, peerId }
+	};
+};
 export const setRoomState = (state) =>
 {
 	return {
@@ -22,12 +35,26 @@ export const setRoomActiveSpeaker = (peerId) =>
 	};
 };
 
-export const setRoomStatsPeerId = (peerId) =>
+export const setRoomStatsPeerId = (peerId, isOpenState) =>
 {
+	//if(isOpen){
 	return {
 		type    : 'SET_ROOM_STATS_PEER_ID',
+		isOpenState: isOpenState,
 		payload : { peerId }
 	};
+  // }
+};
+
+export const setBreakoutPeerId = (peerId, isOpenbreak) =>
+{
+	//if(isOpen){
+	return {
+		type    : 'SET_BREAK_OUT_PEER_ID',
+		isOpenbreak: isOpenbreak,
+		payload : { peerId }
+	};
+	//}
 };
 
 export const setRoomFaceDetection = (flag) =>
@@ -189,7 +216,13 @@ export const addPeer = (peer) =>
 		payload : { peer }
 	};
 };
-
+export const addBreakoutPeer = (peer) =>
+{
+	return {
+		type    : 'ADD_BREAK_PEER',
+		payload : { peer }
+	};
+};
 export const removePeer = (peerId) =>
 {
 	return {

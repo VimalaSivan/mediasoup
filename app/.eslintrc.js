@@ -57,22 +57,22 @@ module.exports =
 		'generator-star-spacing': 2,
 		'guard-for-in': 2,
 		'indent': [ 2, 'tab', { 'SwitchCase': 1 } ],
-		'key-spacing': [ 2,
-		{
-			singleLine:
-			{
-				beforeColon: false,
-				afterColon: true
-			},
-			multiLine:
-			{
-				beforeColon: true,
-				afterColon: true,
-				align: 'colon'
-			}
-		}],
+		// 'key-spacing': [ 2,
+		// {
+		// 	singleLine:
+		// 	{
+		// 		beforeColon: false,
+		// 		afterColon: true
+		// 	},
+		// 	multiLine:
+		// 	{
+		// 		beforeColon: true,
+		// 		afterColon: true,
+		// 		align: 'colon'
+		// 	}
+		// }],
 		'keyword-spacing': 2,
-		'linebreak-style': [ 2, 'unix' ],
+		'linebreak-style': 0,
 		'lines-around-comment': [ 2,
 		{
 			allowBlockStart: true,

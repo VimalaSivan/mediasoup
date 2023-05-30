@@ -2,6 +2,15 @@
 
 ```js
 {
+ 
+   breakoutroom :
+  {
+    'alice' :
+    {
+      id              : 'alice',
+      name            : 'Alice Thomsom',
+    }
+  },
   room :
   {
     url             : 'https://demo.mediasoup.org/?roomId=d0el8y34',

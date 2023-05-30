@@ -32,9 +32,13 @@ export default class PeerView extends React.Component
 			videoResolutionHeight : null,
 			videoCanPlay          : false,
 			videoElemPaused       : false,
-			maxSpatialLayer       : null
+			maxSpatialLayer       : null,
+			isToggleOn: true,
+			isToggleOnBreak: true
 		};
-
+		
+		this.onStatsClick = this.onStatsClick.bind(this);
+		this.onBreakoutClick = this.onBreakoutClick.bind(this);
 		// Latest received video track.
 		// @type {MediaStreamTrack}
 		this._audioTrack = null;
@@ -53,7 +57,17 @@ export default class PeerView extends React.Component
 		// requestAnimationFrame for face detection.
 		this._faceDetectionRequestAnimationFrame = null;
 	}
-
+	onStatsClick() {
+		this.setState(prevState => ({
+		  isToggleOn: !prevState.isToggleOn
+		}));
+	  }
+	  onBreakoutClick() {
+		this.setState(prevState => ({
+			isToggleOnBreak: !prevState.isToggleOnBreak
+		}));
+		//console.log(this.state.isToggleOnBreak);
+	  }
 	render()
 	{
 		const {
@@ -83,7 +97,8 @@ export default class PeerView extends React.Component
 			onChangeVideoPreferredLayers,
 			onChangeVideoPriority,
 			onRequestKeyFrame,
-			onStatsClick
+			onStatsClick,
+			onBreakoutClick
 		} = this.props;
 
 		const {
@@ -94,8 +109,8 @@ export default class PeerView extends React.Component
 			videoCanPlay,
 			videoElemPaused,
 			maxSpatialLayer
-		} = this.state;
-
+	  	} = this.state;
+       //  console.log('onstasss',onBreakoutClick);
 		return (
 			<div data-component='PeerView'>
 				<div className='info'>
@@ -105,9 +120,13 @@ export default class PeerView extends React.Component
 							onClick={() => this.setState({ showInfo: !showInfo })}
 						/>
 
-						<div
+						{/* <div
 							className={classnames('icon', 'stats')}
-							onClick={() => onStatsClick(peer.id)}
+							onClick={() => onStatsClick(peer.id,this.state.isToggleOn)}
+						/> */}
+						<div
+							className={classnames('icon', 'profile')}
+							onClick={() => onBreakoutClick(peer.id,this.state.isToggleOnBreak)}
 						/>
 					</div>
 
@@ -452,7 +471,6 @@ export default class PeerView extends React.Component
 				<audio
 					ref='audioElem'
 					autoPlay
-					playsInline
 					muted={isMe || audioMuted}
 					controls={false}
 				/>
@@ -791,5 +809,6 @@ PeerView.propTypes =
 	onChangeVideoPreferredLayers   : PropTypes.func,
 	onChangeVideoPriority          : PropTypes.func,
 	onRequestKeyFrame              : PropTypes.func,
-	onStatsClick                   : PropTypes.func.isRequired
+	onStatsClick                   : PropTypes.func.isRequired,
+	onBreakoutClick                : PropTypes.func.isRequired
 };

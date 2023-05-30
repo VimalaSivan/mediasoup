@@ -2,6 +2,7 @@ const initialState = {};
 
 const peers = (state = initialState, action) =>
 {
+	console.log('action peers test',action);
 	switch (action.type)
 	{
 		case 'SET_ROOM_STATE':
