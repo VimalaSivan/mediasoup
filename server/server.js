@@ -23,6 +23,8 @@ const utils = require('./lib/utils');
 const Room = require('./lib/Room');
 const interactiveServer = require('./lib/interactiveServer');
 const interactiveClient = require('./lib/interactiveClient');
+const randomstring = require("randomstring");
+
 
 const logger = new Logger();
 
@@ -193,10 +195,20 @@ async function createExpressApp()
 	expressApp.get(
 		'/rooms/:roomId', (req, res) =>
 		{
+
+			logger.info('Node server method calling....  : ');
 			const data = req.room.getRouterRtpCapabilities();
 
 			res.status(200).json(data);
 		});
+
+
+		// expressApp.get('/api/greet', (req, res) => {
+		// 	logger.info('Node server method calling....  : ');
+		// 	const name = req.query.name || 'Guest';
+		// 	logger.info('Node server method calling....  : ',name);
+		// 	res.send(`Hello, ${name}!`);
+		//   });
 
 	/**
 	 * POST API to create a Broadcaster.
@@ -332,6 +344,9 @@ async function createExpressApp()
 				next(error);
 			}
 		});
+
+
+		
 
 	/**
 	 * POST API to create a mediasoup Consumer associated to a Broadcaster.
@@ -492,9 +507,28 @@ async function runProtooWebSocketServer()
 		// The client indicates the roomId and peerId in the URL query.
 		//console.log('websocket info',info);
 		const u = url.parse(info.request.url, true);
-		const roomId = u.query['roomId'];
+		let roomId = u.query['roomId'];
 		const peerId = u.query['peerId'];
 		const roomName = u.query['roomName'];
+		let associateId = '';
+		// if (roomId.includes("$")){
+		//   roomId = roomId.split('$')[0];
+		//   associateId = roomId.split('$')[1];
+		// }
+
+		
+
+		if(peerId == 0){
+		    associateId = roomId;
+		    // Generate a random string of specified length
+			roomId = randomstring.generate(8);
+	    }
+		
+
+		logger.info('Room name --> ', roomName);
+		logger.info('Room Id --> ', roomId);
+		logger.info('associateId --> ', associateId);
+		logger.info('peerId --> ', peerId);
 
 		//const roomId ="pqupbb9x";
 		//const peerId ="glwtakli";
@@ -533,12 +567,13 @@ async function runProtooWebSocketServer()
 			// 	room.handleProtooConnection({ peerId, protooWebSocketTransport });
 			// }
 			// else{
-				const room = await getOrCreateRoom({ roomId, roomName, consumerReplicas });
+				const room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, associateId});
 				// Accept the protoo WebSocket connection.
 				const protooWebSocketTransport = accept();
 				
 				//console.log("peerId Details2",peerId);
 				room.handleProtooConnection({ peerId, protooWebSocketTransport });
+				logger.info('After handleProtooConnection  ::  -->', room);
 			//}
 		})
 			.catch((error) =>
@@ -566,23 +601,67 @@ function getMediasoupWorker()
 /**
  * Get a Room instance (or create one if it does not exist).
  */
-async function getOrCreateRoom({ roomId, roomName, consumerReplicas })
+async function getOrCreateRoom({ roomId, roomName, consumerReplicas, associateId})
 {
 	
 	let room = rooms.get(roomId);
-    //console.log("room Details",room);
+
+	//let associateRoomIds = "xijobidv111";
+
+
 	// If the Room does not exist create a new one.
 	if (!room)
 	{
-		logger.info('creating a new Room [roomId:%s]', roomId);
+		logger.info('creating a new Room. [roomId:%s]', roomId);
+		
 
 		const mediasoupWorker = getMediasoupWorker();
 
-		room = await Room.create({ mediasoupWorker, roomId, roomName, consumerReplicas });
-
+		room = await Room.create({ mediasoupWorker, roomId, consumerReplicas });
+		logger.info('roomName ::  -->', roomName);
+		room._roomName = roomName;
 		rooms.set(roomId, room);
+		logger.info('New Room details  -->', room);
+		
 		room.on('close', () => rooms.delete(roomId));
 	}
+
+	logger.info('All rooms  -->', rooms);
+
+	//const associateRoomIds = 'pvtza4rv111';
+    // const dataArray = associateRoomIds.split(','); 
+    // const dataSet = new Set(dataArray); 
+	let roomMap = new Map();	
+	let ass_room;
+	let ass_peers=[];
+
+	
+
+	logger.info('Peers  : ', room._protooRoom._peers);
+
+	// for (const element of dataSet) {
+	
+	if (typeof associateId !== "undefined" && associateId !== "") {
+		ass_room = rooms.get(associateId);
+		logger.info('associateRoom  details : ', ass_room);
+
+	// 	// roomMap.set(ass_room._roomName, peerSet);
+		if (typeof ass_room !== "undefined" && ass_room !== "") {
+			//ass_room._roomName = "BreakOutRoom01";
+			room._rootId = associateId;
+			let classValuesArray = Array.from(ass_room._protooRoom._peers.values());
+			logger.info('classValuesArray : ', classValuesArray);
+			ass_peers = classValuesArray.filter((peer) => peer.data.joined);
+			logger.info('ass_peers  : ', ass_peers);
+			logger.info('main room fetching  : ', room);
+		}
+		}
+		
+	 // }
+
+	 room._breakoutRoomsObj =  ass_peers;
+
+	
 	
 	return room;
 	
@@ -610,3 +689,5 @@ async function getOrCreateBreakoutRoom({ roomId,roomName, consumerReplicas })
 
 	//return breakoutroom;
 }
+
+ 
