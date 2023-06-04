@@ -1,4 +1,5 @@
-import React from 'react';
+// import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
@@ -69,7 +70,7 @@ class Breakout extends React.Component {
 		this.props.roomClient.externalVideo = urlParser.query.externalVideo === 'true';
 		this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
 		this.props.roomClient.e2eKey = urlParser.query.e2eKey;
-		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
+		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas
 		this.props.roomClient._protooUrl = getProtooUrl({ currentRoomid, peerId, consumerReplicas });
 
 		list.push({ id: currentRoomid, name: "Main room" });
@@ -115,14 +116,16 @@ class Breakout extends React.Component {
 		this.props.roomClient.join();
 
 	}
-	add = () => {
+	 add = () => {
+
+
 		const list = [...this.state.list]
-		const roomId = randomString({ length: 8 }).toLowerCase();
+		let roomId = randomString({ length: 8 }).toLowerCase();
 		var arrCount = list.length + 1;
 		var itemCount = this.state.itemName +'#' + arrCount
 		console.log("itemCount",itemCount);
 		list.push({ id: roomId, name: itemCount });
-
+		const currentRoomid = location.href.split("&")[1].split("=")[1];
 
 
 
@@ -168,10 +171,13 @@ class Breakout extends React.Component {
 		this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
 		this.props.roomClient.e2eKey = urlParser.query.e2eKey;
 		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
+		roomId = currentRoomid;
 		this.props.roomClient._protooUrl = getProtooUrl({ roomId, roomName, peerId, consumerReplicas });
 		//this.props.roomClient.breakoutRooms = { id: roomId, name: itemCount };
-		
-
+	
+		// this.props.roomClient.assId = currentRoomid;
+		// console.log("currentRoomid :: ",currentRoomid);
+		// console.log("this.props.roomClient ::: ",this.props.roomClient);
 		//this.props.roomClient.addbreakRooms();
 
 		//console.log("added",this.props.roomClient);
@@ -183,9 +189,9 @@ class Breakout extends React.Component {
 
 		console.log("window.CLIENT",window.CLIENT);
 
-		this.props.roomClient.addbreakRooms({ id: roomId, name: itemCount });
-		// window.location.reload(true)
-		//this.props.roomClient.join();
+	//this.props.roomClient.addbreakRooms({ id: roomId, name: itemCount });
+		 //window.location.reload(true)
+		 this.props.roomClient.join();
 		//const { roomClient }	= this.props;
 
 		//this.props.roomClient.join();
@@ -213,6 +219,9 @@ class Breakout extends React.Component {
 				//name.value.toLowerCase().startsWith(this.state.term.toLowerCase())
 				name.value.toLowerCase().indexOf(this.state.term.toLowerCase()) !== -1
 		);
+
+		console.log('Client side :::',this.props.peersNew);
+
 		var currentRoomid = location.href.split("&")[1].split("=")[1];
 		//console.log(location.href.split("&")[1].split("=")[1]);
 		var filterArrdata = this.props.breaksroomNotFilter?.filter(item => item.id === currentRoomid)
@@ -467,6 +476,8 @@ Breakout.propTypes =
 
 const mapStateToProps = (state) => {
 
+	console.log('mapStateToProps method : ', state);
+
 	const breakoutroomArray = Object.values(state.breakoutroom);
 	const { room, me, peers, consumers, dataConsumers } = state;
 	const { statsPeerId } = room;
@@ -483,12 +494,13 @@ const mapStateToProps = (state) => {
 	let breaksroomNotFilter = [];
 	let breakoutbtn = false;
 	
-	floors.push({ id: me.id, value: state.me.displayName + ' (you)' });
+	floors.push({ id: me.id, value: state.me.displayName + ' (you)', roonName: 'Main Room' });
+	
 	//for (const peersId of Object.keys(peers)) {
 		let peerCnt = participant + 1;
 		if (participant >= 1) {
 		const peersId = Object.keys(peers)[0];
-		floors.push({ id: peersId, value: peers[peersId].displayName });
+		floors.push({ id: peersId, value: peers[peersId].displayName, roonName: 'Main Room' });
 		const urlParser = new UrlParse(window.location.href, true);
 		//console.log('urlParser roomId', urlParser.query.roomId);
 		let currentRoomIds =  urlParser.query.roomId;
@@ -538,7 +550,7 @@ const mapStateToProps = (state) => {
 		var	newArray1 =  new_arr1;
 	//}
 	//var newArray = removeDuplicate(breaksroom, 'id');
-	console.log('breaksroom list',newArray);
+	console.log('floors   :: ',floors);
 	const firstletter = state.me.displayName.substring(0, 1);
 	console.log('all data', state);
 	return {

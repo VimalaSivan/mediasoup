@@ -103,7 +103,7 @@ class Room extends EventEmitter
 		// @type {protoo.Room}
 		this._protooRoom = protooRoom;
 		
-		this._breakoutRoomsObj = new Map();
+		//this._breakoutRoomsObj;
 
 		// Map of broadcasters indexed by id. Each Object has:
 		// - {String} id
@@ -237,6 +237,7 @@ class Room extends EventEmitter
 		// Use the peer.data object to store mediasoup related objects.
 
 		// Not joined after a custom protoo 'join' request is later received.
+		peer.data.breakoutroomName = this._roomName;
 		peer.data.consume = consume;
 		peer.data.joined = false;
 		peer.data.displayName = undefined;
@@ -251,13 +252,15 @@ class Room extends EventEmitter
 		peer.data.consumers = new Map();
 		peer.data.dataProducers = new Map();
 		peer.data.dataConsumers = new Map();
-		peer.data.breakoutroom = new Map();
+		peer.data.breakoutroom = this._breakoutRoomsObj;
 
 		peer.on('request', (request, accept, reject) =>
 		{
 			logger.debug(
 				'protoo Peer "request" event [method:%s, peerId:%s]',
 				request.method, peer.id);
+
+			logger.info('peer inside request handler :: ');
 
 			this._handleProtooRequest(peer, request, accept, reject)
 				.catch((error) =>
@@ -875,6 +878,8 @@ class Room extends EventEmitter
 	 */
 	async _handleProtooRequest(peer, request, accept, reject)
 	{
+
+		//logger.info('_handleProtooRequest method : ', request.method);
 		switch (request.method)
 		{
 			case 'getRouterRtpCapabilities':
@@ -890,7 +895,7 @@ class Room extends EventEmitter
 				// Ensure the Peer is not already joined.
 				if (peer.data.joined)
 					throw new Error('Peer already joined');
-				console.log('My try',request.data);
+				//console.log('My try',request.data);
 				
 				const {
 					displayName,
@@ -906,7 +911,7 @@ class Room extends EventEmitter
 				peer.data.device = device;
 				peer.data.rtpCapabilities = rtpCapabilities;
 				peer.data.sctpCapabilities = sctpCapabilities;
-				peer.data.breakoutroom = breakoutroom;
+				// peer.data.breakoutroom = breakoutroom;
 				
 				
 				 
@@ -916,7 +921,7 @@ class Room extends EventEmitter
 				// Tell the new Peer about already joined Peers.
 				// And also create Consumers for existing Producers.
 				let newDatas = 	{};
-				const joinedPeers =
+				let joinedPeers =
 				[
 					...this._getJoinedPeers(),
 					...this._broadcasters.values()
@@ -1002,14 +1007,28 @@ class Room extends EventEmitter
 						// peer.data.breakoutroom.set(newDatas.id, newDatas);
 					}
 					}
+
+					
+
+				// _breakoutRoomsObj contains breakout room's peers
+				  console.info('Before joinedPeers :::',joinedPeers);
+				  console.info('peer.breakoutroom :::',this._breakoutRoomsObj);
+
+				  if (typeof this._breakoutRoomsObj !== "undefined" && Array.isArray(this._breakoutRoomsObj) && this._breakoutRoomsObj.length !== 0)
+					joinedPeers = joinedPeers.concat(this._breakoutRoomsObj);
+
+					console.info('After joinedPeers :::',joinedPeers);
+
 					const peerInfos = joinedPeers
-					.filter((joinedPeer) => joinedPeer.id !== peer.id)
+					.filter((joinedPeer) => joinedPeer.id !== peer.id || peer.id == 0)
 					.map((joinedPeer) => ({
 						id          : joinedPeer.id,
 						displayName : joinedPeer.data.displayName,
-						device      : joinedPeer.data.device,
-						breakoutroom : newDatas
+						device      : joinedPeer.data.device,	
+						breakoutroomName : joinedPeer.data.breakoutroomName
 					}));
+
+					console.info('peerInfos :::',peerInfos);
 					
 					accept({ peers: peerInfos });
 				//	
@@ -1062,7 +1081,7 @@ class Room extends EventEmitter
 							id           : peer.id,
 							displayName  : peer.data.displayName,
 							device       : peer.data.device,
-							breakoutroom : newDatas
+							//breakoutroom : newDatas
 						})
 						.catch(() => {});
 				}
@@ -1527,7 +1546,7 @@ class Room extends EventEmitter
 			}
 			case 'addbreakRooms':
 			{
-				
+				console.info('addbreakRooms checking : ');
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
