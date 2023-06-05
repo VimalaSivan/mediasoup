@@ -1011,13 +1011,18 @@ class Room extends EventEmitter
 					
 
 				// _breakoutRoomsObj contains breakout room's peers
-				  console.info('Before joinedPeers :::',joinedPeers);
+				  console.info(' JoinedPeers :::',joinedPeers);
 				  console.info('peer.breakoutroom :::',this._breakoutRoomsObj);
 
-				  if (typeof this._breakoutRoomsObj !== "undefined" && Array.isArray(this._breakoutRoomsObj) && this._breakoutRoomsObj.length !== 0)
-					joinedPeers = joinedPeers.concat(this._breakoutRoomsObj);
 
-					console.info('After joinedPeers :::',joinedPeers);
+				//   let notifyPeers = this._getJoinedPeers({ excludePeer: peer })
+
+
+				//   if (typeof this._breakoutRoomsObj !== "undefined" && Array.isArray(this._breakoutRoomsObj) && this._breakoutRoomsObj.length !== 0){
+				// 	joinedPeers = joinedPeers.concat(this._breakoutRoomsObj);
+				//   }
+
+				
 
 					const peerInfos = joinedPeers
 					.filter((joinedPeer) => joinedPeer.id !== peer.id || peer.id == 0)
@@ -1025,7 +1030,7 @@ class Room extends EventEmitter
 						id          : joinedPeer.id,
 						displayName : joinedPeer.data.displayName,
 						device      : joinedPeer.data.device,	
-						breakoutroomName : joinedPeer.data.breakoutroomName
+						breakoutroomName : this._roomName
 					}));
 
 					console.info('peerInfos :::',peerInfos);
@@ -1081,7 +1086,7 @@ class Room extends EventEmitter
 							id           : peer.id,
 							displayName  : peer.data.displayName,
 							device       : peer.data.device,
-							//breakoutroom : newDatas
+							breakoutroomName : peer.data.breakoutroomName
 						})
 						.catch(() => {});
 				}
@@ -1786,8 +1791,14 @@ class Room extends EventEmitter
 	 */
 	_getJoinedPeers({ excludePeer = undefined } = {})
 	{
-		return this._protooRoom.peers
-			.filter((peer) => peer.data.joined && peer !== excludePeer);
+
+		let joinedPeers = this._protooRoom.peers
+		.filter((peer) => peer.data.joined && peer !== excludePeer);
+
+		if (typeof this._breakoutRoomsObj !== "undefined" && Array.isArray(this._breakoutRoomsObj) && this._breakoutRoomsObj.length !== 0)
+			joinedPeers = joinedPeers.concat(this._breakoutRoomsObj);
+		  
+		return joinedPeers;
 	}
 
 	/**

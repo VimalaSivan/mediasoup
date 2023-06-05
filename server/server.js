@@ -614,7 +614,6 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas, associateId
 	{
 		logger.info('creating a new Room. [roomId:%s]', roomId);
 		
-
 		const mediasoupWorker = getMediasoupWorker();
 
 		room = await Room.create({ mediasoupWorker, roomId, consumerReplicas });
@@ -654,14 +653,10 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas, associateId
 			ass_peers = classValuesArray.filter((peer) => peer.data.joined);
 			logger.info('ass_peers  : ', ass_peers);
 			logger.info('main room fetching  : ', room);
+			room._breakoutRoomsObj =  ass_peers;
 		}
-		}
-		
+	}
 	 // }
-
-	 room._breakoutRoomsObj =  ass_peers;
-
-	
 	
 	return room;
 	
