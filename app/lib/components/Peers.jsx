@@ -10,6 +10,7 @@ const Peers = ({ peers, activeSpeakerId }) =>
 {
 	return (
 		<div data-component='Peers'>
+		
 			{
 				peers.map((peer) =>
 				{
@@ -38,13 +39,19 @@ Peers.propTypes =
 
 const mapStateToProps = (state) =>
 {
-	console.log('bbbbbb', state);
 	const peersArray = Object.values(state.peers);
 	console.log("peersArray",peersArray);
-	console.log('zzzzzzzzzzzzz', state);
-
+	console.log(' peersArray state.me.id',state.me.id);
+	//for (const peersId of peersArray) {
+		//console.log("peersId",peersId.id);
+		
+	const filteredData =peersArray.filter((peersId)=> peersId.id != 0 )
+	console.log("peersArray filteredData",filteredData);
+	const finalData = filteredData.filter((peersId)=> state.me.id != peersId.id )
+	//}
+	console.log("peersArray remove",finalData);
 	return {
-		peers           : peersArray,
+		peers           : finalData,
 		activeSpeakerId : state.room.activeSpeakerId
 	};
 };

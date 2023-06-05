@@ -496,11 +496,24 @@ const mapStateToProps = (state) => {
 	
 	floors.push({ id: me.id, value: state.me.displayName + ' (you)', roonName: 'Main Room' });
 	
+	
 	//for (const peersId of Object.keys(peers)) {
 		let peerCnt = participant + 1;
 		if (participant >= 1) {
+			
 		const peersId = Object.keys(peers)[0];
-		floors.push({ id: peersId, value: peers[peersId].displayName, roonName: 'Main Room' });
+		const peersArray = Object.values(peers);
+		
+		const filteredData =peersArray.filter((peersId)=> peersId.id != 0 )
+		const finalData = filteredData.filter((peersId)=> state.me.id != peersId.id )
+		for (const peersDatas of finalData) {
+			floors.push({ id: peersDatas.id, value: peersDatas.displayName, roonName: 'Main Room' });
+		}
+		const breakoutRoomsData =peersArray.filter((peersId)=> peersId.id == 0 )
+		for (const peersDatas of breakoutRoomsData) {
+			breaksroom.push({ id: peersDatas.id, name: peersDatas.breakoutroomName });
+		}
+		//floors.push({ id: peersId, value: peers[peersId].displayName, roonName: 'Main Room' });
 		const urlParser = new UrlParse(window.location.href, true);
 		//console.log('urlParser roomId', urlParser.query.roomId);
 		let currentRoomIds =  urlParser.query.roomId;
@@ -509,7 +522,7 @@ const mapStateToProps = (state) => {
 			for (const roomId of Object.keys(state.peers[peersId].breakoutroom)) {
 				//console.log('roomId', state.peers[peersId].breakoutroom[roomId].id);
 				if(currentRoomIds != state.peers[peersId].breakoutroom[roomId].id){
-					breaksroom.push({ id: state.peers[peersId].breakoutroom[roomId].id, name: state.peers[peersId].breakoutroom[roomId].name });
+					//breaksroom.push({ id: state.peers[peersId].breakoutroom[roomId].id, name: state.peers[peersId].breakoutroom[roomId].name });
 				}
 				breaksroomNotFilter.push({ id: state.peers[peersId].breakoutroom[roomId].id, name: state.peers[peersId].breakoutroom[roomId].name });
 				
@@ -553,14 +566,16 @@ const mapStateToProps = (state) => {
 	console.log('floors   :: ',floors);
 	const firstletter = state.me.displayName.substring(0, 1);
 	console.log('all data', state);
+	let floorsData = floors.filter((peersId)=> peersId.id != 0 )
+	console.log('floors data', floorsData);
 	return {
 		peerId: peer.id,
 		room: state.room,
 		isMe: state.me,
 		meNow: state.me,
 		DisplayName: state.me.displayName,
-		countPeers: participant + 1,
-		peersNew: floors,
+		countPeers: floorsData.length,
+		peersNew: floorsData,
 		firstletter: firstletter,
 		breakoutRooms: newArray,
 		breakoutbtn : breakoutbtn,
