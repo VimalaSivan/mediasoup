@@ -1,5 +1,5 @@
 // import React from 'react';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState,Fragment } from 'react';
 import { connect } from 'react-redux';
 import PropTypes from 'prop-types';
 import classnames from 'classnames';
@@ -26,11 +26,15 @@ class Breakout extends React.Component {
 			name: 'React',
 			data: [0],
 			list: [],
-			itemName: 'Breakoutroom',
+			itemName: 'Breakout Room',
 			term: "",
 			removeHideShow: false,
 			inviteHideShow:true,
-			mainRoomId:0
+			mainRoomId:0,
+			showing: false,
+			showingbtn:false,
+			showingBtnNext:true,
+			btnDiff: 1
 		};
 		this.node = React.createRef()
 	}
@@ -116,24 +120,45 @@ class Breakout extends React.Component {
 		this.props.roomClient.join();
 
 	}
+	showParticipants = (btnDiff) => {
+		if(btnDiff == 1){
+			this.setState({ showing: true })
+			this.setState({ showingbtn: true })
+			this.setState({ showingBtnNext: false })
+			this.setState({ btnDiff: 2 })
+		}
+		if(btnDiff == 2){
+			this.setState({ showing: false })
+			this.setState({ showingbtn: false })
+			this.setState({ showingBtnNext: true })
+			this.setState({ btnDiff: 1 })
+		}
+
+	}
+
 	 add = () => {
 
 
-		const list = [...this.state.list]
+		//const list = [...this.state.list]
+		
 		let roomId = randomString({ length: 8 }).toLowerCase();
+		const list = [...this.state.list]
+
+		
+		
 		var arrCount = list.length + 1;
 		var itemCount = this.state.itemName +'#' + arrCount
 		console.log("itemCount",itemCount);
-		list.push({ id: roomId, name: itemCount });
+		
 		const currentRoomid = location.href.split("&")[1].split("=")[1];
 
+		console.log(list);
+		list.push({ id: roomId, name: itemCount });
+		this.setState({list});
 
 
-
-		this.setState({ list: list });
-		this.setState({ itemName: 'Breakoutroom' })
-		this.setState({ itemId: roomId })
-		//console.log('breakoutroomlist', list);
+		
+		console.log('item breakoutroomlist', list);
 		if (typeof (list) != "undefined") {
 		//	localStorage.setItem("testObject", JSON.stringify(list));
 		//window.sessionStorage.setItem("testObject", JSON.stringify(list));
@@ -141,7 +166,7 @@ class Breakout extends React.Component {
 		//const peerId = randomString({ length: 8 }).toLowerCase();
 		const peerId = "0";
 
-		const roomName =  'Breakoutroom'+arrCount;
+		const roomName =  'Breakout Room '+arrCount;
 		//const displayName = '';
 		const urlParser = new UrlParse(window.location.href, true);
 		//console.log('urlParser', urlParser);
@@ -299,16 +324,24 @@ class Breakout extends React.Component {
 
 			return this.props.breakoutRooms?.map((item, index) => {
 				return (
-					<div name={"box" + index + "Hover"} class="list-item-container breakout-room-container css-bw62qe-container-container"
+					<Fragment>
+					<div name={"box" + index + "Hover"} 
+					class="list-item-container breakout-room-container css-1f54li8-container-container"
 
 						data-testid="492c1f08-5a28-4203-bf55-a0c4cb1790a1"><div>
-							<div class="css-9mpzhf-arrowContainer">
-								<div class="jitsi-icon jitsi-icon-default ">
-									<svg height="14" width="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-										<path fill-rule="evenodd" clip-rule="evenodd" d="M20.03 16.28a.75.75 0 0 1-1.06 0L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06Z"></path></svg></div></div> </div>
+							<div class="css-9mpzhf-arrowContainer"  >
+								<div class="jitsi-icon jitsi-icon-default " >
+									<svg height="14" width="14" onClick={(e) => {this.showParticipants(this.state.btnDiff);}} viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+										<path  style={{ display: (this.state.showingbtn ? 'block' : 'none') }}  fill-rule="evenodd" clip-rule="evenodd" d="M20.03 16.28a.75.75 0 0 1-1.06 0L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06Z"></path>
+										<path  style={{ display: (this.state.showingBtnNext ? 'block' : 'none') }}  fill-rule="evenodd" clip-rule="evenodd" d="M3.97 7.72a.75.75 0 0 1 1.06 0L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 0-1.06Z"></path>
+										</svg>
+										
+
+										
+										</div></div> </div>
 						<div class="css-1qbw81c-detailsContainer">
 							<div class="css-1dkn5fp-name">
-								<span class="css-15zs0dc-roomName">{item.name} (0)</span>
+								<span class="css-15zs0dc-roomName">{item.name} (1)</span>
 							</div>
 
 							<div class="actions joinbuttons css-t4kzjs-actionsContainer">
@@ -322,18 +355,47 @@ class Breakout extends React.Component {
 
 									</path></svg></div></button></div>
 						</div>
-						{/* <div class="ignore-child css-a6wji9-contextMenu-contextMenuHidden" role="menu" 
-				style="top: 220px;">
-				<div class="css-es5z1v-contextMenuItemGroup">
-				<div aria-label="Remove" class="css-uf170q-contextMenuItem" 
-				id="remove-room-undefined" role="menuitem">
-				<div class="jitsi-icon jitsi-icon-default css-1i0btwg-contextMenuItemIcon">
-				<svg height="20" width="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-				<path d="M18.53 6.53a.75.75 0 0 0-1.06-1.06L12 10.94 6.53 5.47a.75.75 0 0 0-1.06 1.06L10.94 12l-5.47 5.47a.75.75 0 1 0 1.06 1.06L12 13.06l5.47 5.47a.75.75 0 1 0 1.06-1.06L13.06 12l5.47-5.47Z"></path>
-				</svg></div>
-				<span class="css-1oh4e10-text">Remove</span>
-				</div></div></div> */}
+						
+						
+						
+					
 					</div>
+					<div style={{ display: (this.state.showing ? '' : 'none') }} class="list-item-container css-1nxmpxc-container" 
+								id="participant-item-aacb482d-1a35-482e-93a9-2cf5a35b5fce@meet.jit.si/FYpi0ONSgGFh">
+								<div>
+								<div class="avatar css-1y57sup-avatar-avatar" style={{ backgroundColor: 'rgb(106, 80, 211)', fontSize: '12.8px',height: '32px', width: '32px' }}>
+								<div class="css-1s788x3-initialsContainer">S</div>
+								</div> 
+								</div>
+								<div class="css-1qbw81c-detailsContainer">
+								<div class="css-1dkn5fp-name"><div class="css-14p5y54-nameContainer">
+								<div class="css-1lacpev-name">Sunita</div></div></div><div class="indicators css-lribt2-indicators">
+
+								</div><div class="actions css-94skbf-actionsContainer">
+								<button aria-label="breakoutRoom.more" class="iconButton css-1bxflld-button-primary-iconButton-small" title="breakoutRoom.more" type="button">
+								<div class="jitsi-icon jitsi-icon-default ">
+								<svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+								<path fill-rule="evenodd" clip-rule="evenodd" d="M16.5 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0Zm1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0ZM9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0Zm1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0ZM4.5 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-1.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z">
+
+								</path></svg></div></button></div></div></div>	
+					</Fragment>
+					// {/* <div class="list-item-container css-1nxmpxc-container" 
+					// 			id="participant-item-aacb482d-1a35-482e-93a9-2cf5a35b5fce@meet.jit.si/FYpi0ONSgGFh">
+					// 			<div> 
+					// 			<div class="avatar css-1y57sup-avatar-avatar" style={{ backgroundColor: '#2AA076', fontSize: '12.8px', 
+					// 			height: '32px', width: '32px' }}>
+					// 			<div class="css-1s788x3-initialsContainer">S</div></div> 
+					// 			</div><div class="css-1qbw81c-detailsContainer">
+					// 			<div class="css-1dkn5fp-name"><div class="css-14p5y54-nameContainer">
+					// 			<div class="css-1lacpev-name">Sunita</div></div></div><div class="indicators css-lribt2-indicators">
+
+					// 			</div><div class="actions css-94skbf-actionsContainer">
+					// 			<button aria-label="breakoutRoom.more" class="iconButton css-1bxflld-button-primary-iconButton-small" title="breakoutRoom.more" type="button">
+					// 			<div class="jitsi-icon jitsi-icon-default ">
+					// 			<svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+					// 			<path fill-rule="evenodd" clip-rule="evenodd" d="M16.5 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0Zm1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0ZM9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0Zm1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0ZM4.5 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-1.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z">
+
+					// 			</path></svg></div></button></div></div></div> */}
 				)
 			})
 		}
@@ -416,8 +478,10 @@ class Breakout extends React.Component {
 												<div class="css-1lacpev-name">{item.value}</div>
 											</div></div>
 									</div>
+									
 								</div>
 
+								
 							</div>
 						})}
 						<br></br>
@@ -429,7 +493,7 @@ class Breakout extends React.Component {
 						</If>
 
 						<br></br>
-						<div id="breakout-rooms-list">
+						<div id="breakout-rooms-list" class="css-1ab34r-topMargin">
 							{renderData()}
 
 						</div>
