@@ -48,6 +48,7 @@ class Room extends React.Component {
 			room.isOpenbreak = false;
 		}
 		console.log('room.isOpenbreak',room.isOpenbreak)
+		console.log('roomClient._roomName',roomClient._roomName)
 		return (
 			<Appear duration={300}>
 				<div data-component='Room'>
@@ -55,7 +56,7 @@ class Room extends React.Component {
 
 					<div className='state'>
 						<div className={classnames('icon', room.state)} />
-						<p className={classnames('text', room.state)}>{room.state}</p>
+						<p className={classnames('text', room.state)}>{room.state}-{roomClient._roomName}</p>
 					</div>
 
 					<div className='room-link-wrapper'>
@@ -140,7 +141,12 @@ class Room extends React.Component {
 
 
 					<If condition={room.isOpenbreak}>
-					<Breakout />
+					<Breakout 
+						onAddRoom={(displayName) =>
+							{
+								roomClient.addRoom(displayName);
+							}}
+					/>
 					</If>
 
 					<If condition={window.NETWORK_THROTTLE_SECRET}>
@@ -163,7 +169,7 @@ class Room extends React.Component {
 
 	componentDidMount() {
 		const { roomClient } = this.props;
-		console.log("rooms",roomClient);
+		console.log("rooms.jsx ::: ",roomClient);
 		roomClient.join();
 	}
 }
@@ -179,6 +185,8 @@ Room.propTypes =
 
 const mapStateToProps = (state) => {
 	console.log('all data rooms', state);
+	//console.log('room name ::::', roomClient._roomName);
+	
 	return {
 		room: state.room,
 		me: state.me,

@@ -42,10 +42,14 @@ const mapStateToProps = (state) =>
 	const peersArray = Object.values(state.peers);
 	console.log("peersArray",peersArray);
 	console.log(' peersArray state.me.id',state.me.id);
+	console.log(' state ---> ',state);
 	//for (const peersId of peersArray) {
 		//console.log("peersId",peersId.id);
+
+	const currentRoomid = location.href.split("&")[1].split("=")[1];
+	console.log(' currentRoomid ---> ',currentRoomid);
 		
-	const filteredData =peersArray.filter((peersId)=> peersId.id != 0 )
+	const filteredData =peersArray.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.roomId == currentRoomid )
 	console.log("peersArray filteredData",filteredData);
 	const finalData = filteredData.filter((peersId)=> state.me.id != peersId.id )
 	//}

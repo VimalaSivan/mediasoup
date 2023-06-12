@@ -436,9 +436,20 @@ export default class PeerView extends React.Component
 							</When>
 
 							<Otherwise>
-								<span className='display-name'>
-									{peer.displayName}
-								</span>
+							<EditableInput
+									value={peer.displayName}
+									propName='displayName'
+									className='display-name editable'
+									classLoading='loading'
+									classInvalid='invalid'
+									shouldBlockWhileLoading
+									editProps={{
+										maxLength   : 20,
+										autoCorrect : 'false',
+										spellCheck  : 'false'
+									}}
+									onChange={({ displayName }) => onChangeDisplayName(displayName)}
+								/>
 							</Otherwise>
 						</Choose>
 

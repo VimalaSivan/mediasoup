@@ -3,9 +3,11 @@ const protoo = require('protoo-server');
 const throttle = require('@sitespeed.io/throttle');
 const Logger = require('./Logger');
 const config = require('../config');
+const server = require('../server');
 const Bot = require('./Bot');
 const fs = require('fs');
 const logger = new Logger('Room');
+const randomstring = require("randomstring");
 
 /**
  * Room class.
@@ -253,6 +255,9 @@ class Room extends EventEmitter
 		peer.data.dataProducers = new Map();
 		peer.data.dataConsumers = new Map();
 		peer.data.breakoutroom = this._breakoutRoomsObj;
+		//peer.data.breakoutroomId = "0";
+		peer.data.roomId = this._roomId;
+		peer.data.parentId = '0';
 
 		peer.on('request', (request, accept, reject) =>
 		{
@@ -262,7 +267,7 @@ class Room extends EventEmitter
 
 			logger.info('peer inside request handler :: ');
 
-			this._handleProtooRequest(peer, request, accept, reject)
+			this._handleProtooRequest(peer, request, accept, reject,protooWebSocketTransport)
 				.catch((error) =>
 				{
 					logger.error('request failed:%o', error);
@@ -876,10 +881,10 @@ class Room extends EventEmitter
 	 *
 	 * @async
 	 */
-	async _handleProtooRequest(peer, request, accept, reject)
+	async _handleProtooRequest(peer, request, accept, reject,protooWebSocketTransport)
 	{
 
-		//logger.info('_handleProtooRequest method : ', request.method);
+		
 		switch (request.method)
 		{
 			case 'getRouterRtpCapabilities':
@@ -911,7 +916,7 @@ class Room extends EventEmitter
 				peer.data.device = device;
 				peer.data.rtpCapabilities = rtpCapabilities;
 				peer.data.sctpCapabilities = sctpCapabilities;
-				// peer.data.breakoutroom = breakoutroom;
+				peer.data.breakoutroomName = this._roomName;
 				
 				
 				 
@@ -1025,12 +1030,14 @@ class Room extends EventEmitter
 				
 
 					const peerInfos = joinedPeers
-					.filter((joinedPeer) => joinedPeer.id !== peer.id || peer.id == 0)
+					.filter((joinedPeer) => joinedPeer.id !== peer.id)
 					.map((joinedPeer) => ({
 						id          : joinedPeer.id,
 						displayName : joinedPeer.data.displayName,
 						device      : joinedPeer.data.device,	
-						breakoutroomName : this._roomName
+						breakoutroomName : joinedPeer.data.breakoutroomName,
+						roomId : joinedPeer.data.roomId,
+						parentId : joinedPeer.data.parentId
 					}));
 
 					console.info('peerInfos :::',peerInfos);
@@ -1086,10 +1093,134 @@ class Room extends EventEmitter
 							id           : peer.id,
 							displayName  : peer.data.displayName,
 							device       : peer.data.device,
-							breakoutroomName : peer.data.breakoutroomName
+							breakoutroomName : peer.data.breakoutroomName,
+							roomId : this._roomId,
+							parentId: peer.data.parentId
 						})
 						.catch(() => {});
 				}
+
+				break;
+			}
+			case 'changeDisplayName':
+			{
+				// Ensure the Peer is joined.
+				if (!peer.data.joined)
+					throw new Error('Peer not yet joined');
+
+				const { displayName } = request.data;
+				const oldDisplayName = peer.data.displayName;
+
+				// Store the display name into the custom data Object of the protoo
+				// Peer.
+				peer.data.displayName = displayName;
+
+				// Notify other joined Peers.
+				for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
+				{
+					otherPeer.notify(
+						'peerDisplayNameChanged',
+						{
+							peerId : peer.id,
+							displayName,
+							oldDisplayName
+						})
+						.catch(() => {});
+				}
+
+				accept();
+
+				break;
+			}
+			case 'addRoom':
+			{
+
+				console.info('########### Add Room ###############');
+
+				// // Ensure the Peer is joined.
+				// if (!peer.data.joined)
+				// 	throw new Error('Peer not yet joined');
+
+				// const { displayName } = request.data;
+				// const oldDisplayName = peer.data.displayName;
+
+				// // Store the display name into the custom data Object of the protoo
+				// // Peer.
+				// peer.data.displayName = displayName;
+
+				const {
+					rtpCapabilities,
+					sctpCapabilities,
+				} = request.data;
+
+				let device = {
+					flag    : 'broadcaster',
+					name    : 'Unknown device',
+					version : '0'
+				};
+
+				logger.info('Peer payload before ::: ', this._protooRoom.peers);
+
+				let peer;
+				let { parentId } = request.data;
+				let displayName = 'BreakOutRoom' + randomstring.generate(8);
+				let peerId  = randomstring.generate(8);
+				let roomId  = randomstring.generate(8);
+
+				try
+				{
+					peer = this._protooRoom.createPeer(peerId, protooWebSocketTransport);
+					// Not joined after a custom protoo 'join' request is later received.
+					peer.data.breakoutroomName = displayName;
+					peer.data.consume = '';
+					peer.data.joined = true;
+					peer.data.displayName = 'HEADER';				
+
+					// Have mediasoup related maps ready even before the Peer joins since we
+					// allow creating Transports before joining.
+					peer.data.transports = new Map();
+					peer.data.producers = new Map();
+					peer.data.consumers = new Map();
+					peer.data.dataProducers = new Map();
+					peer.data.dataConsumers = new Map();
+					peer.data.roomId = roomId;
+					peer.data.parentId = parentId;
+					peer.data.breakoutroom = '';
+					
+
+					peer.data.device = device;
+					peer.data.rtpCapabilities = rtpCapabilities;
+					peer.data.sctpCapabilities = sctpCapabilities;
+				}
+				catch (error)
+				{
+					logger.error('protooRoom.createPeer() failed:%o', error);
+				}
+
+				logger.info('Dummy Peer  ::: ', peer);
+
+				this._protooRoom.peers.push(peer);
+
+				logger.info('Peer payload before :::', this._protooRoom.peers);
+
+
+				// Notify other joined Peers.
+				for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
+				{
+					otherPeer.notify(
+						'newPeer',
+						{
+							id           : peerId,
+							displayName  : 'HEADER',
+							device       : device,
+							breakoutroomName : displayName,
+							roomId : roomId,
+							parentRoomId: this._roomId
+						})
+						.catch(() => {});
+				}
+
+				accept();
 
 				break;
 			}
@@ -1519,36 +1650,7 @@ class Room extends EventEmitter
 				break;
 			}
 
-			case 'changeDisplayName':
-			{
-				// Ensure the Peer is joined.
-				if (!peer.data.joined)
-					throw new Error('Peer not yet joined');
-
-				const { displayName } = request.data;
-				const oldDisplayName = peer.data.displayName;
-
-				// Store the display name into the custom data Object of the protoo
-				// Peer.
-				peer.data.displayName = displayName;
-
-				// Notify other joined Peers.
-				for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
-				{
-					otherPeer.notify(
-						'peerDisplayNameChanged',
-						{
-							peerId : peer.id,
-							displayName,
-							oldDisplayName
-						})
-						.catch(() => {});
-				}
-
-				accept();
-
-				break;
-			}
+			
 			case 'addbreakRooms':
 			{
 				console.info('addbreakRooms checking : ');

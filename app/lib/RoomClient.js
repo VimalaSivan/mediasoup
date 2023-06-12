@@ -88,8 +88,8 @@ export default class RoomClient {
 		
 		
 		logger.debug(
-			'constructor() [roomId:"%s", peerId:"%s", displayName:"%s", device:%s]',
-			roomId, peerId, displayName, device.flag);
+			'constructor() in roomclient [roomId:"%s", peerId:"%s", displayName:"%s", device:%s,roomName:%s]',
+			roomId, peerId, displayName, device.flag,roomName);
 
 		// Closed flag.
 		// @type {Boolean}
@@ -177,6 +177,7 @@ export default class RoomClient {
 		// Whether simulcast should be used in desktop sharing.
 		// @type {Boolean}
 		this._useSharingSimulcast = useSharingSimulcast;
+
 
 		// Protoo URL.
 		// @type {String}
@@ -346,7 +347,8 @@ export default class RoomClient {
 			logger.debug(
 				'proto "request" event [method:%s, data:%o]',
 				request.method, request.data);
-
+				console.log('====== proto "request" event [method:%s, data:%o]',
+				request.method, request.data);
 			switch (request.method) {
 				case 'newConsumer':
 					{
@@ -1872,8 +1874,51 @@ export default class RoomClient {
 				stateActions.setDisplayName());
 		}
 	}
+	async addRoom(parentId) {
+		logger.debug('addRoom() method...');
+		const assId = this.roomId;
+		
+		// Store in cookie.
+		//cookiesManager.setUser({ displayName });
+
+		try {
+
+        console.log('Current URL ----> :: ',this._protooUrl);
+		console.log('Room Id   ----> :: ',this.roomId);
+		console.log('Room Name ----> :: ',this._roomName);
+
+		const roomId = this.roomId;
+		const roomName = this._roomName;
+		const consumerReplicas = "";
+		const peerId = 0;
+	
+		// const assUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas});
+		// const protooTransport = new protooClient.WebSocketTransport(assUrl);
+		// this._protoo = new protooClient.Peer(protooTransport);
+
+		this._protoo.request('addRoom', { parentId });
+
+
+
+	
+		}
+		catch (error) {
+			logger.error('Add room() | failed: %o', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type: 'error',
+					text: `Could not add room: ${error}`
+				}));
+
+			// We need to refresh the component for it to render the previous
+			// displayName again.
+			store.dispatch(
+				stateActions.setDisplayName());
+		}
+	}
 	async addbreakRooms(breakRooms) {
-		logger.debug('addbreakRooms() [breakRooms:"%s"]', breakRooms);
+		logger.info('addbreakRooms() [breakRooms:"%s"]', breakRooms);
 
 		try {
 			await this._protoo.request('addbreakRooms', breakRooms);
@@ -1907,8 +1952,8 @@ export default class RoomClient {
 
 			// We need to refresh the component for it to render the previous
 			// displayName again.
-			// store.dispatch(
-			// 	stateActions.addRoom());
+			store.dispatch(
+				stateActions.addRoom());
 
 		}
 	}
@@ -2289,7 +2334,8 @@ export default class RoomClient {
 					sctpCapabilities: this._useDataChannel && this._consume
 						? this._mediasoupDevice.sctpCapabilities
 						: undefined,
-				    breakoutroom:	this.breakoutRooms
+				    breakoutroom:	this.breakoutRooms,
+					roomName: this._roomName
 				});
 
 			
