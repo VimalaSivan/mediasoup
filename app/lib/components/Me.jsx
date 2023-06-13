@@ -18,7 +18,23 @@ class Me extends React.Component
 		this._mounted = false;
 		this._rootNode = null;
 	}
+	async getData() {
+				try {
+						//const res = await fetch('https://jsonplaceholder.typicode.com/users');
+						//const res = await fetch('https://localhost:3000/?info=true/rooms/jjzj4zsj/broadcast');
+						const res = await fetch('https://localhost:4443/rooms/bvv9weot/broadcast',{
+								mode: 'no-cors',
+								method: "get",
+								headers: {
+										"Content-Type": "application/json"
+								}
+		});
 
+						console.log("data----", JSON.stringify(res))
+				} catch (error) {
+						console.log("error----", error)
+				}
+		}
 	render()
 	{
 		const {
@@ -130,6 +146,10 @@ class Me extends React.Component
 									roomClient.enableShare();
 							}}
 						/>
+						<div
+                                                        className={classnames('button', 'broadcast')}
+                                                        onClick={() => this.getData()}
+                                                />
 					</div>
 				</If>
 

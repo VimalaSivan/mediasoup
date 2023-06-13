@@ -210,6 +210,29 @@ async function createExpressApp()
 		// 	res.send(`Hello, ${name}!`);
 		//   });
 
+		expressApp.get(
+			'/rooms/:roomId/broadcast', (req, res) => {
+			var url = req.url; room_id = url.split('/')[2];
+			const { exec } = require("child_process");
+			exec("sh ../broadcasters/gstreamer.sh", {
+					env: {
+							'SERVER_URL': 'https://localhost:3000', 'ROOM_ID': `${room_id}`,
+							'MEDIA_FILE': '../broadcasters/test.mp4'
+					}
+			}, (error, stdout, stderr) => {
+					if (error) {
+							console.log(`error: ${error.message}`);
+							return;
+					} if (stderr) {
+							console.log(`stderr: ${stderr}`);
+							return;
+					}
+					console.log(`stdout: ${stdout}`);
+			});
+			console.log("Broadcast file running");
+			const msg = "Running broadcast file";
+			res.status(200).send(msg);
+	 });
 	/**
 	 * POST API to create a Broadcaster.
 	 */
