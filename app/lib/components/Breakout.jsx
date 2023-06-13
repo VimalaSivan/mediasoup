@@ -34,9 +34,12 @@ class Breakout extends React.Component {
 			showing: false,
 			showingbtn:false,
 			showingBtnNext:true,
-			btnDiff: 1
+			btnDiff: 1,
+			active: false,
+            activeIdList:[]
 		};
 		this.node = React.createRef()
+		this.showParticipants.bind(this);
 	}
 
 	
@@ -238,20 +241,29 @@ class Breakout extends React.Component {
 		
 	}
 
-	showParticipants = (btnDiff) => {
+	showParticipants = (btnDiff,key) => {
+		const currentState = this.state.active;
 		if(btnDiff == 1){
-			this.setState({ showing: true })
+			//this.setState({ showing: true })
+			this.setState({ active: !currentState});
 			this.setState({ showingbtn: true })
 			this.setState({ showingBtnNext: false })
 			this.setState({ btnDiff: 2 })
 		}
 		if(btnDiff == 2){
-			this.setState({ showing: false })
+			//this.setState({ showing: false })
+			this.setState({ active: !currentState});
 			this.setState({ showingbtn: false })
 			this.setState({ showingBtnNext: true })
 			this.setState({ btnDiff: 1 })
 		}
-
+		
+        
+        if(this.state.activeIdList.find(element => element == key)){
+            this.state.activeIdList = this.state.activeIdList.filter(item => item !== key);
+        }else{
+            this.state.activeIdList.push(key);
+        }
 	}
 
 	// joinParticipant = (event) => {
@@ -621,10 +633,10 @@ class Breakout extends React.Component {
 					<div class="css-9mpzhf-arrowContainer">
 						<div class="jitsi-icon jitsi-icon-default ">
 						<svg height="14" width="14" 
-						onClick={(e) => {this.showParticipants(this.state.btnDiff);}} 
+						onClick={(e) => {this.showParticipants(this.state.btnDiff,key);}} 
 						viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-										<path  style={{ display: (this.state.showingbtn ? 'block' : 'none') }}  fill-rule="evenodd" clip-rule="evenodd" d="M20.03 16.28a.75.75 0 0 1-1.06 0L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06Z"></path>
-										<path  style={{ display: (this.state.showingBtnNext ? 'block' : 'none') }}  fill-rule="evenodd" clip-rule="evenodd" d="M3.97 7.72a.75.75 0 0 1 1.06 0L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 0-1.06Z"></path>
+										<path  className={(this.state.activeIdList.find(element => element == key))? "active-div" :"hide"} fill-rule="evenodd" clip-rule="evenodd" d="M20.03 16.28a.75.75 0 0 1-1.06 0L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06Z"></path>
+										<path  className={(this.state.activeIdList.find(element => element == key))? "hide" :"active-div"}  fill-rule="evenodd" clip-rule="evenodd" d="M3.97 7.72a.75.75 0 0 1 1.06 0L12 14.69l6.97-6.97a.75.75 0 1 1 1.06 1.06l-7.5 7.5a.75.75 0 0 1-1.06 0l-7.5-7.5a.75.75 0 0 1 0-1.06Z"></path>
 						</svg></div></div> </div>
 				   <div class="css-1qbw81c-detailsContainer">
 					<div class="css-1dkn5fp-name">
@@ -644,10 +656,10 @@ class Breakout extends React.Component {
 							</path></svg></div></button></div>
 				      </div>
 				   </div>
-
-			   {/* {nestedArray.map((value, index) => (
-
-				<div style={{ display: (this.state.showing ? '' : 'none') }} class="list-item-container css-1nxmpxc-container" 
+				
+			   {nestedArray.map((value, index) => (
+				<If condition={(value.displayName != 'HEADER')}>
+				<div className={(this.state.activeIdList.find(element => element == key))? "active-div" :"hide"}  class="list-item-container css-1nxmpxc-container" 
 				id="participant-item-aacb482d-1a35-482e-93a9-2cf5a35b5fce@meet.jit.si/FYpi0ONSgGFh">
 				<div class="css-1qbw81c-detailsContainer">
 				<div class="css-1dkn5fp-name"><div class="css-14p5y54-nameContainer">
@@ -655,7 +667,8 @@ class Breakout extends React.Component {
 				<div class="indicators css-lribt2-indicators">
 				</div>
 				</div></div>
-                ))} */}
+				</If>
+                ))}
 
 				
 					</Fragment>
