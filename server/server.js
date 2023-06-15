@@ -214,9 +214,10 @@ async function createExpressApp()
 			'/rooms/:roomId/broadcast', (req, res) => {
 			var url = req.url; room_id = url.split('/')[2];
 			const { exec } = require("child_process");
-			exec("sh ../broadcasters/gstreamer.sh", {
+			exec("../broadcasters/gstreamer.sh", {
 					env: {
-							'SERVER_URL': 'https://localhost:3000', 'ROOM_ID': `${room_id}`,
+							'SERVER_URL': 'https://18.118.5.122:4443', 
+							'ROOM_ID': `${room_id}`,
 							'MEDIA_FILE': '../broadcasters/test.mp4'
 					}
 			}, (error, stdout, stderr) => {
