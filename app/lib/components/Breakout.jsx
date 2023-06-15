@@ -857,13 +857,23 @@ const mapStateToProps = (state) => {
 
 		const participant = Object.keys(peers).length;
 		let peerCnt = participant + 1;
-
-		if (participant >= 1) {
-			
+		let peersArrCnt =	1;
 		const peersId = Object.keys(peers)[0];
 		const peersArray = Object.values(peers);
-
 		for (const peer of peersArray) {
+			var currentRoomid = location.href.split("&")[1].split("=")[1];
+			console.log('vimala check',peer.breakoutroomName,'-',currentRoomid);
+			if(peer.roomId == currentRoomid){
+				peersArrCnt++;
+			}
+		}
+		console.log('vimala peersArrCnt',peersArrCnt);
+		if (participant >= 1) {
+			
+		
+		
+		for (const peer of peersArray) {
+			
 			if(nestedMap.has(peer.breakoutroomName))
 			{
 				let tmpArry = nestedMap.get(peer.breakoutroomName);
@@ -951,7 +961,7 @@ const mapStateToProps = (state) => {
 		isMe: state.me,
 		meNow: state.me,
 		DisplayName: state.me.displayName,
-		countPeers: floorsData.length,
+		countPeers: peersArrCnt,
 		peersNew: floorsData,
 		firstletter: firstletter,
 		breakoutRooms: newArray,
