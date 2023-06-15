@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-
+echo "testing"
 function show_usage()
 {
         echo
@@ -63,7 +63,7 @@ fi
 set -e
 
 BROADCASTER_ID=$(LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w ${1:-32} | head -n 1)
-HTTPIE_COMMAND="http --check-status"
+HTTPIE_COMMAND="http --check-status --verify=no"
 AUDIO_SSRC=1111
 AUDIO_PT=100
 VIDEO_SSRC=2222
@@ -76,7 +76,7 @@ VIDEO_PT=101
 echo ">>> verifying that room '${ROOM_ID}' exists..."
 
 ${HTTPIE_COMMAND} \
-        GET ${SERVER_URL}/rooms/${ROOM_ID} > /dev/null
+        GET ${SERVER_URL}/rooms/${ROOM_ID} < /dev/tty #> /dev/tty
 
 #
 # Create a Broadcaster entity in the server by sending a POST with our metadata.
@@ -85,19 +85,25 @@ ${HTTPIE_COMMAND} \
 # and Producers.
 #
 echo ">>> creating Broadcaster..."
+echo ">>> Broadcaster ID.............'${BROADCASTER_ID}'"
+#broadcastId=${BROADCASTER_ID}
+#echo $broadcastId
 
 ${HTTPIE_COMMAND} \
         POST ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters \
         id="${BROADCASTER_ID}" \
         displayName="Broadcaster" \
         device:='{"name": "GStreamer"}' \
-        > /dev/null
+        < /dev/tty
+        #> /dev/tty
 
 #
 # Upon script termination delete the Broadcaster in the server by sending a
 # HTTP DELETE.
 #
-trap 'echo ">>> script exited with status code $?"; ${HTTPIE_COMMAND} DELETE ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID} > /dev/null' EXIT
+
+#trap 'echo ">>> script exited with status code $?"; ${HTTPIE_COMMAND} DELETE ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID} > /dev/tty ' EXIT
+trap 'echo ">>> script exited with status code $?"; ${HTTPIE_COMMAND} DELETE ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID} < /dev/tty' EXIT
 
 #
 # Create a PlainTransport in the mediasoup to send our audio using plain RTP
@@ -111,8 +117,8 @@ res=$(${HTTPIE_COMMAND} \
         type="plain" \
         comedia:=true \
         rtcpMux:=false \
-        2> /dev/null)
-
+        < /dev/tty)
+        #2> /dev/tty)
 #
 # Parse JSON response into Shell variables and extract the PlainTransport id,
 # IP, port and RTCP port.
@@ -131,7 +137,10 @@ res=$(${HTTPIE_COMMAND} \
         type="plain" \
         comedia:=true \
         rtcpMux:=false \
-        2> /dev/null)
+        < /dev/tty)
+        #2> /dev/tty)
+
+echo ">>Mediasoup broadcastingg testing---"
 
 #
 # Parse JSON response into Shell variables and extract the PlainTransport id,
@@ -149,7 +158,8 @@ ${HTTPIE_COMMAND} -v \
         POST ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID}/transports/${audioTransportId}/producers \
         kind="audio" \
         rtpParameters:="{ \"codecs\": [{ \"mimeType\":\"audio/opus\", \"payloadType\":${AUDIO_PT}, \"clockRate\":48000, \"channels\":2, \"parameters\":{ \"sprop-stereo\":1 } }], \"encodings\": [{ \"ssrc\":${AUDIO_SSRC} }] }" \
-        > /dev/null
+        < /dev/tty
+        #> /dev/tty
 
 #
 # Create a mediasoup Producer to send video by sending our RTP parameters via a
@@ -161,7 +171,8 @@ ${HTTPIE_COMMAND} -v \
         POST ${SERVER_URL}/rooms/${ROOM_ID}/broadcasters/${BROADCASTER_ID}/transports/${videoTransportId}/producers \
         kind="video" \
         rtpParameters:="{ \"codecs\": [{ \"mimeType\":\"video/vp8\", \"payloadType\":${VIDEO_PT}, \"clockRate\":90000 }], \"encodings\": [{ \"ssrc\":${VIDEO_SSRC} }] }" \
-        > /dev/null
+        < /dev/tty
+        #> /dev/tty
 
 #
 # Run gstreamer command and make it send audio and video RTP with codec payload and
