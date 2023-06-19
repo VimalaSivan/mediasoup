@@ -56,7 +56,7 @@ class Room extends React.Component {
 
 					<div className='state'>
 						<div className={classnames('icon', room.state)} />
-						<p className={classnames('text', room.state)}>{room.state}-{roomClient._roomName}</p>
+						<p className={classnames('text', room.state)}>{room.state}</p>
 					</div>
 
 					<div className='room-link-wrapper'>

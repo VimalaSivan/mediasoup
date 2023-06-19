@@ -211,10 +211,11 @@ class Room extends EventEmitter
 	 */
 	handleProtooConnection({ peerId, consume, protooWebSocketTransport })
 	{
+
+		logger.info('handleProtooConnection peerId    ::  -->', peerId);
 		const existingPeer = this._protooRoom.getPeer(peerId);
-
+		logger.info('after peerId    ::  -->', peerId);
 		
-
 		if (existingPeer)
 		{
 			logger.warn(
@@ -327,7 +328,7 @@ class Room extends EventEmitter
 	 * @type {Object} [device] - Additional info with name, version and flags fields.
 	 * @type {RTCRtpCapabilities} [rtpCapabilities] - Device RTP capabilities.
 	 */
-	async createBroadcaster({ id, displayName, device = {}, rtpCapabilities })
+	async createBroadcaster({ id, displayName, device = {}, rtpCapabilities,room_id })
 	{
 		if (typeof id !== 'string' || !id)
 			throw new TypeError('missing body.id');
@@ -358,6 +359,7 @@ class Room extends EventEmitter
 				producers     : new Map(),
 				consumers     : new Map(),
 				dataProducers : new Map(),
+				roomId : room_id,
 				dataConsumers : new Map()
 			}
 		};
@@ -373,7 +375,8 @@ class Room extends EventEmitter
 				{
 					id          : broadcaster.id,
 					displayName : broadcaster.data.displayName,
-					device      : broadcaster.data.device
+					device      : broadcaster.data.device,
+					roomId : room_id
 				})
 				.catch(() => {});
 		}
@@ -392,6 +395,7 @@ class Room extends EventEmitter
 					id          : joinedPeer.id,
 					displayName : joinedPeer.data.displayName,
 					device      : joinedPeer.data.device,
+					room_id : room_id,
 					producers   : []
 				};
 
@@ -917,6 +921,7 @@ class Room extends EventEmitter
 				peer.data.rtpCapabilities = rtpCapabilities;
 				peer.data.sctpCapabilities = sctpCapabilities;
 				peer.data.breakoutroomName = this._roomName;
+				peer.data.roomId = this._roomId;
 				
 				
 				 
@@ -931,7 +936,7 @@ class Room extends EventEmitter
 					...this._getJoinedPeers(),
 					...this._broadcasters.values()
 				];
-				//console.log('joinedPeers',joinedPeers);
+				console.log('this._broadcasters.values() --> ',this._broadcasters.values());
 				 //let newDatas = {};
 				//if (typeof breakoutroom.name !== 'undefined') {
 					// if(breakoutroom?.name?.includes('Break')){
@@ -1201,7 +1206,7 @@ class Room extends EventEmitter
 
 				this._protooRoom.peers.push(peer);
 
-				logger.info('Peer payload before :::', this._protooRoom.peers);
+				logger.info('this._getJoinedPeers:::', this._getJoinedPeers);
 
 
 				// Notify other joined Peers.

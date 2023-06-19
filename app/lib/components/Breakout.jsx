@@ -44,7 +44,7 @@ class Breakout extends React.Component {
 
 	
 
-	joinParentRoom = (e) => {
+	joinParentRoom11 = (e) => {
 
 		let roomId   = this.state.parentId;
 		let roomName = "";
@@ -133,9 +133,107 @@ class Breakout extends React.Component {
 		this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
 		this.props.roomClient.e2eKey = urlParser.query.e2eKey;
 		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
-		this.props.roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas });
+		this.props.roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas,parentId });
 		console.log("joinParticipant", this.props.roomClient);
 		
+		// window.CLIENT = this.props.roomClient;
+		// // eslint-disable-next-line require-atomic-updates
+		// console.log("window.CLIENT",window.CLIENT);
+		//window.location.reload(true)
+		this.props.roomClient.join();
+	}
+
+	joinParentRoom = (e) => {
+
+		let roomId   = this.state.parentId;
+		let roomName = "";
+		let peerId = "0";
+		let parentId = this.state.parentId;
+
+		console.log('parentRoomId', parentId);
+		console.log('roomId', roomId);
+		console.log('roomName', roomName);
+
+		const list = [...this.state.list]
+		//console.log('current peerId', this.props.peerId);
+		//console.log('current Breakout roomId', roomId);
+		//this.props.roomClient.closePeer();
+		//const peerId = this.props.peerId;
+		//const displayName = '';
+		const urlParser = new UrlParse(window.location.href, true);
+		console.log('urlParser', urlParser);
+		//const peerId = randomString({ length: 8 }).toLowerCase();
+		// Get current device info.
+		const device = deviceInfo();
+
+		var newURL = location.href.split("&")[0] + "&roomId=" + roomId;
+
+
+		var currentRoomid = location.href.split("&")[1].split("=")[1];
+		const consumerReplicas = urlParser.query.consumerReplicas;
+		this.props.roomClient.roomId = currentRoomid;
+		this.props.roomClient.peerId = peerId;
+		this.props.roomClient.roomName ="";
+		this.props.roomClient.device = device
+		this.props.roomClient.handlerName = urlParser.query.handlerName || urlParser.query.handler;
+		this.props.roomClient.useSimulcast = urlParser.query.simulcast !== 'false';
+		this.props.roomClient.useSharingSimulcast = urlParser.query.sharingSimulcast !== 'false';
+		this.props.roomClient.forceTcp = urlParser.query.forceTcp === 'true';
+		this.props.roomClient.produce = urlParser.query.produce !== 'false';
+		this.props.roomClient.consume = urlParser.query.consume !== 'false';
+		this.props.roomClient.forceH264 = urlParser.query.forceH264 === 'true';
+		this.props.roomClient.forceVP9 = urlParser.query.forceVP9 === 'true';
+		this.props.roomClient.svc = urlParser.query.svc;
+		this.props.roomClient.datachannel = urlParser.query.datachannel !== 'false';
+		this.props.roomClient.info = urlParser.query.info === 'true';
+		this.props.roomClient.faceDetection = urlParser.query.faceDetection === 'true';
+		this.props.roomClient.externalVideo = urlParser.query.externalVideo === 'true';
+		this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
+		this.props.roomClient.e2eKey = urlParser.query.e2eKey;
+		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas
+		this.props.roomClient._protooUrl = getProtooUrl({ currentRoomid, peerId, consumerReplicas });
+
+		list.push({ id: currentRoomid, name: "Main room" });
+		this.setState({ list: list });
+		this.state.mainRoomId = roomId;
+		//this.props.roomClient.breakoutRooms = { id: currentRoomid, name: "Main room" };
+		//console.log("addbreakRooms", this.props.roomClient);
+		//this.props.roomClient.addbreakRooms({ id: currentRoomid, name: "Main room" });
+		
+		window.history.pushState({}, document.title, newURL);
+		console.log('newlist', JSON.stringify(list));
+		if (typeof (list) != "undefined") {
+		//	localStorage.setItem("testObject", JSON.stringify(list));
+		window.sessionStorage.setItem("testObject", JSON.stringify(list));
+		}
+		this.state.removeHideShow = true;
+		this.state.inviteHideShow = false;
+		
+		//return false;
+		this.props.roomClient.closePeer();
+		this.props.roomClient.roomId = roomId;
+		this.props.roomClient.roomName =roomName;
+		this.props.roomClient.peerId = peerId;
+		this.props.roomClient.device = device
+		this.props.roomClient.handlerName = urlParser.query.handlerName || urlParser.query.handler;
+		this.props.roomClient.useSimulcast = urlParser.query.simulcast !== 'false';
+		this.props.roomClient.useSharingSimulcast = urlParser.query.sharingSimulcast !== 'false';
+		this.props.roomClient.forceTcp = urlParser.query.forceTcp === 'true';
+		this.props.roomClient.produce = urlParser.query.produce !== 'false';
+		this.props.roomClient.consume = urlParser.query.consume !== 'false';
+		this.props.roomClient.forceH264 = urlParser.query.forceH264 === 'true';
+		this.props.roomClient.forceVP9 = urlParser.query.forceVP9 === 'true';
+		this.props.roomClient.svc = urlParser.query.svc;
+		this.props.roomClient.datachannel = urlParser.query.datachannel !== 'false';
+		this.props.roomClient.info = urlParser.query.info === 'true';
+		this.props.roomClient.faceDetection = urlParser.query.faceDetection === 'true';
+		this.props.roomClient.externalVideo = urlParser.query.externalVideo === 'true';
+		this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
+		this.props.roomClient.e2eKey = urlParser.query.e2eKey;
+		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
+		this.props.roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas,parentId });
+		console.log("joinParticipant", this.props.roomClient);
+
 		// window.CLIENT = this.props.roomClient;
 		// // eslint-disable-next-line require-atomic-updates
 		// console.log("window.CLIENT",window.CLIENT);
@@ -149,6 +247,7 @@ class Breakout extends React.Component {
 		// let roomName = event.currentTarget.getAttribute('name');
 		let peerId = "0";
 		this.state.parentId = parentId;
+		//alert(parentId);
 		console.log('parentRoomId', parentId);
 		console.log('roomId', roomId);
 		console.log('roomName', roomName);
@@ -266,121 +365,6 @@ class Breakout extends React.Component {
         }
 	}
 
-	// joinParticipant = (event) => {
-
-	// 	let assId   = event.currentTarget.id;
-	// 	let breakOutRoomName = event.currentTarget.getAttribute('name');
-    //     let peerId = "0";
-
-	// 	// const list = [...this.state.list]
-	// 	// const peerId = 0;
-	// 	// const urlParser = new UrlParse(window.location.href, true);
-	// 	// console.log('urlParser', urlParser);
-	// 	// const device = deviceInfo();
-
-		
-
-	// 	// var newURL = location.href.split("&")[0] + "&roomId=" + "0";
-
-	// 	// var currentRoomid = location.href.split("&")[1].split("=")[1];
-	// 	// const consumerReplicas = urlParser.query.consumerReplicas;
-	// 	// this.props.roomClient.roomId = currentRoomid;
-	// 	// this.props.roomClient.peerId = peerId;
-	// 	// this.props.roomClient.roomName ="";
-	// 	// this.props.roomClient.device = device
-	// 	// this.props.roomClient.handlerName = urlParser.query.handlerName || urlParser.query.handler;
-	// 	// this.props.roomClient.useSimulcast = urlParser.query.simulcast !== 'false';
-	// 	// this.props.roomClient.useSharingSimulcast = urlParser.query.sharingSimulcast !== 'false';
-	// 	// this.props.roomClient.forceTcp = urlParser.query.forceTcp === 'true';
-	// 	// this.props.roomClient.produce = urlParser.query.produce !== 'false';
-	// 	// this.props.roomClient.consume = urlParser.query.consume !== 'false';
-	// 	// this.props.roomClient.forceH264 = urlParser.query.forceH264 === 'true';
-	// 	// this.props.roomClient.forceVP9 = urlParser.query.forceVP9 === 'true';
-	// 	// this.props.roomClient.svc = urlParser.query.svc;
-	// 	// this.props.roomClient.datachannel = urlParser.query.datachannel !== 'false';
-	// 	// this.props.roomClient.info = urlParser.query.info === 'true';
-	// 	// this.props.roomClient.faceDetection = urlParser.query.faceDetection === 'true';
-	// 	// this.props.roomClient.externalVideo = urlParser.query.externalVideo === 'true';
-	// 	// this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
-	// 	// this.props.roomClient.e2eKey = urlParser.query.e2eKey;
-	// 	// this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas
-	// 	// this.props.roomClient._protooUrl = getProtooUrl({ currentRoomid, peerId, consumerReplicas });
-
-	// 	// list.push({ id: currentRoomid, name: "Main room" });
-	// 	// this.setState({ list: list });
-	// 	// this.state.mainRoomId = currentRoomid;
-	// 	// this.props.roomClient.breakoutRooms = { id: currentRoomid, name: "Main room" };
-	// 	// console.log("addbreakRooms", this.props.roomClient);
-	// 	// this.props.roomClient.addbreakRooms({ id: currentRoomid, name: "Main room" });
-		
-	// 	// window.history.pushState({}, document.title, newURL);
-	// 	// console.log('newlist', JSON.stringify(list));
-	// 	// if (typeof (list) != "undefined") {
-	// 	// //	localStorage.setItem("testObject", JSON.stringify(list));
-	// 	// window.sessionStorage.setItem("testObject", JSON.stringify(list));
-	// 	// }
-	// 	// this.state.removeHideShow = true;
-	// 	// this.state.inviteHideShow = false;
-		
-	// 	// //return false;
-	// 	// this.props.roomClient.closePeer();
-	// 	// this.props.roomClient.roomId = assId;
-	// 	// this.props.roomClient.roomName =breakOutRoomName;
-	// 	// this.props.roomClient.peerId = "0";
-	// 	// this.props.roomClient.device = device
-	// 	// this.props.roomClient.handlerName = urlParser.query.handlerName || urlParser.query.handler;
-	// 	// this.props.roomClient.useSimulcast = urlParser.query.simulcast !== 'false';
-	// 	// this.props.roomClient.useSharingSimulcast = urlParser.query.sharingSimulcast !== 'false';
-	// 	// this.props.roomClient.forceTcp = urlParser.query.forceTcp === 'true';
-	// 	// this.props.roomClient.produce = urlParser.query.produce !== 'false';
-	// 	// this.props.roomClient.consume = urlParser.query.consume !== 'false';
-	// 	// this.props.roomClient.forceH264 = urlParser.query.forceH264 === 'true';
-	// 	// this.props.roomClient.forceVP9 = urlParser.query.forceVP9 === 'true';
-	// 	// this.props.roomClient.svc = urlParser.query.svc;
-	// 	// this.props.roomClient.datachannel = urlParser.query.datachannel !== 'false';
-	// 	// this.props.roomClient.info = urlParser.query.info === 'true';
-	// 	// this.props.roomClient.faceDetection = urlParser.query.faceDetection === 'true';
-	// 	// this.props.roomClient.externalVideo = urlParser.query.externalVideo === 'true';
-	// 	// this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
-	// 	// this.props.roomClient.e2eKey = urlParser.query.e2eKey;
-	// 	// this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
-	// 	// this.props.roomClient._protooUrl = getProtooUrl({ roomId, peerId, consumerReplicas });
-	// 	// console.log("joinParticipant", this.props.roomClient);
-
-
-	// 	//this.props.roomClient.closePeer();		
-	// 	const urlParser = new UrlParse(window.location.href, true);
-	// 	this.props.roomClient.handlerName = urlParser.query.handlerName || urlParser.query.handler;
-	// 	this.props.roomClient.useSimulcast = urlParser.query.simulcast !== 'false';
-	// 	this.props.roomClient.useSharingSimulcast = urlParser.query.sharingSimulcast !== 'false';
-	// 	this.props.roomClient.forceTcp = urlParser.query.forceTcp === 'true';
-	// 	this.props.roomClient.produce = urlParser.query.produce !== 'false';
-	// 	this.props.roomClient.consume = urlParser.query.consume !== 'false';
-	// 	this.props.roomClient.forceH264 = urlParser.query.forceH264 === 'true';
-	// 	this.props.roomClient.forceVP9 = urlParser.query.forceVP9 === 'true';
-	// 	this.props.roomClient.svc = urlParser.query.svc;
-	// 	this.props.roomClient.datachannel = urlParser.query.datachannel !== 'false';
-	// 	this.props.roomClient.info = urlParser.query.info === 'true';
-	// 	this.props.roomClient.faceDetection = urlParser.query.faceDetection === 'true';
-	// 	this.props.roomClient.externalVideo = urlParser.query.externalVideo === 'true';
-	// 	this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
-	// 	this.props.roomClient.e2eKey = urlParser.query.e2eKey;
-
-	// 	const device = deviceInfo();
-	// 	const consumerReplicas = urlParser.query.consumerReplicas;
-	// 	this.props.roomClient.consumerReplicas = consumerReplicas;
-	// 	this.props.roomClient.roomId = assId;
-	// 	this.props.roomClient.roomName =breakOutRoomName;
-	// 	this.props.roomClient.peerId = "0";
-	// 	this.props.roomClient.device = device
-
-	// 	this.props.roomClient._protooUrl = getProtooUrl({ assId, breakOutRoomName, peerId, consumerReplicas });
-
-
-	// 	this.props.roomClient.join();
-
-	// }
-
 
 	 add = () => {
 
@@ -436,14 +420,6 @@ class Breakout extends React.Component {
 		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
 		roomId = currentRoomid;
 		this.props.roomClient._protooUrl = getProtooUrl({ roomId, roomName, peerId, consumerReplicas });
-		//this.props.roomClient.breakoutRooms = { id: roomId, name: itemCount };
-	
-		// this.props.roomClient.assId = currentRoomid;
-		// console.log("currentRoomid :: ",currentRoomid);
-		// console.log("this.props.roomClient ::: ",this.props.roomClient);
-		//this.props.roomClient.addbreakRooms();
-
-		//console.log("added",this.props.roomClient);
 
 		// NOTE: For debugging.
 		// eslint-disable-next-line require-atomic-updates
@@ -451,13 +427,7 @@ class Breakout extends React.Component {
 		// eslint-disable-next-line require-atomic-updates
 
 		console.log("window.CLIENT",window.CLIENT);
-
-	//this.props.roomClient.addbreakRooms({ id: roomId, name: itemCount });
-		 //window.location.reload(true)
-		 this.props.roomClient.join();
-		//const { roomClient }	= this.props;
-
-		//this.props.roomClient.join();
+		this.props.roomClient.join();
 	}
 
 	componentWillUpdate(nextProps, nextState) {
@@ -561,48 +531,6 @@ class Breakout extends React.Component {
 			}
 			//this.state.list.push({ id: this.state.mainRoomId, name: "Main room" });
 			
-		const renderData = () => {
-
-			return this.props.breakoutRooms?.map((item, index) => {
-				return (
-					<div name={"box" + index + "Hover"} class="list-item-container breakout-room-container css-bw62qe-container-container"
-
-						data-testid="492c1f08-5a28-4203-bf55-a0c4cb1790a1"><div>
-							<div class="css-9mpzhf-arrowContainer">
-								<div class="jitsi-icon jitsi-icon-default ">
-									<svg height="14" width="14" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-										<path fill-rule="evenodd" clip-rule="evenodd" d="M20.03 16.28a.75.75 0 0 1-1.06 0L12 9.31l-6.97 6.97a.75.75 0 0 1-1.06-1.06l7.5-7.5a.75.75 0 0 1 1.06 0l7.5 7.5a.75.75 0 0 1 0 1.06Z"></path></svg></div></div> </div>
-						<div class="css-1qbw81c-detailsContainer">
-							<div class="css-1dkn5fp-name">
-								<span class="css-15zs0dc-roomName">{item.name} (0)</span>
-							</div>
-
-							<div class="actions joinbuttons css-t4kzjs-actionsContainer">
-								<button onClick={(e) => {
-									this.joinParticipant(e, item.id,item.name);
-								}} aria-label="Join" class="css-1c2ihpo-button-primary-small-button"
-									data-testid="join-room-e87519e8-c2dd-4a67-89a6-1b735b217443" title="Join" type="button">
-									<span class="">Join</span></button>
-								<button aria-label="More" class="iconButton css-10p0shd-button-primary-iconButton-small" title="More" type="button"><div class="jitsi-icon jitsi-icon-default ">
-									<svg height="24" width="24" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" clip-rule="evenodd" d="M16.5 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0Zm1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0ZM9 12a3 3 0 1 0 6 0 3 3 0 0 0-6 0Zm1.5 0a1.5 1.5 0 1 0 3 0 1.5 1.5 0 0 0-3 0ZM4.5 15a3 3 0 1 1 0-6 3 3 0 0 1 0 6Zm0-1.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Z">
-
-									</path></svg></div></button></div>
-						</div>
-						{/* <div class="ignore-child css-a6wji9-contextMenu-contextMenuHidden" role="menu" 
-				style="top: 220px;">
-				<div class="css-es5z1v-contextMenuItemGroup">
-				<div aria-label="Remove" class="css-uf170q-contextMenuItem" 
-				id="remove-room-undefined" role="menuitem">
-				<div class="jitsi-icon jitsi-icon-default css-1i0btwg-contextMenuItemIcon">
-				<svg height="20" width="20" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-				<path d="M18.53 6.53a.75.75 0 0 0-1.06-1.06L12 10.94 6.53 5.47a.75.75 0 0 0-1.06 1.06L10.94 12l-5.47 5.47a.75.75 0 1 0 1.06 1.06L12 13.06l5.47 5.47a.75.75 0 1 0 1.06-1.06L13.06 12l5.47-5.47Z"></path>
-				</svg></div>
-				<span class="css-1oh4e10-text">Remove</span>
-				</div></div></div> */}
-					</div>
-				)
-			})
-		}
 
 		const renderMap = () => {
 
@@ -748,8 +676,10 @@ class Breakout extends React.Component {
 							</div>
 						</div>
 						<br></br>
+						<br></br>
 
-
+						<div  style={{color: 'burlywood'}} className='meetingVal'> {this.props.currentRoomName} :</div>
+						<br></br>
 
 						{filteredData?.map((item, index) => {
 							return <div>
@@ -764,9 +694,26 @@ class Breakout extends React.Component {
 											</div></div>
 									</div>
 								</div>
-
 							</div>
 						})}
+
+						{this.props.curRoomPeers?.map((item, index) => {
+							return <div>
+								<div class="list-item-container css-i7if01-container" id="participant-item-00353cc3">
+									<div><div class="avatar participant-avatar jss40">
+										<text dominant-baseline="central" fill="rgba(255,255,255,1)" font-size="40pt" text-anchor="middle" x="50" y="50">{item.displayName.substring(0, 1)}
+										</text></div></div>
+									<div class="css-1qbw81c-detailsContainer">
+										<div class="css-1dkn5fp-name">
+											<div class="css-14p5y54-nameContainer">
+												<div class="css-1lacpev-name">{item.displayName}</div>
+											</div></div>
+									</div>
+								</div>
+							</div>
+						})}
+
+
 						<br></br>
 						<If condition={this.state.removeHideShow}>
 
@@ -849,6 +796,8 @@ const mapStateToProps = (state) => {
 	let breaksroomNotFilter = [];
 	let breakoutbtn = false;
 	let nestedMap = new Map();
+	let curRoomPeers = new Map();
+	let curPeerArry;
 	
 	floors.push({ id: me.id, value: state.me.displayName + ' (you)', roonName: 'MainRoom',roomId: state.me.roomId });
 	
@@ -860,42 +809,88 @@ const mapStateToProps = (state) => {
 		let peersArrCnt =	1;
 		const peersId = Object.keys(peers)[0];
 		const peersArray = Object.values(peers);
+		let currentRoomid = location.href.split("&")[1].split("=")[1];
+
+		console.log('peersArray ===> ',peersArray);
+
 		for (const peer of peersArray) {
-			var currentRoomid = location.href.split("&")[1].split("=")[1];
 			console.log('vimala check',peer.breakoutroomName,'-',currentRoomid);
 			if(peer.roomId == currentRoomid){
 				peersArrCnt++;
 			}
 		}
 		console.log('vimala peersArrCnt',peersArrCnt);
-		if (participant >= 1) {
-			
-		
-		
-		for (const peer of peersArray) {
-			
-			if(nestedMap.has(peer.breakoutroomName))
-			{
-				let tmpArry = nestedMap.get(peer.breakoutroomName);
-				tmpArry.push(peer);
-				nestedMap.set(peer.breakoutroomName,tmpArry);
-			}
-			else
-			{
-			let tmpArry = [];
-			tmpArry.push(peer);
-			nestedMap.set(peer.breakoutroomName,tmpArry);
-			}					
-		}
 
-		console.log('nestedMap   :: ',nestedMap);
+		const matchingValue = peersArray.find(peers => peers.roomId === currentRoomid);
+
+		console.log('matchingValue ::: ',matchingValue);
+		//console.log('Current Room Name ::',matchingValue.breakoutroomName);
+
+		const currentRoomName = (typeof (matchingValue) != "undefined") ? matchingValue.breakoutroomName : "Main Room";
+
+
+	    if (participant >= 1) {
+		
+		     for (const peer of peersArray) {
+			
+				if(peer.breakoutroomName == currentRoomName)
+				{
+					if(curRoomPeers.has(peer.breakoutroomName))
+					{
+						let tmpArry = curRoomPeers.get(peer.breakoutroomName);
+						tmpArry.push(peer);
+						curRoomPeers.set(peer.breakoutroomName,tmpArry);
+					}
+					else
+					{
+						let tmpArry = [];
+						tmpArry.push(peer);
+						curRoomPeers.set(peer.breakoutroomName,tmpArry);
+					}
+			    }	
+				else
+				{
+					if(nestedMap.has(peer.breakoutroomName))
+					{
+						if(peer.displayName != 'Broadcaster'){
+							let tmpArry = nestedMap.get(peer.breakoutroomName);
+							tmpArry.push(peer);
+							nestedMap.set(peer.breakoutroomName,tmpArry);
+						}
+					}
+					else
+					{
+						if(peer.displayName != 'Broadcaster'){
+							let tmpArry = [];
+							tmpArry.push(peer);
+							nestedMap.set(peer.breakoutroomName,tmpArry);
+					    }
+					}			
+				}				
+		    }
+
+		console.log('Other room peers   :: ',nestedMap);
+		console.log('Current room peers   :: ',curRoomPeers);
+
+	  if(typeof (matchingValue) != "undefined"){
+	   curPeerArry = curRoomPeers.get(currentRoomName);
+	   curPeerArry =curPeerArry.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.displayName != 'Broadcaster' && state.me.id != peersId.id );
+	  }
+
+	  console.log('Current room peers   :: ',curPeerArry);
+
+
+	   let filteredData=[];
+	   let finalData=[];
+	   if (peersArray.length != 0){
+		 filteredData = peersArray.filter((peersId)=> peersId.displayName != 'HEADER' );
+		 finalData = filteredData.filter((peersId)=> state.me.id != peersId.id );
+	   }
 
 		
-		const filteredData =peersArray.filter((peersId)=> peersId.displayName != 'HEADER' )
-		const finalData = filteredData.filter((peersId)=> state.me.id != peersId.id )
-		for (const peersDatas of finalData) {
-			floors.push({ id: peersDatas.id, value: peersDatas.displayName, roonName: peersDatas.breakoutroomName,roomId: peersDatas.roomId });
-		}
+		// for (const peersDatas of finalData) {
+		// 	floors.push({ id: peersDatas.id, value: peersDatas.displayName, roonName: peersDatas.breakoutroomName,roomId: peersDatas.roomId });
+		// }
 		const breakoutRoomsData =peersArray.filter((peersId)=> peersId.id == 0 )
 		for (const peersDatas of breakoutRoomsData) {
 			breaksroom.push({ id: peersDatas.id, name: peersDatas.breakoutroomName });
@@ -967,7 +962,9 @@ const mapStateToProps = (state) => {
 		breakoutRooms: newArray,
 		breakoutbtn : breakoutbtn,
 		breaksroomNotFilter:newArray1,
-		nestedMap : nestedMap
+		nestedMap : nestedMap,
+		currentRoomName : currentRoomName,
+		curRoomPeers : curPeerArry
 	};
 };
 

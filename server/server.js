@@ -24,6 +24,7 @@ const Room = require('./lib/Room');
 const interactiveServer = require('./lib/interactiveServer');
 const interactiveClient = require('./lib/interactiveClient');
 const randomstring = require("randomstring");
+const path = require('path');
 
 
 const logger = new Logger();
@@ -214,11 +215,20 @@ async function createExpressApp()
 			'/rooms/:roomId/broadcast', (req, res) => {
 			var url = req.url; room_id = url.split('/')[2];
 			const { exec } = require("child_process");
+
+			const files = fs.readdirSync('../broadcasters/video');
+  			// Choose a random index
+  			const randomIndex = Math.floor(Math.random() * files.length);
+  			// Get the random file from the chosen index
+  			const randomFile = files[randomIndex];
+			const media_file = '../broadcasters/video/'+randomFile;
+			console.log("Random file name :::",media_file);
+
 			exec("../broadcasters/gstreamer.sh", {
 					env: {
-							'SERVER_URL': 'https://18.118.5.122:4443', 
+							'SERVER_URL': 'https://192.168.1.35:4443', 
 							'ROOM_ID': `${room_id}`,
-							'MEDIA_FILE': '../broadcasters/test.mp4'
+							'MEDIA_FILE': `${media_file}`
 					}
 			}, (error, stdout, stderr) => {
 					if (error) {
@@ -249,12 +259,16 @@ async function createExpressApp()
 
 			try
 			{
+
+				var url = req.url; room_id = url.split('/')[2];
+
 				const data = await req.room.createBroadcaster(
 					{
 						id,
 						displayName,
 						device,
-						rtpCapabilities
+						rtpCapabilities,
+						room_id
 					});
 
 				res.status(200).json(data);
@@ -608,7 +622,11 @@ async function runProtooWebSocketServer()
 					//notifyAssPeers({ room });
 					peerId = randomstring.generate(8);
 					const protooWebSocketTransport = accept();
+					logger.info('peerId before   ::  -->', peerId);
 					room.handleProtooConnection({ peerId, protooWebSocketTransport });
+					// if(associateId != roomId)
+					// setAssociatePeer({ room, associateId});
+					// notifyAssPeers({ room, peerId,associateId});
 					//accept();
 		        }
 				else{
@@ -713,6 +731,8 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas})
 	 return room;
  }
 
+ 
+
  /**
  * Get  nested room id.
  */
@@ -741,13 +761,39 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas})
 	  return nestedRoomId;
   }
 
-			/**
+
+/**
+ * Get a Associate room peers.
+ */
+   async function setAssociatePeer({ room, associateId})
+   {
+	   let ass_room;
+	   let ass_peers=[];
+	   
+	   if (typeof associateId !== "undefined" && associateId !== "") {
+		   ass_room = rooms.get(associateId);
+		   logger.info('setAssociatePeer --> associateRoom  details : ', ass_room);
+ 
+		   if (typeof ass_room !== "undefined" && ass_room !== "") {
+			   let classValuesArray = Array.from(ass_room._protooRoom._peers.values());
+			   let curRoomPeers = Array.from(room._protooRoom._peers.values());
+			   let mergedArray = classValuesArray.concat(curRoomPeers);
+			   mergedArray = mergedArray.filter((peer) => peer.data.joined && peer.data.joined);
+			   ass_room._breakoutRoomsObj =  mergedArray;
+			   //ass_room._protooRoom._peers = mergedArray;
+			   logger.info('ass_room --> setAssociatePeer   :::: ', ass_room);
+		   }
+	   }
+   }
+
+/**
  * Get a Room instance (or create one if it does not exist).
  */
- async function notifyAssPeers({ room })
+ async function notifyAssPeers({ room, peerId, associateId })
  {
-
 	let joinedPeers;
+	let curRoomPeers = Array.from(room._protooRoom._peers.values());
+	curPeer = curRoomPeers.filter((peer) => peer._id == peerId);
 
 	if (typeof room._breakoutRoomsObj !== "undefined" && Array.isArray(room._breakoutRoomsObj) && room._breakoutRoomsObj.length !== 0)
 			joinedPeers = room._breakoutRoomsObj;
@@ -759,10 +805,12 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas})
 			otherPeer.notify(
 				'newPeer',
 				{
-					id           : 0,
-					displayName  : "",
-					device       : "",
-					breakoutroomName : room._roomName
+					id           : peerId,
+					displayName  : curPeer[0].data.displayName,
+					device       : curPeer[0].data.device,
+					breakoutroomName : curPeer[0].data.breakoutroomName,
+					roomId : curPeer[0].data.roomId,
+					parentId: associateId
 				})
 				.catch(() => {});
 		}

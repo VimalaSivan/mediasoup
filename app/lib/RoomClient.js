@@ -1897,10 +1897,6 @@ export default class RoomClient {
 		// this._protoo = new protooClient.Peer(protooTransport);
 
 		this._protoo.request('addRoom', { parentId });
-
-
-
-	
 		}
 		catch (error) {
 			logger.error('Add room() | failed: %o', error);

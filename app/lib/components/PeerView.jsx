@@ -27,7 +27,7 @@ export default class PeerView extends React.Component
 		this.state =
 		{
 			audioVolume           : 0, // Integer from 0 to 10.,
-			showInfo              : window.SHOW_INFO || false,
+			showInfo              : false,
 			videoResolutionWidth  : null,
 			videoResolutionHeight : null,
 			videoCanPlay          : false,
