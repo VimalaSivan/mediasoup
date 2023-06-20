@@ -642,7 +642,7 @@ class Breakout extends React.Component {
 
 									event.preventDefault();
 
-									clipboardCopy(room.url)
+									clipboardCopy(this.props.fullRoomid)
 										.then(onRoomLinkCopy);
 								}}
 								class="css-1bts3k5-button-primary-medium-fullWidth" title="Invite Someone" type="button"><div class="jitsi-icon jitsi-icon-default ">
@@ -964,7 +964,8 @@ const mapStateToProps = (state) => {
 		breaksroomNotFilter:newArray1,
 		nestedMap : nestedMap,
 		currentRoomName : currentRoomName,
-		curRoomPeers : curPeerArry
+		curRoomPeers : curPeerArry,
+		fullRoomid:location.href
 	};
 };
 
