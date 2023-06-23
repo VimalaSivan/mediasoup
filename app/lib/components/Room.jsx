@@ -79,7 +79,7 @@ class Room extends React.Component {
 
 									event.preventDefault();
 
-									clipboardCopy(room.url)
+									clipboardCopy(this.props.fullRoomid)
 										.then(onRoomLinkCopy);
 								}}
 							>
@@ -190,7 +190,8 @@ const mapStateToProps = (state) => {
 	return {
 		room: state.room,
 		me: state.me,
-		amActiveSpeaker: state.me.id === state.room.activeSpeakerId
+		amActiveSpeaker: state.me.id === state.room.activeSpeakerId,
+		fullRoomid:location.href
 	};
 };
 

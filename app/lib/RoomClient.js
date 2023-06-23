@@ -82,7 +82,8 @@ export default class RoomClient {
 			externalVideo,
 			e2eKey,
 			consumerReplicas,
-			breakoutRooms
+			breakoutRooms,
+			parentId
 		}
 	) {
 		
@@ -110,6 +111,11 @@ export default class RoomClient {
 		// Display name.
 		// @type {String}
 		this.breakoutRooms = breakoutRooms;
+
+		// Display name.
+		// @type {String}
+		this.parentId = parentId;
+
 
 		// Device info.
 		// @type {Object}

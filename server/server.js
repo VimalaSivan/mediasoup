@@ -212,6 +212,16 @@ async function createExpressApp()
 		//   });
 
 		expressApp.get(
+			'/rooms/:roomId/addroom', (req, res) => {
+			var url = req.url; room_id = url.split('/')[2];
+			console.log("======= Add romm request ===========");
+			console.log("=======RoomId===========",room_id);
+			createChildRoom("BreakOut01","0");
+			const msg = "Success";
+			res.status(200).send(msg);
+	 });
+
+		expressApp.get(
 			'/rooms/:roomId/broadcast', (req, res) => {
 			var url = req.url; room_id = url.split('/')[2];
 			const { exec } = require("child_process");
@@ -547,7 +557,7 @@ async function runProtooWebSocketServer()
 		const u = url.parse(info.request.url, true);
 		let roomId = u.query['roomId'];
 		let peerId = u.query['peerId'];
-		const roomName = u.query['roomName'];
+		let roomName = u.query['roomName'];
 		let parentId = u.query['parentId'];
 		
 		let associateId = '';
@@ -567,8 +577,9 @@ async function runProtooWebSocketServer()
 
 		logger.info('Room name --> ', roomName);
 		logger.info('Room Id --> ', roomId);
-		logger.info('associateId --> ', associateId);
+		logger.info('parentId --> ', parentId);
 		logger.info('peerId --> ', peerId);
+		
 
 		//const roomId ="pqupbb9x";
 		//const peerId ="glwtakli";
@@ -608,36 +619,68 @@ async function runProtooWebSocketServer()
 			// }
 			// else{
 				let nestedRoomId = '0';
-				let room;
+				// let room;
 				
-				if(peerId == 0){
-					logger.info('<----------- If block calling   ---------->');
-					logger.info('Before calling  ::  -->', roomId);
-					//nestedRoomId = await getNestedRommId({ parentId, roomName});
-					associateId = parentId;
-					logger.info('parentId before calling  ::  -->', parentId);
-					//roomId   =  nestedRoomId;
-				    room = await getOrCreateRoom({ roomId, roomName, consumerReplicas});
-				    room = await getOrSetAssociateRooms({ room, associateId});
-					//notifyAssPeers({ room });
-					peerId = randomstring.generate(8);
+				// if(peerId == 0){
+				// 	logger.info('<----------- If block calling   ---------->');
+				// 	//nestedRoomId = await getNestedRommId({ parentId, roomName});
+				// 	associateId = parentId;
+				// 	//roomId   =  nestedRoomId;
+				// 	let roomInfo={};
+				// 	let room = rooms.get(roomId);
+	 			// 	if (!room)
+				// 	 roomInfo = checkRoomInfo({roomId});
+
+				// 	 if (Object.keys(roomInfo).length !== 0) {
+				// 	    logger.info('roomInfo.roomName ::',roomInfo.roomName);
+				// 	    roomName = roomInfo.roomName;
+				// 	 }
+
+
+
+				//     room = await getOrCreateRoom({ roomId, roomName, consumerReplicas});
+				// 	if(associateId != '0' && associateId != roomId)
+				//     room = await getAllNestedPeers({ room, associateId});
+				// 	//notifyAssPeers({ room });
+				// 	peerId = randomstring.generate(8);
+				// 	const protooWebSocketTransport = accept();
+				// 	//logger.info('peerId before   ::  -->', peerId);
+				// 	room.handleProtooConnection({ peerId, protooWebSocketTransport });
+				// 	// if(associateId != roomId)
+				// 	// setAssociatePeer({ room, associateId});
+				// 	// notifyAssPeers({ room, peerId,associateId});
+				// 	// accept();
+		        // }
+				// else{
+
+
+					let roomInfo={};
+					parentId = '0';
+					let room = rooms.get(roomId);
+	 				if (!room){
+					 roomInfo = await checkRoomInfo({roomId});
+
+						if (Object.keys(roomInfo).length != 0) {
+						logger.info('Creating Child room ::',roomInfo.roomName);
+						roomName = roomInfo.roomName;
+						parentId = roomInfo.parentId;
+						}
+					}
+					else
+					parentId = room._rootId;
+
+					//  parentId = (parentId === '0')? roomId : parentId;
+
+					 logger.info('Parent Id::',parentId);
+
+					room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId});
+					room = await getAllNestedPeers({ room,roomId,parentId });
+					// Accept the protoo WebSocket connection.
 					const protooWebSocketTransport = accept();
-					logger.info('peerId before   ::  -->', peerId);
+					//console.log("peerId Details2",peerId);
 					room.handleProtooConnection({ peerId, protooWebSocketTransport });
-					// if(associateId != roomId)
-					// setAssociatePeer({ room, associateId});
-					// notifyAssPeers({ room, peerId,associateId});
-					//accept();
-		        }
-				else{
-				logger.info('<----------- Else block calling   ---------->');
-				room = await getOrCreateRoom({ roomId, roomName, consumerReplicas});
-				// Accept the protoo WebSocket connection.
-				const protooWebSocketTransport = accept();
-				//console.log("peerId Details2",peerId);
-				room.handleProtooConnection({ peerId, protooWebSocketTransport });
-				logger.info('After handleProtooConnection  ::  -->', room);
-				}
+					// logger.info('After handleProtooConnection  ::  -->', room);
+				// }
 			//}
 		})
 			.catch((error) =>
@@ -658,6 +701,267 @@ async function runProtooWebSocketServer()
 }
 
 /**
+ * Get a Associate room peers.
+ */
+ async function checkRoomInfo({ roomId })
+ {
+	 let roomInfo={};
+
+	 rooms.forEach((value, key) => {
+
+		if (value._childId.has(roomId)) {
+			logger.info('child Ids :: ',value._childId);
+			logger.info('child Ids room name  :: ',value._childId.get(roomId));
+			let rootId = (value._rootId === '0') ? value._roomId : value._rootId;
+			roomInfo =
+			{
+				parentId : rootId,
+				roomName : value._childId.get(roomId)
+			};
+			return true;
+		}
+
+	  });
+	 
+	 return roomInfo;
+ }
+
+ /**
+ * Get a Associate room peers.
+ */
+  async function getAllNestedPeers({ room, roomId, parentId })
+  {
+	  let ass_peers=[];
+ 
+	  rooms.forEach((value, key) => {
+		
+			if (room._rootId === '0' && room._childId.has(value._roomId)){
+				logger.info('===== Inside If =====');
+				let classValuesArray = Array.from(value._protooRoom._peers.values());
+				ass_peers = ass_peers.concat(classValuesArray.filter((peer) => peer.data.joined));
+			}
+		   else if (value._rootId === room._rootId || value._roomId === room._rootId){
+			logger.info('===== _rootId matched =====');
+			 let classValuesArray = Array.from(value._protooRoom._peers.values());
+			 ass_peers = ass_peers.concat(classValuesArray.filter((peer) => peer.data.joined));
+			}
+
+	   });
+ 
+	   room._breakoutRoomsObj =  ass_peers;
+	   logger.info('ass_peers  : ', ass_peers);
+
+	  return room;
+  }
+
+ /**
+ * Get a Associate room peers.
+ */
+  async function getAllNestedPeersBK2({ room, roomId, parentId })
+  {
+	  let ass_room;
+	  let ass_peers=[];
+
+	  logger.info('roomId  : ', roomId);
+	  logger.info('parentId  : ', parentId);
+ 
+	  if (typeof parentId !== "undefined" && parentId !== "" && parentId !== "0"  && parentId !== roomId) {
+		  ass_room = rooms.get(parentId);
+ 
+		  if (typeof ass_room !== "undefined" && ass_room !== "") {
+			  room._rootId = parentId;
+			  let classValuesArray = Array.from(ass_room._protooRoom._peers.values());
+			  ass_peers = classValuesArray.filter((peer) => peer.data.joined);
+		  }
+	  }
+
+	  logger.info('parent ass_peers  : ', ass_peers);
+ 
+	  rooms.forEach((value, key) => {
+		  if (value._childId.has(roomId) && value._roomId !== parentId){
+			 let classValuesArray = Array.from(value._protooRoom._peers.values());
+			 ass_peers.concat(classValuesArray.filter((peer) => peer.data.joined));
+			}
+	   });
+ 
+	   room._breakoutRoomsObj =  ass_peers;
+	   logger.info('ass_peers  : ', ass_peers);
+	  
+	  return room;
+  }
+
+/**
+ * Get a Associate room peers.
+ */
+ async function getAllNestedPeersBK({ room, associateId})
+ {
+	 let ass_room;
+	 let ass_peers=[];
+
+	 if (typeof associateId !== "undefined" && associateId !== "") {
+		 ass_room = rooms.get(associateId);
+
+		 if (typeof ass_room !== "undefined" && ass_room !== "") {
+			 room._rootId = associateId;
+			 let classValuesArray = Array.from(ass_room._protooRoom._peers.values());
+			 //logger.info('classValuesArray : ', classValuesArray);
+			 ass_peers = classValuesArray.filter((peer) => peer.data.joined);
+			 //logger.info('ass_peers  : ', ass_peers);
+			
+		 }
+	 }
+
+	 rooms.forEach((value, key) => {
+		if (value._rootId === associateId) {
+			 
+			let classValuesArray = Array.from(value._protooRoom._peers.values());
+			ass_peers = ass_peers.push(classValuesArray.filter((peer) => peer.data.joined));
+
+		   }
+	  });
+
+	  room._breakoutRoomsObj =  ass_peers;
+	  logger.info('ass_peers  : ', ass_peers);
+	 
+	 return room;
+ }
+
+
+async function createChildRoom(roomName,parentRoomId)
+{
+	let room;
+	let consumerReplicas = 0;
+	
+	let roomId = randomstring.generate(8);
+	logger.info('<----------- Else block calling   ---------->');
+	room = await getOrCreateRoom({ roomId, roomName, consumerReplicas});
+	// Accept the protoo WebSocket connection.
+	createPeer(room);
+}
+
+async function createPeer(room)
+{
+	console.info('########### createPeer ###############');
+
+
+	let device = {
+		flag    : 'broadcaster',
+		name    : 'Unknown device',
+		version : '0'
+	};
+	let peerId  = randomstring.generate(8);
+    let  peer = room._protooRoom.createPeer(peerId, "");
+	let displayName = 'BreakOutRoom' + randomstring.generate(8);
+	
+	let roomId  = randomstring.generate(8);
+
+	try
+	{
+		peer._id = peerId;
+		peer.data.breakoutroomName = displayName;
+		peer.data.consume = '';
+		peer.data.joined = true;
+		peer.data.displayName = 'HEADER';				
+
+		// Have mediasoup related maps ready even before the Peer joins since we
+		// allow creating Transports before joining.
+		peer.data.transports = new Map();
+		peer.data.producers = new Map();
+		peer.data.consumers = new Map();
+		peer.data.dataProducers = new Map();
+		peer.data.dataConsumers = new Map();
+		peer.data.roomId = roomId;
+		peer.data.parentId = parentId;
+		peer.data.breakoutroom = '';
+		
+
+		peer.data.device = device;
+		peer.data.rtpCapabilities = "";
+		peer.data.sctpCapabilities = "";
+	}
+	catch (error)
+	{
+		logger.error('protooRoom.createPeer() failed:%o', error);
+	}
+
+	//logger.info('Dummy Peer  ::: ', peer);
+
+	room._protooRoom.peers.push(peer);
+
+	// let joinedPeers =
+	// [
+	// 	...this._getJoinedPeers(),
+	// 	...this._broadcasters.values()
+	// ];
+
+	// let joinedAssPeers =
+	// [
+	// 	...this._getAssJoinedPeers(),
+	// 	...this._broadcasters.values()
+	// ];
+
+	// // _breakoutRoomsObj contains breakout room's peers
+	//   console.info(' JoinedPeers :::',joinedPeers);
+
+	
+	// for (const joinedPeer of joinedPeers)
+	// {
+	// 	// Create Consumers for existing Producers.
+	// 	for (const producer of joinedPeer.data.producers.values())
+	// 	{
+	// 		this._createConsumer(
+	// 			{
+	// 				consumerPeer : peer,
+	// 				producerPeer : joinedPeer,
+	// 				producer
+	// 			});
+	// 	}
+
+	// 	// Create DataConsumers for existing DataProducers.
+	// 	for (const dataProducer of joinedPeer.data.dataProducers.values())
+	// 	{
+	// 		if (dataProducer.label === 'bot')
+	// 			continue;
+
+	// 		this._createDataConsumer(
+	// 			{
+	// 				dataConsumerPeer : peer,
+	// 				dataProducerPeer : joinedPeer,
+	// 				dataProducer
+	// 			});
+	// 	}
+	// }
+
+	// // Create DataConsumers for bot DataProducer.
+	// this._createDataConsumer(
+	// 	{
+	// 		dataConsumerPeer : peer,
+	// 		dataProducerPeer : null,
+	// 		dataProducer     : this._bot.dataProducer
+	// 	});
+
+	// // Notify other joined Peers.
+	// for (const otherPeer of this._getAssJoinedPeers({ excludePeer: peer }))
+	// {
+	// 	otherPeer.notify(
+	// 		'newPeer',
+	// 		{
+	// 			id           : peerId,
+	// 			displayName  : 'HEADER',
+	// 			device       : device,
+	// 			breakoutroomName : displayName,
+	// 			roomId : roomId,
+	// 			parentRoomId: this._roomId
+	// 		})
+	// 		.catch(() => {});
+	// }
+
+	
+}
+
+
+
+/**
  * Get next mediasoup Worker.
  */
 function getMediasoupWorker()
@@ -673,7 +977,7 @@ function getMediasoupWorker()
 /**
  * Get a Room instance (or create one if it does not exist).
  */
-async function getOrCreateRoom({ roomId, roomName, consumerReplicas})
+async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId})
 {
 	
 	let room = rooms.get(roomId);
@@ -685,10 +989,11 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas})
 		
 		const mediasoupWorker = getMediasoupWorker();
 
-		room = await Room.create({ mediasoupWorker, roomId, consumerReplicas });
-		logger.info('roomName ::  -->', roomName);
+		room = await Room.create({ mediasoupWorker, roomId, consumerReplicas })
 		room._roomName = roomName;
-		room._rootId = '0';
+		if(parentId !== roomId)
+		room._rootId = parentId;
+		room._childId= new Map();
 		rooms.set(roomId, room);
 		logger.info('New Room details  -->', room);
 		
@@ -818,27 +1123,6 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas})
  }
 
 
-/**
- * Get a Room instance (or create one if it does not exist).
- */
-async function getOrCreateBreakoutRoom({ roomId,roomName, consumerReplicas })
-{
-	let breakoutroom = breakoutrooms.get(roomId);
-    //console.log("room Details",room);
-	// If the Room does not exist create a new one.
-	if (!breakoutroom)
-	{
-		logger.info('creating a new Breakout Room [breakoutroomId:%s]', roomId);
 
-		const mediasoupWorker = getMediasoupWorker();
-
-		breakoutroom = await Room.create({ mediasoupWorker, roomId,roomName, consumerReplicas });
-
-		breakoutrooms.set(roomId, breakoutroom);
-		breakoutroom.on('close', () => breakoutrooms.delete(roomId));
-	}
-
-	//return breakoutroom;
-}
 
  
