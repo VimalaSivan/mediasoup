@@ -326,13 +326,13 @@ class Breakout extends React.Component {
 
 	
 
-	joinParticipant = (e, parentId,roomId,roomName) => {
+	joinParticipant = (e, parentId,roomId,roomName,displayName) => {
 
 		// let roomId   = event.currentTarget.id;
 		// let roomName = event.currentTarget.getAttribute('name');
 		let peerId = "0";
 		this.state.parentId = parentId;
-		alert( parentId);
+		
 
 		if (typeof (parentId) === "undefined") 
 		 parentId = "0";
@@ -358,7 +358,7 @@ class Breakout extends React.Component {
 		// Get current device info.
 		const device = deviceInfo();
 
-		var newURL = location.href.split("&")[0] + "&roomId=" + roomId;
+		var newURL = location.href.split("&")[0] + "&roomId=" + roomId+ "&displayName=" + displayName;
 
 
 		var currentRoomid = location.href.split("&")[1].split("=")[1];
@@ -400,7 +400,7 @@ class Breakout extends React.Component {
 		}
 		this.state.removeHideShow = true;
 		this.state.inviteHideShow = false;
-		
+		cookiesManager.setUser(displayName);
 		//return false;
 		this.props.roomClient.closePeer();
 		this.props.roomClient.roomId = roomId;
@@ -426,21 +426,22 @@ class Breakout extends React.Component {
 		this.props.roomClient.breakoutRooms = parentId;
 		this.props.roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas,parentId });
 		console.log("joinParticipant", this.props.roomClient);
-
+	
 		 window.CLIENT = this.props.roomClient;
+		
 		// // eslint-disable-next-line require-atomic-updates
 		// console.log("window.CLIENT",window.CLIENT);
 		//window.location.reload(true)
-
 		//this.props.roomClient.join();
+		this.props.roomClient.join();
 
 		//window.location.href = this.props.roomClient._protooUrl;
 
-		//  setTimeout(() => {
-		// 	location.reload();
-		//   }, 5000);
+		 setTimeout(() => {
+			location.reload();
+		  }, 1000);
 		
-		window.location.reload(true);
+		//window.location.reload(true);
 
 	//    console.log("window.location.href :::", window.location.href);
 
@@ -707,7 +708,7 @@ class Breakout extends React.Component {
 
 					<div class="actions joinbuttons css-t4kzjs-actionsContainer">
 						<button onClick={(e) => {
-									this.joinParticipant(e,nestedArray[0].parentRoomId,nestedArray[0].roomId,nestedArray[0].breakoutroomName);
+									this.joinParticipant(e,nestedArray[0].parentRoomId,nestedArray[0].roomId,nestedArray[0].breakoutroomName,this.props.DisplayName);
 						 }}
 						   aria-label="Join" class="css-1c2ihpo-button-primary-small-button"
 							data-testid="join-room-e87519e8-c2dd-4a67-89a6-1b735b217443" id={nestedArray[0].roomId} name={nestedArray[0].breakoutroomName} title="Join" type="button">
@@ -849,7 +850,7 @@ class Breakout extends React.Component {
 
 
 						<br></br>
-						<If condition={this.state.removeHideShow}>
+						{/* <If condition={this.state.removeHideShow}>
 
 							<button 
 							onClick={(e) => {
@@ -858,7 +859,7 @@ class Breakout extends React.Component {
 							aria-label="Leave breakout room" class="css-10s0o5q-button-destructive-medium-fullWidth" title="Leave breakout room" type="button">
 								<span class="">Leave breakout room</span>
 							</button>
-						</If>
+						</If> */}
 
 						<br></br>
 						<div id="breakout-rooms-list">
@@ -923,7 +924,11 @@ const mapStateToProps = (state) => {
 
 	const isMe = statsPeerId === me.id;
 	const peer = isMe ? me : peers[statsPeerId];
-
+	const participant = Object.keys(peers).length;
+	let peerCnt = participant + 1;
+	let peersArrCnt =	1;
+	const peersId = Object.keys(peers)[0];
+	let peersArray = Object.values(peers);
 	
 	let floors = [];
 	let breaksroom = [];
@@ -932,36 +937,33 @@ const mapStateToProps = (state) => {
 	let nestedMap = new Map();
 	let curRoomPeers = new Map();
 	let curPeerArry;
-	
-	floors.push({ id: me.id, value: state.me.displayName + ' (you)', roonName: 'MainRoom',roomId: state.me.roomId });
-	
+	let currentRoomid = location.href.split("&")[1].split("=")[1];
+	const matchingValue = peersArray.find(peers => peers.roomId === currentRoomid);
+
+	//console.log('Current Room Name ::',matchingValue.breakoutroomName);
+
+	let currentRoomName = (typeof (matchingValue) != "undefined") ? matchingValue.breakoutroomName : "Main Room";
+
+	floors.push({ id: me.id, value: state.me.displayName + ' (you)', roonName: currentRoomName,roomId: state.me.roomId });
+
+    //peersArray = peersArray.filter(item => item.id !== me.id);
+
 	
 	//for (const peersId of Object.keys(peers)) {
 
-		const participant = Object.keys(peers).length;
-		let peerCnt = participant + 1;
-		let peersArrCnt =	1;
-		const peersId = Object.keys(peers)[0];
-		const peersArray = Object.values(peers);
-		let currentRoomid = location.href.split("&")[1].split("=")[1];
+		
+		
 
 		console.log('peersArray ===> ',peersArray);
 
 		for (const peer of peersArray) {
-			console.log('vimala check',peer.breakoutroomName,'-',currentRoomid);
 			if(peer.roomId == currentRoomid){
 				peersArrCnt++;
 			}
 		}
-		console.log('vimala peersArrCnt',peersArrCnt);
+		
 
-		const matchingValue = peersArray.find(peers => peers.roomId === currentRoomid);
-
-		console.log('matchingValue ::: ',matchingValue);
-		//console.log('Current Room Name ::',matchingValue.breakoutroomName);
-
-		const currentRoomName = (typeof (matchingValue) != "undefined") ? matchingValue.breakoutroomName : "Main Room";
-
+		
 
 	    if (participant >= 1) {
 		

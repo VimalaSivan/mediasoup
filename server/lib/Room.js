@@ -285,15 +285,46 @@ class Room extends EventEmitter
 
 		peer.on('close', () =>
 		{
+
+			console.log("<------ Inside Close -----> ");
+
 			if (this._closed)
 				return;
 
 			logger.debug('protoo Peer "close" event [peerId:%s]', peer.id);
+			// console.log("Peer Id :: ", peer.id);
+			// console.log("Peer Obj :: ", this._breakoutRoomsObj);
+
+			let joinedAsspeers = this._getAssJoinedPeers();
+			// console.log("Joined peers :: ", joinedAsspeers);
+
+			let filteredArray = joinedAsspeers.filter(obj => obj._data.displayName === 'HEADER');
+			// console.log("filteredArray :: ", filteredArray);
+			let rooms = new Map();
+			rooms = this._rooms;
+
+			// console.log("rooms:: ", rooms);
+			
+
+			for (const joinedPeer of filteredArray)
+				{
+					// console.log("Room Id  :: ", joinedPeer._data.roomId);
+					let room = rooms.get(joinedPeer._data.roomId);
+					// console.log("Room obj  :: ", room);
+					if (typeof room !== "undefined" && room !== "") {
+						let classValuesArray = Array.from(room._protooRoom._peers.values());
+						let ass_peers = classValuesArray.filter((peer) => peer.data.joined);
+						// console.log("ass_peers :: ", ass_peers);
+						joinedAsspeers = joinedAsspeers.concat(ass_peers);
+					}
+				}
+
+				// console.log("Joined peers :: ", joinedAsspeers);
 
 			// If the Peer was joined, notify all Peers.
 			if (peer.data.joined)
 			{
-				for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
+				for (const otherPeer of joinedAsspeers)
 				{
 					otherPeer.notify('peerClosed', { peerId: peer.id })
 						.catch(() => {});
@@ -990,7 +1021,7 @@ class Room extends EventEmitter
 				// And also create Consumers for existing Producers.
 				let newDatas = 	{};
 
-				console.log('this._getJoinedPeers() ===> ',this._getJoinedPeers());
+				// console.log('this._getJoinedPeers() ===> ',this._getJoinedPeers());
 
 				let joinedPeers =
 				[
@@ -1082,7 +1113,7 @@ class Room extends EventEmitter
 					
 
 				// _breakoutRoomsObj contains breakout room's peers
-				  console.info(' JoinedPeers :::',joinedPeers);
+				//   console.info(' JoinedPeers :::',joinedPeers);
 				  //console.info('peer.breakoutroom :::',this._breakoutRoomsObj);
 
 
@@ -1109,10 +1140,10 @@ class Room extends EventEmitter
 				// 	}
 				//  }
 
-				
+				   //joinedAssPeers.push(peer);
 
 					const peerInfos = joinedAssPeers
-					.filter((joinedPeer) => joinedPeer.id !== peer.id)
+					.filter((joinedPeer) => joinedPeer.id !== "")
 					.map((joinedPeer) => ({
 						id          : joinedPeer.id,
 						displayName : joinedPeer.data.displayName,
@@ -2087,14 +2118,14 @@ class Room extends EventEmitter
 		 if (typeof this._breakoutRoomsObj !== "undefined" && Array.isArray(this._breakoutRoomsObj) && this._breakoutRoomsObj.length !== 0)
 			 joinedPeers = joinedPeers.concat(this._breakoutRoomsObj);
 
-            console.log("Before Filter --> ",joinedPeers);
+            // console.log("Before Filter --> ",joinedPeers);
 			 const uniqueArray = joinedPeers.filter((obj, index, self) => {
 				return index === self.findIndex((el) => (
 				  el._id === obj._id && el._data.displayName === obj._data.displayName && el._data.breakoutroomName === obj._data.breakoutroomName
 				));
 			  });
 			  
-			  console.log("After filter --> ",uniqueArray);
+			//   console.log("After filter --> ",uniqueArray);
 		   
 		 return uniqueArray;
 	 }

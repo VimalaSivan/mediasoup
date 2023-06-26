@@ -19,17 +19,18 @@ class Me extends React.Component
 		this._rootNode = null;
 	}
 	async getData() {
-				try {
-					   const currentRoomid = location.href.split("&")[1].split("=")[1];
+				try { 
+					   let currentRoomid = location.href.split("&")[1].split("=")[1];
 						//const res = await fetch('https://jsonplaceholder.typicode.com/users');
 						//const res = await fetch('https://localhost:3000/?info=true/rooms/jjzj4zsj/broadcast');
-						const res = await fetch('https://192.168.1.35:4443/rooms/'+currentRoomid+'/broadcast',{
+						console.log("Room Id :: ",currentRoomid);
+						const res = await fetch('https://192.168.1.34:4443/rooms/'+currentRoomid+'/broadcast',{
 								mode: 'no-cors',
 								method: "get",
 								headers: {
 										"Content-Type": "application/json"
 								}
-		});
+		                });
 
 						console.log("data----", JSON.stringify(res))
 				} catch (error) {

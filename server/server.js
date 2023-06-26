@@ -211,15 +211,15 @@ async function createExpressApp()
 		// 	res.send(`Hello, ${name}!`);
 		//   });
 
-		expressApp.get(
-			'/rooms/:roomId/addroom', (req, res) => {
-			var url = req.url; room_id = url.split('/')[2];
-			console.log("======= Add romm request ===========");
-			console.log("=======RoomId===========",room_id);
-			createChildRoom("BreakOut01","0");
-			const msg = "Success";
-			res.status(200).send(msg);
-	 });
+	// 	expressApp.get(
+	// 		'/rooms/:roomId/addroom', (req, res) => {
+	// 		var url = req.url; room_id = url.split('/')[2];
+	// 		console.log("======= Add romm request ===========");
+	// 		console.log("=======RoomId===========",room_id);
+	// 		createChildRoom("BreakOut01","0");
+	// 		const msg = "Success";
+	// 		res.status(200).send(msg);
+	//  });
 
 		expressApp.get(
 			'/rooms/:roomId/broadcast', (req, res) => {
@@ -236,7 +236,7 @@ async function createExpressApp()
 
 			exec("../broadcasters/gstreamer.sh", {
 					env: {
-							'SERVER_URL': 'https://192.168.1.35:4443', 
+							'SERVER_URL': 'https://192.168.1.34:4443', 
 							'ROOM_ID': `${room_id}`,
 							'MEDIA_FILE': `${media_file}`
 					}
@@ -575,7 +575,7 @@ async function runProtooWebSocketServer()
 	    // }
 		
 
-		logger.info('Room name --> ', roomName);
+		
 		logger.info('Room Id --> ', roomId);
 		logger.info('parentId --> ', parentId);
 		logger.info('peerId --> ', peerId);
@@ -672,6 +672,7 @@ async function runProtooWebSocketServer()
 					//  parentId = (parentId === '0')? roomId : parentId;
 
 					 logger.info('Parent Id::',parentId);
+					 logger.info('Room Name ::',roomName);
 
 					room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId});
 					room = await getAllNestedPeers({ room,roomId,parentId });
@@ -710,8 +711,8 @@ async function runProtooWebSocketServer()
 	 rooms.forEach((value, key) => {
 
 		if (value._childId.has(roomId)) {
-			logger.info('child Ids :: ',value._childId);
-			logger.info('child Ids room name  :: ',value._childId.get(roomId));
+			// logger.info('child Ids :: ',value._childId);
+			// logger.info('child Ids room name  :: ',value._childId.get(roomId));
 			let rootId = (value._rootId === '0') ? value._roomId : value._rootId;
 			roomInfo =
 			{
@@ -736,12 +737,12 @@ async function runProtooWebSocketServer()
 	  rooms.forEach((value, key) => {
 		
 			if (room._rootId === '0' && room._childId.has(value._roomId)){
-				logger.info('===== Inside If =====');
+				// logger.info('===== Inside If =====');
 				let classValuesArray = Array.from(value._protooRoom._peers.values());
 				ass_peers = ass_peers.concat(classValuesArray.filter((peer) => peer.data.joined));
 			}
 		   else if (value._rootId === room._rootId || value._roomId === room._rootId){
-			logger.info('===== _rootId matched =====');
+			// logger.info('===== _rootId matched =====');
 			 let classValuesArray = Array.from(value._protooRoom._peers.values());
 			 ass_peers = ass_peers.concat(classValuesArray.filter((peer) => peer.data.joined));
 			}
@@ -749,7 +750,7 @@ async function runProtooWebSocketServer()
 	   });
  
 	   room._breakoutRoomsObj =  ass_peers;
-	   logger.info('ass_peers  : ', ass_peers);
+	//    logger.info('ass_peers  : ', ass_peers);
 
 	  return room;
   }
@@ -993,14 +994,16 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId})
 		room._roomName = roomName;
 		if(parentId !== roomId)
 		room._rootId = parentId;
+		room._rooms = rooms;
 		room._childId= new Map();
 		rooms.set(roomId, room);
-		logger.info('New Room details  -->', room);
+		// logger.info('New Room details  -->', room);
 		
 		room.on('close', () => rooms.delete(roomId));
 	}
 
 	logger.info('All rooms  -->', rooms);
+	
 	
 	return room;
 	

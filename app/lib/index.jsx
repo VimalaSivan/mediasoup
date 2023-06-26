@@ -68,6 +68,7 @@ async function run()
 	//let peerId = urlParser.query.peerId;
 	let roomId = urlParser.query.roomId;
 
+
     
 	//alert("roomId : ",urlParser.query.roomId);
 	// alert("roomName : ",urlParser.query.roomName);
@@ -77,6 +78,9 @@ async function run()
 	//let roomId = "7dpzv8d1";
 	let displayName =
 		urlParser.query.displayName || (cookiesManager.getUser() || {}).displayName;
+
+	// let displayName = cookiesManager.getUser();
+
 	const handlerName = urlParser.query.handlerName || urlParser.query.handler;
 	const useSimulcast = urlParser.query.simulcast !== 'false';
 	const useSharingSimulcast = urlParser.query.sharingSimulcast !== 'false';

@@ -673,6 +673,8 @@ export default class RoomClient {
 					{
 						const { peerId } = notification.data;
 
+					
+
 						store.dispatch(
 							stateActions.removePeer(peerId));
 						
