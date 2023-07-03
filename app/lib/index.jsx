@@ -62,16 +62,25 @@ domready(async () =>
 async function run()
 {
 	logger.debug('run() [environment:%s]', process.env.NODE_ENV);
-
 	const urlParser = new UrlParse(window.location.href, true);
 	console.log('urlParse',urlParser);
 	const peerId = randomString({ length: 8 }).toLowerCase();
 	//let peerId = urlParser.query.peerId;
 	let roomId = urlParser.query.roomId;
-	let roomName = "MainRoom";
+
+
+    
+	//alert("roomId : ",urlParser.query.roomId);
+	// alert("roomName : ",urlParser.query.roomName);
+	// alert("ParentId : ",urlParser.query.parentId);
+	let parentId = urlParser.query.parentId; 
+	let roomName = "MainRoom"; 
 	//let roomId = "7dpzv8d1";
 	let displayName =
 		urlParser.query.displayName || (cookiesManager.getUser() || {}).displayName;
+
+	// let displayName = cookiesManager.getUser();
+
 	const handlerName = urlParser.query.handlerName || urlParser.query.handler;
 	const useSimulcast = urlParser.query.simulcast !== 'false';
 	const useSharingSimulcast = urlParser.query.sharingSimulcast !== 'false';
@@ -104,17 +113,20 @@ async function run()
 		// eslint-disable-next-line require-atomic-updates
 		window.NETWORK_THROTTLE_SECRET = throttleSecret;
 	}
-
+    
 	if (!roomId)
-	{
+	{ 
 		roomId = randomString({ length: 8 }).toLowerCase();
 
 		urlParser.query.roomId = roomId;
 		window.history.pushState('', '', urlParser.toString());
 	}
 
+	
+
 	// Get the effective/shareable Room URL.
 	const roomUrlParser = new UrlParse(window.location.href, true);
+
 
 	for (const key of Object.keys(roomUrlParser.query))
 	{
@@ -140,6 +152,7 @@ async function run()
 			case 'throttleSecret':
 			case 'e2eKey':
 			case 'consumerReplicas':
+			case 'parentId':
 				break;
 
 			default:
@@ -147,6 +160,7 @@ async function run()
 		}
 	}
 	delete roomUrlParser.hash;
+
 
 	const roomUrl = roomUrlParser.toString();
 
@@ -165,19 +179,21 @@ async function run()
 	}
 	console.log('roomUrl',roomUrl);
 
+    
 	// Get current device info.
 	const device = deviceInfo();
-
-
 	
 	store.dispatch(
 		stateActions.setRoomUrl(roomUrl));
+
 
 	store.dispatch(
 		stateActions.setRoomFaceDetection(faceDetection));
 
 	store.dispatch(
 		stateActions.setMe({ peerId, displayName, displayNameSet, device }));
+
+		console.log("Parent ID :: ",parentId);
 
 	roomClient = new RoomClient(
 		{
@@ -198,7 +214,8 @@ async function run()
 			datachannel,
 			externalVideo,
 			e2eKey,
-			consumerReplicas
+			consumerReplicas,
+			parentId
 		});
 
 	// NOTE: For debugging.
@@ -206,7 +223,10 @@ async function run()
 	window.CLIENT = roomClient;
 	// eslint-disable-next-line require-atomic-updates
 	window.CC = roomClient;
-	console.log("window.CLIENT",window.CLIENT)
+	console.log("room client :: ",roomClient);
+	
+	console.log("window.CLIENT",window.CLIENT);
+	
 	render(
 		<Provider store={store}>
 			<RoomContext.Provider value={roomClient}>
