@@ -1882,6 +1882,20 @@ export default class RoomClient {
 				stateActions.setDisplayName());
 		}
 	}
+	async changeadded(className) {
+		console.log('changed add',className);
+		if(className == 'icon expand'){
+			document.getElementById("newDivs").setAttribute("class","icon minimum");
+		   document.getElementById('div_register').style.width='100%';
+		   document.getElementById('div_register').style.height='100%';
+		}
+		else{
+			document.getElementById("newDivs").setAttribute("class","icon expand");
+		    document.getElementById('div_register').style.width='450px';
+			document.getElementById('div_register').style.height='382px';
+		}
+		
+	}
 	async addRoom(parentId) {
 		logger.debug('addRoom() method...');
 		const assId = this.roomId;

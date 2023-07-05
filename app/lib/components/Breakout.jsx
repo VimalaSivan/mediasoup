@@ -926,7 +926,7 @@ const mapStateToProps = (state) => {
 	const peer = isMe ? me : peers[statsPeerId];
 	const participant = Object.keys(peers).length;
 	let peerCnt = participant + 1;
-	let peersArrCnt =	1;
+	let peersArrCnt =	0;
 	const peersId = Object.keys(peers)[0];
 	let peersArray = Object.values(peers);
 	
@@ -1024,7 +1024,7 @@ const mapStateToProps = (state) => {
 	   }
 
 	   let filteredPeers = peersArray.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.displayName != 'Broadcaster');
-	   peersArrCnt = filteredPeers.length + 1;
+	   peersArrCnt = filteredPeers.length;
 
 	   console.log('Total peer count   :: ',peersArrCnt);
 

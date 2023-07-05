@@ -180,6 +180,10 @@ class Me extends React.Component
 					}}
 					onStatsClick={onSetStatsPeerId}
 					onBreakoutClick={onSetBreakoutPeerId}
+					onExpandClick={(className) =>
+					{
+						roomClient.changeadded(className);
+					}}
 				/>
 
 				<ReactTooltip

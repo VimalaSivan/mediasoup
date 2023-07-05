@@ -15,6 +15,7 @@ const Peer = (props) =>
 		videoConsumer,
 		audioMuted,
 		faceDetection,
+		onExpandClick,
 		onSetStatsPeerId,
 		onSetBreakoutPeerId
 	} = props;
@@ -89,6 +90,10 @@ const Peer = (props) =>
 				}}
 				onStatsClick={onSetStatsPeerId}
 				onBreakoutClick={onSetBreakoutPeerId}
+				onExpandClick={(className) =>
+					{
+						roomClient.changeadded(className);
+					}}
 			/>
 		</div>
 	);
@@ -103,7 +108,8 @@ Peer.propTypes =
 	audioMuted       : PropTypes.bool,
 	faceDetection    : PropTypes.bool.isRequired,
 	onSetStatsPeerId : PropTypes.func.isRequired,
-	onSetBreakoutPeerId : PropTypes.func.isRequired
+	onSetBreakoutPeerId : PropTypes.func.isRequired,
+	onExpandClick: PropTypes.func
 };
 
 const mapStateToProps = (state, { id }) =>
