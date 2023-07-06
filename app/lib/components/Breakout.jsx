@@ -595,7 +595,7 @@ class Breakout extends React.Component {
 		var filterArrdata = this.props.breaksroomNotFilter?.filter(item => item.id === currentRoomid)
 		
 		let RoomDet = "Meeting participants";
-		console.log(filterArrdata,"filterArrdata");
+		console.log(filteredData,"filterArrdata");
 		if (filterArrdata?.length > 0) {
 			if (typeof (filterArrdata[0]?.name) != "undefined") {
 				console.log(filterArrdata[0]?.name);
@@ -746,7 +746,11 @@ class Breakout extends React.Component {
 		     }
 		}
 
-
+		const audioEnabled = (
+			true
+		);
+	
+		
 		return (
 			<div data-component='Breakout' >
 				<div className={classnames('content', { visible: peerId })}>
@@ -827,6 +831,13 @@ class Breakout extends React.Component {
 											<div class="css-14p5y54-nameContainer">
 												<div class="css-1lacpev-name">{item.value}</div>
 											</div></div>
+											<div className='indicators'>
+												<If condition={!audioEnabled}>
+													<div className='icon mic-off' />
+												</If>
+
+												
+											</div>
 									</div>
 								</div>
 							</div>
@@ -843,7 +854,18 @@ class Breakout extends React.Component {
 											<div class="css-14p5y54-nameContainer">
 												<div class="css-1lacpev-name">{item.displayName}</div>
 											</div></div>
+
+											<div className='indicators'>
+												<If condition={!(Boolean(item.audioConsumer) && !item.audioConsumer.locallyPaused && !item.audioConsumer.remotelyPaused)}>
+													<div className='icon mic-off' />
+												</If>
+
+												<If condition={!item.videoConsumer}>
+													<div className='icon webcam-off' />
+												</If>
+											</div>
 									</div>
+									
 								</div>
 							</div>
 						})}
@@ -913,8 +935,9 @@ Breakout.propTypes =
 
 const mapStateToProps = (state) => {
 
-	console.log('mapStateToProps method : ', state);
+	//console.log('mapStateToProps method : ', state);
 
+	
 	const breakoutroomArray = Object.values(state.breakoutroom);
 	const { room, me, peers, consumers, dataConsumers } = state;
 	const { statsPeerId } = room;
@@ -943,8 +966,8 @@ const mapStateToProps = (state) => {
 	//console.log('Current Room Name ::',matchingValue.breakoutroomName);
 
 	let currentRoomName = (typeof (matchingValue) != "undefined") ? matchingValue.breakoutroomName : "Main Room";
-
-	floors.push({ id: me.id, value: state.me.displayName + ' (you)', roonName: currentRoomName,roomId: state.me.roomId });
+	
+	floors.push({ id: me.id, value: state.me.displayName + ' (you)', roonName: currentRoomName,roomId: state.me.roomId});
 
     //peersArray = peersArray.filter(item => item.id !== me.id);
 
@@ -954,7 +977,7 @@ const mapStateToProps = (state) => {
 		
 		
 
-		console.log('peersArray ===> ',peersArray);
+		//console.log('peersArray ===> ',peersArray);
 
 		for (const peer of peersArray) {
 			if(peer.roomId == currentRoomid){
@@ -1005,15 +1028,30 @@ const mapStateToProps = (state) => {
 				}				
 		    }
 
-		console.log('Other room peers   :: ',nestedMap);
-		console.log('Current room peers   :: ',curRoomPeers);
+		//console.log('nestedMap ',nestedMap);
+		//console.log('Current room peers  :: ',curRoomPeers);
 
 	  if(typeof (matchingValue) != "undefined"){
 	   curPeerArry = curRoomPeers.get(currentRoomName);
 	   curPeerArry =curPeerArry.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.displayName != 'Broadcaster' && state.me.id != peersId.id );
 	  }
-
-	  console.log('Current room peers   :: ',curPeerArry);
+	
+	
+	  var NewcurPeerArry = curPeerArry.map(function(el) {
+		var o = Object.assign({}, el);
+		const peerArr = state.peers[o.id];
+		const consumersArray = peerArr.consumers
+			.map((consumerId) => state.consumers[consumerId]);
+		const audioConsumer =
+			consumersArray.find((consumer) => consumer.track.kind === 'audio');
+		const videoConsumer =
+			consumersArray.find((consumer) => consumer.track.kind === 'video');
+			//console.log("audioConsumer",audioConsumer);
+		o.audioConsumer = audioConsumer;
+		o.videoConsumer = videoConsumer;
+		return o;
+	  })
+	 // console.log('curPeerArry',NewcurPeerArry);
 
 
 	   let filteredData=[];
@@ -1026,7 +1064,7 @@ const mapStateToProps = (state) => {
 	   let filteredPeers = peersArray.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.displayName != 'Broadcaster');
 	   peersArrCnt = filteredPeers.length;
 
-	   console.log('Total peer count   :: ',peersArrCnt);
+	 //  console.log('Total peer count   :: ',peersArrCnt);
 
 		
 		// for (const peersDatas of finalData) {
@@ -1086,11 +1124,12 @@ const mapStateToProps = (state) => {
 		var	newArray1 =  new_arr1;
 	//}
 	//var newArray = removeDuplicate(breaksroom, 'id');
-	console.log('floors   :: ',floors);
+	//console.log('floors   :: ',floors);
+	
 	const firstletter = state.me.displayName.substring(0, 1);
-	console.log('all data', state);
+	//console.log('all data', state);
 	let floorsData = floors.filter((peersId)=> peersId.roomId == state.me.roomId )
-	console.log('floors data', floorsData);
+	//console.log('floors data', floorsData);
 	return {
 		peerId: peer.id,
 		room: state.room,
@@ -1105,7 +1144,7 @@ const mapStateToProps = (state) => {
 		breaksroomNotFilter:newArray1,
 		nestedMap : nestedMap,
 		currentRoomName : currentRoomName,
-		curRoomPeers : curPeerArry,
+		curRoomPeers : NewcurPeerArry,
 		fullRoomid:location.href
 	};
 };
