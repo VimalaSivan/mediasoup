@@ -298,7 +298,9 @@ class Room extends EventEmitter
 			let joinedAsspeers = this._getAssJoinedPeers();
 			// console.log("Joined peers :: ", joinedAsspeers);
 
-			let filteredArray = joinedAsspeers.filter(obj => obj._data.displayName === 'HEADER');
+			logger.info('peers in close :: ', this._protooRoom.peers);
+
+			let filteredArray = joinedAsspeers.filter(obj => obj._data.displayName === 'HEADER' || obj._data.displayName === 'INIT');
 			// console.log("filteredArray :: ", filteredArray);
 			let rooms = new Map();
 			rooms = this._rooms;
@@ -319,7 +321,7 @@ class Room extends EventEmitter
 					}
 				}
 
-				// console.log("Joined peers :: ", joinedAsspeers);
+			 console.log("Joined peers in close :: ", joinedAsspeers);
 
 			// If the Peer was joined, notify all Peers.
 			if (peer.data.joined)
@@ -1131,6 +1133,8 @@ class Room extends EventEmitter
 				];
 
 
+				console.info(' joinedAssPeers :::',joinedAssPeers);
+
 				// for (const peer of joinedAssPeers){
 				// 	const existingPeer = this._protooRoom.getPeer(peer._id);
 				// 	console.info('peer checking :::',peer);
@@ -1290,12 +1294,13 @@ class Room extends EventEmitter
 				//logger.info('Peer payload before ::: ', this._protooRoom.peers);
 
 				let peer;
-				let { parentId } = request.data;
+				let { parentId,br_name } = request.data;
 				//let displayName = 'BreakOutRoom' + randomstring.generate(8);
 				let peerId  = randomstring.generate(8);
 				let roomId  = randomstring.generate(8);
 				let cnt     = 1;
 				let displayName = '';
+				console.info('###########Breakout room name : ',br_name);
 
 				try
 				{
@@ -1305,21 +1310,21 @@ class Room extends EventEmitter
 					peer.data.joined = true;
 					peer.data.displayName = 'HEADER';	
 
-					let filteredArray = this._protooRoom.peers.filter(obj => obj.data.displayName === 'HEADER');
-					let largestObject = filteredArray.reduce((acc, curr) => {
-						return (curr.data.serial > acc.data.serial) ? curr : acc;
-					  }, filteredArray[0]);
+					// let filteredArray = this._protooRoom.peers.filter(obj => obj.data.displayName === 'HEADER');
+					// let largestObject = filteredArray.reduce((acc, curr) => {
+					// 	return (curr.data.serial > acc.data.serial) ? curr : acc;
+					//   }, filteredArray[0]);
 
-					  console.log("largestObject :: ",largestObject);
-					  console.log("largestObject no :: ",largestObject.data.serial);
-					  if (typeof largestObject.data.serial !== "undefined" && largestObject.data.serial !== "") 
-					  cnt = cnt  + largestObject.data.serial;
+					//   console.log("largestObject :: ",largestObject);
+					//   console.log("largestObject no :: ",largestObject.data.serial);
+					//   if (typeof largestObject.data.serial !== "undefined" && largestObject.data.serial !== "") 
+					//   cnt = cnt  + largestObject.data.serial;
 
-					peer.data.serial = cnt;		
+					// peer.data.serial = cnt;		
 
-				    displayName = 'BreakOutRoom# ' + cnt;
+				    // displayName = 'BreakOutRoom# ' + cnt;
 
-					peer.data.breakoutroomName = displayName;	
+					peer.data.breakoutroomName = br_name;	
 
 					// Have mediasoup related maps ready even before the Peer joins since we
 					// allow creating Transports before joining.
@@ -1410,7 +1415,7 @@ class Room extends EventEmitter
 							id           : peerId,
 							displayName  : 'HEADER',
 							device       : device,
-							breakoutroomName : displayName,
+							breakoutroomName : br_name,
 							roomId : roomId,
 							parentRoomId: this._roomId
 						})
@@ -1419,7 +1424,7 @@ class Room extends EventEmitter
 
 				let myMap = new Map();
 				    myMap = this._childId;
-				myMap.set(roomId, displayName);
+				myMap.set(roomId, br_name);
 
 				this._childId = myMap;
 
@@ -1828,7 +1833,8 @@ class Room extends EventEmitter
 					case 'chat':
 					{
 						// Create a server-side DataConsumer for each Peer.
-						for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
+						console.log("Chat this._getAssJoinedPeers ::: ",this._getAssJoinedPeers);
+						for (const otherPeer of this._getAssJoinedPeers({ excludePeer: peer }))
 						{
 							this._createDataConsumer(
 								{
@@ -2113,7 +2119,7 @@ class Room extends EventEmitter
 	 {
  
 		 let joinedPeers = this._protooRoom.peers
-		 .filter((peer) => peer.data.joined && peer !== excludePeer);
+		 .filter((peer) => peer.data.joined &&  peer !== excludePeer);
  
 		 if (typeof this._breakoutRoomsObj !== "undefined" && Array.isArray(this._breakoutRoomsObj) && this._breakoutRoomsObj.length !== 0)
 			 joinedPeers = joinedPeers.concat(this._breakoutRoomsObj);
@@ -2128,6 +2134,7 @@ class Room extends EventEmitter
 			//   console.log("After filter --> ",uniqueArray);
 		   
 		 return uniqueArray;
+
 	 }
  
 

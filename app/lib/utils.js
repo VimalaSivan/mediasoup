@@ -18,3 +18,11 @@ export function isMobile()
 {
 	return !mediaQueryDetectorElem.offsetParent;
 }
+
+export function submitForm() {
+	var overlay = document.getElementById('popupOverlay');
+	overlay.style.display = 'none';
+
+	alert("Room Name : "+document.getElementById('roomName') +"Display Name :"+document.getElementById('displayName'));
+
+  }

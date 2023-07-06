@@ -212,13 +212,34 @@ async function createExpressApp()
 		//   });
 
 	// 	expressApp.get(
-	// 		'/rooms/:roomId/addroom', (req, res) => {
-	// 		var url = req.url; room_id = url.split('/')[2];
-	// 		console.log("======= Add romm request ===========");
-	// 		console.log("=======RoomId===========",room_id);
-	// 		createChildRoom("BreakOut01","0");
-	// 		const msg = "Success";
-	// 		res.status(200).send(msg);
+	// 		'/rooms/:roomName/breakout', (req, res) => {
+
+	// 		let url = req.url; parentId = url.split('/')[2];
+	// 		const { roomName } = req.params;
+	// 		console.log("======= Create breakout room  ===========");
+	// 		console.log(" roomName : ",roomName);
+	// 		console.log(" parent_id : ",parentId);
+
+	//         let consumerReplicas = 0;
+
+	// 		let roomId = randomstring.generate(8);
+			
+	// 		let room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId});
+
+			
+	// 		let data = {};
+	// 		if (!rooms.has(room_id))
+	// 		{
+	// 			const error = new Error(`room with id "${roomId}" not found`);
+	// 			error.status = 404;
+	// 			throw error;
+	// 		}
+	// 		else{
+	// 		  req.room = rooms.get(roomId);
+	// 		  data
+	// 		}
+			
+	// 		res.status(200).json(data);
 	//  });
 
 		expressApp.get(
@@ -653,36 +674,66 @@ async function runProtooWebSocketServer()
 		        // }
 				// else{
 
+				let room;
+				const protooWebSocketTransport = accept();
+				let init_flag = false;
 
+				if(parentId == 0 || parentId == '0'){
+					logger.info('::Creating breakout room ::');
+					parentId = roomId;
+					roomId = randomstring.generate(8);
+					room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId,protooWebSocketTransport});
+					logger.info('::Room Details ::',room);
+				    room = rooms.get(parentId);
+
+					let myMap = new Map();
+				    myMap = room._childId;
+					myMap.set(roomId, roomName);
+					room._childId = myMap;
+
+					room = await getAllNestedPeers({ room });
+					room = await createPeer(room,protooWebSocketTransport,accept,roomId,roomName);
+					logger.info('::Room Peers ::',room._protooRoom._peers);
+					logger.info('::All Peers ::',room._breakoutRoomsObj);
+				}
+				else{
 					let roomInfo={};
 					parentId = '0';
-					let room = rooms.get(roomId);
-	 				if (!room){
-					 roomInfo = await checkRoomInfo({roomId});
+				     room = rooms.get(roomId);
+	 				// if (!room){
+					//  roomInfo = await checkRoomInfo({roomId});
 
-						if (Object.keys(roomInfo).length != 0) {
-						logger.info('Creating Child room ::',roomInfo.roomName);
-						roomName = roomInfo.roomName;
-						parentId = roomInfo.parentId;
-						}
-					}
-					else
-					parentId = room._rootId;
+					// 	if (Object.keys(roomInfo).length != 0) {
+					// 	logger.info('Creating Child room ::',roomInfo.roomName);
+					// 	roomName = roomInfo.roomName;
+					// 	parentId = roomInfo.parentId;
+					// 	}
+					// }
+					// else
+					// parentId = room._rootId;
 
 					//  parentId = (parentId === '0')? roomId : parentId;
+					logger.info('::: Else  ::');
 
 					 logger.info('Parent Id::',parentId);
 					 logger.info('Room Name ::',roomName);
 
-					room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId});
-					room = await getAllNestedPeers({ room,roomId,parentId });
+					 if (!room)
+					   init_flag = true;
+
+					room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId,protooWebSocketTransport});
+
+					// if(init_flag)
+					//   room = await createInitPeer(room,protooWebSocketTransport);
+
+					room = await getAllNestedPeers({ room });
 					// Accept the protoo WebSocket connection.
-					const protooWebSocketTransport = accept();
 					//console.log("peerId Details2",peerId);
 					room.handleProtooConnection({ peerId, protooWebSocketTransport });
 					// logger.info('After handleProtooConnection  ::  -->', room);
 				// }
-			//}
+			  //}
+			}
 		})
 			.catch((error) =>
 			{
@@ -730,7 +781,7 @@ async function runProtooWebSocketServer()
  /**
  * Get a Associate room peers.
  */
-  async function getAllNestedPeers({ room, roomId, parentId })
+  async function getAllNestedPeers({ room})
   {
 	  let ass_peers=[];
  
@@ -750,7 +801,7 @@ async function runProtooWebSocketServer()
 	   });
  
 	   room._breakoutRoomsObj =  ass_peers;
-	//    logger.info('ass_peers  : ', ass_peers);
+      logger.info('all other ass_peers  : ', ass_peers);
 
 	  return room;
   }
@@ -840,7 +891,27 @@ async function createChildRoom(roomName,parentRoomId)
 	createPeer(room);
 }
 
-async function createPeer(room)
+/**
+ * Helper to get the list of joined protoo peers including associate rooms
+ */
+ async function _getAssJoinedPeers(room)
+ {
+
+	 let joinedPeers;
+
+	 if (typeof room._breakoutRoomsObj !== "undefined" && Array.isArray(room._breakoutRoomsObj) && room._breakoutRoomsObj.length !== 0)
+		 joinedPeers = room._breakoutRoomsObj;
+
+		//  let uniqueArray = joinedPeers.filter((obj, index, self) => {
+		// 	return index === self.findIndex((el) => (
+		// 	  el._id === obj._id && el._data.displayName === obj._data.displayName && el._data.breakoutroomName === obj._data.breakoutroomName
+		// 	));
+		//   });
+	   
+	 return joinedPeers;
+ }
+
+async function createPeer(room,protooWebSocketTransport,accept,roomId,roomName)
 {
 	console.info('########### createPeer ###############');
 
@@ -851,31 +922,22 @@ async function createPeer(room)
 		version : '0'
 	};
 	let peerId  = randomstring.generate(8);
-    let  peer = room._protooRoom.createPeer(peerId, "");
-	let displayName = 'BreakOutRoom' + randomstring.generate(8);
-	
-	let roomId  = randomstring.generate(8);
+    let  peer = room._protooRoom.createPeer(peerId, protooWebSocketTransport);
 
 	try
 	{
 		peer._id = peerId;
-		peer.data.breakoutroomName = displayName;
+		peer.data.breakoutroomName = roomName;
 		peer.data.consume = '';
 		peer.data.joined = true;
 		peer.data.displayName = 'HEADER';				
-
-		// Have mediasoup related maps ready even before the Peer joins since we
-		// allow creating Transports before joining.
 		peer.data.transports = new Map();
 		peer.data.producers = new Map();
 		peer.data.consumers = new Map();
 		peer.data.dataProducers = new Map();
 		peer.data.dataConsumers = new Map();
 		peer.data.roomId = roomId;
-		peer.data.parentId = parentId;
-		peer.data.breakoutroom = '';
-		
-
+		peer.data.parentId = room._roomId;
 		peer.data.device = device;
 		peer.data.rtpCapabilities = "";
 		peer.data.sctpCapabilities = "";
@@ -885,78 +947,45 @@ async function createPeer(room)
 		logger.error('protooRoom.createPeer() failed:%o', error);
 	}
 
-	//logger.info('Dummy Peer  ::: ', peer);
-
 	room._protooRoom.peers.push(peer);
 
-	// let joinedPeers =
-	// [
-	// 	...this._getJoinedPeers(),
-	// 	...this._broadcasters.values()
-	// ];
+	let joinedAssPeers = await _getAssJoinedPeers(room);
 
-	// let joinedAssPeers =
-	// [
-	// 	...this._getAssJoinedPeers(),
-	// 	...this._broadcasters.values()
-	// ];
+	const peerInfos = joinedAssPeers
+	.filter((joinedPeer) => joinedPeer.id !== "")
+	.map((joinedPeer) => ({
+		id          : joinedPeer.id,
+		displayName : joinedPeer.data.displayName,
+		device      : joinedPeer.data.device,	
+		breakoutroomName : joinedPeer.data.breakoutroomName,
+		roomId : joinedPeer.data.roomId,
+		parentId : joinedPeer.data.parentId
+	}));			
 
-	// // _breakoutRoomsObj contains breakout room's peers
-	//   console.info(' JoinedPeers :::',joinedPeers);
+	console.info('peerInfo in child room creation :::',peerInfos);
+					
+	accept({ peers: peerInfos });
 
-	
-	// for (const joinedPeer of joinedPeers)
-	// {
-	// 	// Create Consumers for existing Producers.
-	// 	for (const producer of joinedPeer.data.producers.values())
-	// 	{
-	// 		this._createConsumer(
-	// 			{
-	// 				consumerPeer : peer,
-	// 				producerPeer : joinedPeer,
-	// 				producer
-	// 			});
-	// 	}
 
-	// 	// Create DataConsumers for existing DataProducers.
-	// 	for (const dataProducer of joinedPeer.data.dataProducers.values())
-	// 	{
-	// 		if (dataProducer.label === 'bot')
-	// 			continue;
+	console.info('joinedAssPeers in child room  :::',joinedAssPeers);
+	joinedAssPeers = joinedAssPeers.filter((peer) => peer.data.joined && peer.data.displayName !== 'INIT');
 
-	// 		this._createDataConsumer(
-	// 			{
-	// 				dataConsumerPeer : peer,
-	// 				dataProducerPeer : joinedPeer,
-	// 				dataProducer
-	// 			});
-	// 	}
-	// }
-
-	// // Create DataConsumers for bot DataProducer.
-	// this._createDataConsumer(
-	// 	{
-	// 		dataConsumerPeer : peer,
-	// 		dataProducerPeer : null,
-	// 		dataProducer     : this._bot.dataProducer
-	// 	});
-
-	// // Notify other joined Peers.
-	// for (const otherPeer of this._getAssJoinedPeers({ excludePeer: peer }))
-	// {
-	// 	otherPeer.notify(
-	// 		'newPeer',
-	// 		{
-	// 			id           : peerId,
-	// 			displayName  : 'HEADER',
-	// 			device       : device,
-	// 			breakoutroomName : displayName,
-	// 			roomId : roomId,
-	// 			parentRoomId: this._roomId
-	// 		})
-	// 		.catch(() => {});
-	// }
-
+	// Notify other joined Peers.
+	for (const otherPeer of joinedAssPeers)
+	{
+		otherPeer.notify(
+			'newPeer',
+			{
+				id           : peerId,
+				displayName  : 'HEADER',
+				device       : device,
+				breakoutroomName : roomName,
+				roomId : roomId,
+				parentId: room._roomId
+			})
+			.catch(() => {});
+	}
+	return room;
 	
 }
 
@@ -978,10 +1007,13 @@ function getMediasoupWorker()
 /**
  * Get a Room instance (or create one if it does not exist).
  */
-async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId})
+async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId,protooWebSocketTransport})
 {
 	
 	let room = rooms.get(roomId);
+
+	 if (room)
+	  logger.info('Current room peers ::: ', room._protooRoom._peers);
 
 	// If the Room does not exist create a new one.
 	if (!room)
@@ -996,6 +1028,7 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId})
 		room._rootId = parentId;
 		room._rooms = rooms;
 		room._childId= new Map();
+		
 		rooms.set(roomId, room);
 		// logger.info('New Room details  -->', room);
 		
@@ -1005,6 +1038,51 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId})
 	logger.info('All rooms  -->', rooms);
 	
 	
+	return room;
+	
+}
+
+/**
+ * Create dummy peer to make the room live.
+ */
+async function createInitPeer(room,protooWebSocketTransport)
+{
+	console.info('########### createInitPeer ###############');
+
+
+	let device = {
+		flag    : 'broadcaster',
+		name    : 'Unknown device',
+		version : '0'
+	};
+	let peerId  = randomstring.generate(8);
+    let  peer = room._protooRoom.createPeer(peerId, protooWebSocketTransport);
+
+	try
+	{
+		peer._id = peerId;
+		peer.data.breakoutroomName = room._roomName;
+		peer.data.consume = '';
+		peer.data.joined = true;
+		peer.data.displayName = 'INIT';				
+		peer.data.transports = new Map();
+		peer.data.producers = new Map();
+		peer.data.consumers = new Map();
+		peer.data.dataProducers = new Map();
+		peer.data.dataConsumers = new Map();
+		peer.data.roomId = room._roomId;
+		peer.data.parentId = "0";
+		peer.data.device = device;
+		peer.data.rtpCapabilities = "";
+		peer.data.sctpCapabilities = "";
+	}
+	catch (error)
+	{
+		logger.error('protooRoom.createPeer() failed:%o', error);
+	}
+
+	room._protooRoom.peers.push(peer);
+
 	return room;
 	
 }

@@ -55,66 +55,37 @@ RoomClient.init({ store });
 domready(async () =>
 {
 	logger.debug('DOM ready');
-	await utils.initialize();
-	const url = window.location.href;
-	const parameterName = 'roomId';
-	const regex = new RegExp(`[?&]${parameterName}(=([^&#]*)|&|#|$)`);
 
-	if (regex.test(url)) {
-		console.log('Contains room Id');
-		run(false);
-	}
-	else
-	  run(true);
+	await utils.initialize();
+
+	run();
+
+	
 });
 
 
 
-async function run(flag)
+async function run()
 {
-	
-	let flagStatus = flag;
-
-	  const handleButtonClick = () => {
-		var overlay = document.getElementById('popupOverlay');
-		overlay.style.display = 'none';
-		run(false);
-	  };
-
-	if(flagStatus){ 
-		render(
-		  <div id="popupOverlay" class="overlay">
-		  <div id="popupWindow" class="popup">
-			<div class="popup-title">ConnectTeam</div>
-			{/* <label for="inputText1" class="popup-label">Enter room name :</label><br></br><br></br> */}
-			<input id="rmName" type="text" placeholder="Enter meeting room name"  class="popup-input" /> <br></br><br></br>
-			{/* <label for="inputText2" class="popup-label">Enter your name :</label><br></br><br></br> */}
-			<input id="dsName" type="text" placeholder="Enter your name"  class="popup-input" />
-			<div class="popup-button-group">
-			  <button id="startbtn" onClick={handleButtonClick} class="popup-button">Submit</button>
-			</div>
-		  </div>
-		</div>,
-		document.getElementById('mediasoup-demo-app-container')
-		);
-	}
-	else{
-
 	logger.debug('run() [environment:%s]', process.env.NODE_ENV);
 	const urlParser = new UrlParse(window.location.href, true);
 	console.log('urlParse',urlParser);
 	const peerId = randomString({ length: 8 }).toLowerCase();
-	let parentId = urlParser.query.parentId; 
+	//let peerId = urlParser.query.peerId;
 	let roomId = urlParser.query.roomId;
-	let roomName = "MainRoom"; 
-	let displayName = urlParser.query.displayName || (cookiesManager.getUser() || {}).displayName;
 
-	const element = document.getElementById('rmName');
-    if (element !== null){
-      //alert("Room Name : "+document.getElementById('rmName').value +"Display Name :"+document.getElementById('dsName').value);
-	  roomName = document.getElementById('rmName').value;
-	  displayName = document.getElementById('dsName').value;
-	}
+
+    
+	//alert("roomId : ",urlParser.query.roomId);
+	// alert("roomName : ",urlParser.query.roomName);
+	// alert("ParentId : ",urlParser.query.parentId);
+	let parentId = urlParser.query.parentId; 
+	let roomName = "MainRoom"; 
+	//let roomId = "7dpzv8d1";
+	let displayName =
+		urlParser.query.displayName || (cookiesManager.getUser() || {}).displayName;
+
+	// let displayName = cookiesManager.getUser();
 
 	const handlerName = urlParser.query.handlerName || urlParser.query.handler;
 	const useSimulcast = urlParser.query.simulcast !== 'false';
@@ -228,9 +199,7 @@ async function run(flag)
 	store.dispatch(
 		stateActions.setMe({ peerId, displayName, displayNameSet, device }));
 
-		console.log(" ParentID :: ",parentId);
-
-	
+		console.log("Parent ID :: ",parentId);
 
 	roomClient = new RoomClient(
 		{
@@ -272,7 +241,6 @@ async function run(flag)
 		</Provider>,
 		document.getElementById('mediasoup-demo-app-container')
 	);
-	}
 }
 
 // NOTE: Debugging stuff.

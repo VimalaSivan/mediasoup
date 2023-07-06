@@ -3,6 +3,16 @@
 	height: 100%;
 	width: 100%;
 
+		.badge {
+		position: absolute;
+		top: 3px;
+		right: 0px;
+		padding: 7px 7px;
+		border-radius: 50%;
+		background-color: #93bfc1;
+		color: white;
+		}
+
 	> .controls {
 		position: absolute;
 		z-index: 10;
@@ -109,8 +119,12 @@
 				}
 			}
 			&.broadcast {
-                                        background-image: url('/resources/images/blob.svg');
+                            background-image: url('/resources/images/blob.svg');
                         }
+			&.chat-icon {
+                            background-image: url('/resources/images/chat.png');
+                        }
+			
 		}
 	}
 }

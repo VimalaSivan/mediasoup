@@ -21,6 +21,7 @@ import thunk from 'redux-thunk';
 import reducers from '../redux/reducers';
 const http = require('http');
 const reduxMiddlewares = [thunk];
+const BotMessageRegex = new RegExp('^@bot (.*)');
 class Breakout extends React.Component {
 	constructor(props) {
 		super(props);
@@ -38,89 +39,57 @@ class Breakout extends React.Component {
 			showingBtnNext:true,
 			btnDiff: 1,
 			active: false,
-            activeIdList:[]
+            activeIdList:[],
+			text : ''
 		};
 		this.node = React.createRef()
 		this.showParticipants.bind(this);
+
+		// TextArea element got via React ref.
+		// @type {HTMLElement}
+		this._textareaElem = null;
+
+
 	}
+
+	// joinParentRoom = (e) => {
+
+	// 	try { 
+	// 		let currentRoomid = location.href.split("&")[1].split("=")[1];
+	// 		 console.log("currentRoomid :: ",currentRoomid);
+	// 		 const res = await fetch('https://192.168.1.34:4443/rooms/'+currentRoomid+'/broadcast',{
+	// 				 mode: 'no-cors',
+	// 				 method: "get",
+	// 				 headers: {
+	// 						 "Content-Type": "application/json"
+	// 				 }
+	// 		 });
+
+	// 		 console.log("data----", JSON.stringify(res))
+	// 		} 
+	// 	catch (error) {
+	// 				console.log("error----", error)
+	// 		}
+	// }
 	
 
 	joinParentRoom = (e) => {
 
-		let roomId   = this.state.parentId;
+		let roomId   = "";
 		let roomName = "";
 		let peerId = "0";
-		let parentId = this.state.parentId;
-
-		// roomId  = "7saqozwb";
-		// peerId = "123456";
-		// roomName = "Main";
-		parentId = "12345";
+		let parentId = "0";
 		
-		alert( parentId);
-		console.log('parentRoomId', parentId);
-		console.log('roomId', roomId);
-		console.log('roomName', roomName);
-
-		const list = [...this.state.list]
-		//console.log('current peerId', this.props.peerId);
-		//console.log('current Breakout roomId', roomId);
-		//this.props.roomClient.closePeer();
-		//const peerId = this.props.peerId;
-		//const displayName = '';
 		const urlParser = new UrlParse(window.location.href, true);
-		console.log('urlParser', urlParser);
-		//const peerId = randomString({ length: 8 }).toLowerCase();
-		// Get current device info.
 		const device = deviceInfo();
 
-		var newURL = location.href.split("&")[0] + "&roomId=" + roomId;
-
-
-		var currentRoomid = location.href.split("&")[1].split("=")[1];
+		roomId = location.href.split("&")[1].split("=")[1];
 		const consumerReplicas = urlParser.query.consumerReplicas;
-		this.props.roomClient.roomId = currentRoomid;
-		this.props.roomClient.peerId = peerId;
-		this.props.roomClient.roomName ="";
-		this.props.roomClient.device = device
-		this.props.roomClient.handlerName = urlParser.query.handlerName || urlParser.query.handler;
-		this.props.roomClient.useSimulcast = urlParser.query.simulcast !== 'false';
-		this.props.roomClient.useSharingSimulcast = urlParser.query.sharingSimulcast !== 'false';
-		this.props.roomClient.forceTcp = urlParser.query.forceTcp === 'true';
-		this.props.roomClient.produce = urlParser.query.produce !== 'false';
-		this.props.roomClient.consume = urlParser.query.consume !== 'false';
-		this.props.roomClient.forceH264 = urlParser.query.forceH264 === 'true';
-		this.props.roomClient.forceVP9 = urlParser.query.forceVP9 === 'true';
-		this.props.roomClient.svc = urlParser.query.svc;
-		this.props.roomClient.datachannel = urlParser.query.datachannel !== 'false';
-		this.props.roomClient.info = urlParser.query.info === 'true';
-		this.props.roomClient.faceDetection = urlParser.query.faceDetection === 'true';
-		this.props.roomClient.externalVideo = urlParser.query.externalVideo === 'true';
-		this.props.roomClient.throttleSecret = urlParser.query.throttleSecret;
-		this.props.roomClient.e2eKey = urlParser.query.e2eKey;
-		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas
-		this.props.roomClient._protooUrl = getProtooUrl({ currentRoomid, peerId, consumerReplicas });
-
-		list.push({ id: currentRoomid, name: "Main room" });
-		this.setState({ list: list });
-		this.state.mainRoomId = roomId;
-		//this.props.roomClient.breakoutRooms = { id: currentRoomid, name: "Main room" };
-		//console.log("addbreakRooms", this.props.roomClient);
-		//this.props.roomClient.addbreakRooms({ id: currentRoomid, name: "Main room" });
+		roomName = document.getElementById('brId').value;
+		document.getElementById('brId').value = '';
 		
-		window.history.pushState({}, document.title, newURL);
-		console.log('newlist', JSON.stringify(list));
-		if (typeof (list) != "undefined") {
-		//	localStorage.setItem("testObject", JSON.stringify(list));
-		window.sessionStorage.setItem("testObject", JSON.stringify(list));
-		}
-		this.state.removeHideShow = false;
-		this.state.inviteHideShow = true;
-		
-		//return false;
-		this.props.roomClient.closePeer();
 		this.props.roomClient.roomId = roomId;
-		this.props.roomClient.roomName =roomName;
+		this.props.roomClient.roomName = roomName;
 		this.props.roomClient.peerId = peerId;
 		this.props.roomClient.device = device
 		this.props.roomClient.handlerName = urlParser.query.handlerName || urlParser.query.handler;
@@ -140,14 +109,10 @@ class Breakout extends React.Component {
 		this.props.roomClient.e2eKey = urlParser.query.e2eKey;
 		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
 		this.props.roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas,parentId });
-		console.log("joinParticipant", this.props.roomClient);
 
 		window.CLIENT = this.props.roomClient;
-		// // eslint-disable-next-line require-atomic-updates
-		// console.log("window.CLIENT",window.CLIENT);
+		this.props.roomClient._addRoom();
 		
-		this.props.roomClient.join();
-		//window.location.reload(true);
 	}
 
 
@@ -328,6 +293,8 @@ class Breakout extends React.Component {
 
 	joinParticipant = (e, parentId,roomId,roomName,displayName) => {
 
+		
+
 		// let roomId   = event.currentTarget.id;
 		// let roomName = event.currentTarget.getAttribute('name');
 		let peerId = "0";
@@ -433,7 +400,7 @@ class Breakout extends React.Component {
 		// console.log("window.CLIENT",window.CLIENT);
 		//window.location.reload(true)
 		//this.props.roomClient.join();
-		this.props.roomClient.join();
+		//this.props.roomClient.join();
 
 		//window.location.href = this.props.roomClient._protooUrl;
 
@@ -642,7 +609,10 @@ class Breakout extends React.Component {
 			countPeers,
 			peersNew,
 			firstletter,
-			onAddRoom
+			onAddRoom,
+			connected,
+			chatDataProducer,
+			botDataProducer
 		} = this.props;
 
 
@@ -726,7 +696,9 @@ class Breakout extends React.Component {
 				id="participant-item-aacb482d-1a35-482e-93a9-2cf5a35b5fce@meet.jit.si/FYpi0ONSgGFh">
 				<div class="css-1qbw81c-detailsContainer">
 				<div class="css-1dkn5fp-name"><div class="css-14p5y54-nameContainer">
-				<div style={{color: 'white'}} class="css-1lacpev-name"><b> {value.displayName}  </b></div></div></div>
+				<div style={{color: 'white'}} class="css-1lacpev-name">
+				<span class="css-15zs0dc-roomName">{value.displayName}</span>
+				</div></div></div>
 				<div class="indicators css-lribt2-indicators">
 				</div>
 				</div></div>
@@ -746,6 +718,10 @@ class Breakout extends React.Component {
 		     }
 		}
 
+
+		const { text } = this.state;
+
+		const disabled = !connected || (!chatDataProducer && !botDataProducer);
 
 		return (
 			<div data-component='Breakout' >
@@ -869,7 +845,7 @@ class Breakout extends React.Component {
 
 						<br></br>
 						{/* <If condition={this.props.breakoutbtn}> */}
-						<button
+						{/* <button
 							// onClick={(e) => {
 							// 	this.joinParentRoom(e)
 							// }}
@@ -877,10 +853,104 @@ class Breakout extends React.Component {
 							onClick={({ displayName }) => onAddRoom(currentRoomid)}
 
 							aria-label="Add breakout room" class="css-1t1ycip-button-secondary-medium-fullWidth" title="Add breakout room" type="button">
-							<span class="">Add breakout room</span></button>
+							<span class="">Add breakout room</span></button> */}
+
+
+							<div class="rmcontainer">
+								<input id="brId" type="text" style={{color: 'white'}} placeholder="Enter breakout room name" class="rmtext-box"></input>
+								<button
+								// onClick={({ displayName }) => onAddRoom(currentRoomid)}
+
+								onClick={(e) => {
+								this.joinParentRoom(e)
+								}}
+
+								class="rmbtn">Add</button>
+							</div>
  
 					</div>
 				</div>
+
+				{/* --------------- chat Div  */}
+
+				<div id="chatDiv"  data-component='ChatInput' className={classnames('content', { visible: peerId })}>
+					<div className='header'>
+						<div className='info'>
+							<div className='close-icon' onClick={onClose}/></div>
+						
+						<section
+						 style={{ width:'35%',height:'98%',position:'fixed',zIndex:'1000',right:'10px',bottom:'0px'}}
+						 className="msger">
+						<header className="msger-header">
+							<div style={{fontWeight: 'bold'}} className="msger-header-title">
+							<i className="fas fa-comment-alt"></i>Chat
+							</div>
+							<div className="msger-header-options">
+							<span><i className="fas fa-cog"></i></span>
+							</div>
+						</header>
+
+						<main id="msgCnt" className="msger-chat">
+							
+							{/* <div className="msg left-msg">
+								<div
+								className="msg-img"
+								style={{ backgroundImage: `url(https://image.flaticon.com/icons/svg/327/327779.svg)`}}>
+								</div>
+
+								<div className="msg-bubble">
+									<div className="msg-info">
+									<div className="msg-info-name">BOT</div>
+									<div className="msg-info-time">12:45</div>
+									</div>
+
+									<div className="msg-text">
+									Hi, welcome to SimpleChat! Go ahead and send me a message.
+									</div>
+								</div>
+							</div> */}
+
+
+							{/* <div className="msg right-msg">
+								<div
+								className="msg-img"
+								style={{ backgroundImage: `url(https://image.flaticon.com/icons/svg/145/145867.svg)`}}>	
+								</div>
+
+								<div className="msg-bubble">
+									<div className="msg-info">
+									<div className="msg-info-name">Sajad</div>
+									<div className="msg-info-time">12:46</div>
+									</div>
+
+									<div className="msg-text">
+									You can change your name in JS section!
+									</div>
+								</div>
+							</div> */}
+
+						</main>
+
+						<form className="msger-inputarea">
+							{/* <input type="text" className="msger-input" placeholder="Enter your message..."/> */}
+							<textarea class="msger-input" 
+								ref={(elem) => { this._textareaElem = elem; }}
+								placeholder={disabled ? 'Chat unavailable' : 'Write here...'}
+								dir='auto'
+								autoComplete='off'
+								disabled={disabled}
+								value={text}
+								onChange={this.handleChange.bind(this)}
+								onKeyPress={this.handleKeyPress.bind(this)}
+							/>
+							{/* <button type="submit" className="msger-send-btn">Send</button> */}
+						</form>
+						</section>
+					
+ 
+					</div>
+				</div>
+
 			</div>
 
 
@@ -888,6 +958,45 @@ class Breakout extends React.Component {
 
 		);
 	}
+
+	handleChange(event)
+	{
+		const text = event.target.value;
+		this.setState({ text });
+	}
+
+	handleKeyPress(event)
+	{
+		// If Shift + Enter do nothing.
+		if (event.key !== 'Enter' || (event.shiftKey || event.ctrlKey))
+			return;
+
+		// Don't add the sending Enter into the value.
+		event.preventDefault();
+
+		let text = this.state.text.trim();
+		this.setState({ text: '' });
+
+		if (text)
+		{
+			const { roomClient } = this.props;
+			const match = BotMessageRegex.exec(text);
+
+			// Chat message.
+			if (!match)
+			{
+				text = text.trim();
+				roomClient.sendChatMessage(text);
+			}
+			// Message to the bot.
+			else
+			{
+				text = match[1].trim();
+				roomClient.sendBotMessage(text);
+			}
+		}
+	}
+	
 	componentDidUpdate(prevProps) {
 		const { peerId, room } = this.props;
 	}
@@ -908,7 +1017,11 @@ Breakout.propTypes =
 	peersNew: PropTypes.any.isRequired,
 	firstletter: PropTypes.any.isRequired,
 	breakoutRooms: PropTypes.any.isRequired,
-	onAddRoom: PropTypes.func
+	onAddRoom: PropTypes.func,
+	roomClient       : PropTypes.any.isRequired,
+	connected        : PropTypes.bool.isRequired,
+	chatDataProducer : PropTypes.any,
+	botDataProducer  : PropTypes.any
 };
 
 const mapStateToProps = (state) => {
@@ -1091,6 +1204,15 @@ const mapStateToProps = (state) => {
 	console.log('all data', state);
 	let floorsData = floors.filter((peersId)=> peersId.roomId == state.me.roomId )
 	console.log('floors data', floorsData);
+
+	// props for chat 
+	const dataProducersArray = Object.values(state.dataProducers);
+	const chatDataProducer = dataProducersArray
+		.find((dataProducer) => dataProducer.label === 'chat');
+	const botDataProducer = dataProducersArray
+		.find((dataProducer) => dataProducer.label === 'bot');
+
+
 	return {
 		peerId: peer.id,
 		room: state.room,
@@ -1106,7 +1228,10 @@ const mapStateToProps = (state) => {
 		nestedMap : nestedMap,
 		currentRoomName : currentRoomName,
 		curRoomPeers : curPeerArry,
-		fullRoomid:location.href
+		fullRoomid:location.href,
+		connected : state.room.state === 'connected',
+		chatDataProducer,
+		botDataProducer
 	};
 };
 
