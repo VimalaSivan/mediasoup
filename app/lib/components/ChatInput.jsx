@@ -46,6 +46,7 @@ class ChatInput extends React.Component
 					onKeyPress={this.handleKeyPress.bind(this)}
 				/>
 			</div>
+
 		);
 	}
 
@@ -68,6 +69,8 @@ class ChatInput extends React.Component
 		let text = this.state.text.trim();
 
 		this.setState({ text: '' });
+
+		
 
 		if (text)
 		{

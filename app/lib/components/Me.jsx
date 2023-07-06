@@ -148,10 +148,12 @@ class Me extends React.Component
 									roomClient.enableShare();
 							}}
 						/>
-						<div
-                                                        className={classnames('button', 'broadcast')}
-                                                        onClick={() => this.getData()}
-                                                />
+
+						<div className={classnames('button', 'broadcast')}  onClick={() => this.getData()} />
+						<div className={classnames('button', 'chat-icon')}  onClick={() => this.getData()} >
+						{/* <span className="badge"></span> */}
+						</div>
+
 					</div>
 				</If>
 

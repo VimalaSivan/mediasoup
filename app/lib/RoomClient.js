@@ -562,6 +562,12 @@ export default class RoomClient {
 
 												break;
 											}
+											
+											// Append chat message for others
+											if (!message) return;
+											const PERSON_NAME = sendingPeer.displayName;
+											this.appendMessage(PERSON_NAME, "", "left", message);
+
 
 											store.dispatch(requestActions.notify(
 												{
@@ -1794,8 +1800,51 @@ export default class RoomClient {
 		}
 	}
 
-	async sendChatMessage(text) {
+	async appendMessage(name, img, side, text) { 
+
+        const msgerChat = await this.get(".msger-chat");
+		let chatTime = await this.formatDate(new Date()); 
+		const msgHTML = `
+		  <div class="msg ${side}-msg">
+			<div class="msg-img"></div>
+	  
+			<div class="msg-bubble">
+			  <div class="msg-info">
+				<div class="msg-info-name">${name}</div>
+				<div class="msg-info-time">${chatTime}</div>
+			  </div>
+	  
+			  <div class="msg-text">${text}</div>
+			</div>
+		  </div>
+		`;
+
+	  
+		msgerChat.insertAdjacentHTML("beforeend", msgHTML);
+		msgerChat.scrollTop += 500;
+	  }
+	  
+	  // Utils
+	  async get(selector, root = document) {
+		const container = document.getElementById('chatDiv'); 
+		return container.querySelector(selector);
+	  }
+	  
+	  async formatDate(date) { 
+		const h = "0" + date.getHours();
+		const m = "0" + date.getMinutes(); 
+
+		return `${h.slice(-2)}:${m.slice(-2)}`;
+	  }
+	  
+	  async random(min, max) {
+		return Math.floor(Math.random() * (max - min) + min);
+	  }
+	  
+
+	async sendChatMessage(text) { 
 		logger.debug('sendChatMessage() [text:"%s]', text);
+		const msgerInput = this.get(".msger-input");
 
 		if (!this._chatDataProducer) {
 			store.dispatch(requestActions.notify(
@@ -1808,6 +1857,13 @@ export default class RoomClient {
 		}
 
 		try {
+  			if (!text) return;
+
+			const PERSON_NAME = this._displayName;
+
+  			this.appendMessage(PERSON_NAME, "", "right", text);
+  			msgerInput.value = "";
+
 			this._chatDataProducer.send(text);
 		}
 		catch (error) {
@@ -1882,45 +1938,93 @@ export default class RoomClient {
 				stateActions.setDisplayName());
 		}
 	}
-	async addRoom(parentId) {
-		logger.debug('addRoom() method...');
-		const assId = this.roomId;
+
+
+
+
+	async _addRoom() {
+		// logger.debug('addRoom() method...');
+		// const assId = this.roomId;
 		
-		// Store in cookie.
-		//cookiesManager.setUser({ displayName });
+		// // Store in cookie.
+		// //cookiesManager.setUser({ displayName });
 
-		try {
+		// try {
+        // console.log('Current URL ----> :: ',this._protooUrl);
+		// console.log('Room Id   ----> :: ',this.roomId);
+		// console.log('Room Name ----> :: ',this._roomName);
 
-        console.log('Current URL ----> :: ',this._protooUrl);
-		console.log('Room Id   ----> :: ',this.roomId);
-		console.log('Room Name ----> :: ',this._roomName);
+		// const roomId = this.roomId;
+		// const roomName = this._roomName;
+		// const consumerReplicas = "";
+		// const peerId = 0;
 
-		const roomId = this.roomId;
-		const roomName = this._roomName;
-		const consumerReplicas = "";
-		const peerId = 0;
-	
-		// const assUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas});
-		// const protooTransport = new protooClient.WebSocketTransport(assUrl);
-		// this._protoo = new protooClient.Peer(protooTransport);
+		// let br_name = document.getElementById('brId').value;
+		// document.getElementById('brId').value = '';
 
-		this._protoo.request('addRoom', { parentId });
-		}
-		catch (error) {
-			logger.error('Add room() | failed: %o', error);
+		// this._protoo.request('addRoom', { parentId, br_name });
 
-			store.dispatch(requestActions.notify(
-				{
-					type: 'error',
-					text: `Could not add room: ${error}`
-				}));
+		// }
+		// catch (error) {
+		// 	logger.error('Add room() | failed: %o', error);
 
-			// We need to refresh the component for it to render the previous
-			// displayName again.
-			store.dispatch(
-				stateActions.setDisplayName());
-		}
+		// 	store.dispatch(requestActions.notify(
+		// 		{
+		// 			type: 'error',
+		// 			text: `Could not add room: ${error}`
+		// 		}));
+
+		// 	// We need to refresh the component for it to render the previous
+		// 	// displayName again.
+		// 	store.dispatch(
+		// 		stateActions.setDisplayName());
+		// }
+
+		
+		const protooTransport = new protooClient.WebSocketTransport(this._protooUrl);
+		this._protoo = new protooClient.Peer(protooTransport);
+		this._protoo.on('open',"");
 	}
+
+
+	// async _addChildRoom()
+	// {
+	// 	logger.debug('addRoom() method...');
+	// 	const assId = this.roomId;
+		
+	// 	try {
+    //     console.log('Current URL ----> :: ',this._protooUrl);
+	// 	console.log('Room Id   ----> :: ',this.roomId);
+	// 	console.log('Room Name ----> :: ',this._roomName);
+
+	// 	const roomId = this.roomId;
+	// 	const roomName = this._roomName;
+	// 	const consumerReplicas = "";
+	// 	const peerId = 0;
+
+	// 	let br_name = document.getElementById('brId').value;
+	// 	document.getElementById('brId').value = '';
+
+	// 	this._protoo.request('addRoom', { parentId, br_name });
+
+	// 	}
+	// 	catch (error) {
+	// 		logger.error('Add room() | failed: %o', error);
+
+	// 		store.dispatch(requestActions.notify(
+	// 			{
+	// 				type: 'error',
+	// 				text: `Could not add room: ${error}`
+	// 			}));
+
+	// 		// We need to refresh the component for it to render the previous
+	// 		// displayName again.
+	// 		store.dispatch(
+	// 			stateActions.setDisplayName());
+	// 	}
+	// }
+
+
 	async addbreakRooms(breakRooms) {
 		logger.info('addbreakRooms() [breakRooms:"%s"]', breakRooms);
 
@@ -2135,6 +2239,8 @@ export default class RoomClient {
 			}
 		}
 	}
+
+	
 
 	async _joinRoom() {
 		logger.debug('_joinRoom()');
