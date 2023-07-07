@@ -140,14 +140,14 @@ class Room extends React.Component {
 					{/* {room.isOpenbreak && (<Breakout />)} */}
 
 
-					<If condition={room.isOpenbreak}>
+					{/* <If condition={room.isOpenbreak}> */}
 					<Breakout 
 						onAddRoom={(displayName) =>
 							{
 								roomClient.addRoom(displayName);
 							}}
 					/>
-					</If>
+					{/* </If> */}
 
 					<If condition={window.NETWORK_THROTTLE_SECRET}>
 						<NetworkThrottle

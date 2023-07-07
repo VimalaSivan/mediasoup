@@ -1903,7 +1903,62 @@ export default class RoomClient {
 				}));
 		}
 	}
+	async openbreakout() {
+		
 
+		if(document.getElementById('BreakoutDiv').style.display == 'block'){
+			
+			document.getElementById('chatDiv').style.display='none';
+			
+			document.getElementById('BreakoutDiv').style.display='none';
+		}
+		else{
+			
+			document.getElementById('chatDiv').style.display='none';
+			
+			document.getElementById('BreakoutDiv').style.display='block';
+		}
+		
+	}
+	async openChatDiv() {
+		//console.log('opned',document.getElementById('chatDiv').style.display)
+		if(document.getElementById('chatDiv').style.display == 'block'){
+			
+			document.getElementById('BreakoutDiv').style.display='none';
+			document.getElementById('chatDiv').style.display='none';
+		}
+		else{
+			
+			document.getElementById('BreakoutDiv').style.display='none';
+			document.getElementById('chatDiv').style.display='block';
+		}
+		
+		
+	}
+	async windowMaxMin(className,peerId) {
+		
+		let newAdd = "icon expand"+' '+peerId;
+		console.log('changed add',newAdd);
+		console.log('changed className',className);
+		
+		let divIds = 'div_register_'+peerId;
+		let newDivsIds = 'newDivs_'+peerId;
+		if(className == newAdd){
+			let minimum = "icon minimum"+' '+peerId;
+			document.getElementById(newDivsIds).setAttribute("class",minimum);
+		   document.getElementById(divIds).style.width='100%';
+		   document.getElementById(divIds).style.height='100%';
+		}
+		else{
+			let expands = "icon expand"+' '+peerId;
+			
+			document.getElementById(newDivsIds).setAttribute("class",expands);
+		    document.getElementById(divIds).style.width='450px';
+			document.getElementById(divIds).style.height='382px';
+			console.log('divIds width',document.getElementById(divIds).style.width);
+		}
+
+	}
 	async changeDisplayName(displayName) {
 		logger.debug('changeDisplayName() [displayName:"%s"]', displayName);
 

@@ -770,3 +770,39 @@ ul li {
 		}
 	}
 }
+.indicators {
+		position: absolute;
+		z-index: 10;
+		top: 0;
+		right: 0;
+		width: 150px;
+		display: flex;
+		flex-direction:; row;
+		justify-content: flex-end;
+		align-items: center;
+
+		> .icon {
+			flex: 0 0 auto;
+			margin: 4px;
+			margin-left: 0;
+			width: 32px;
+			height: 32px;
+			background-position: center;
+			background-size: 75%;
+			background-repeat: no-repeat;
+			transition-property: opacity;
+			transition-duration: 0.15s;
+
+			+desktop() {
+				opacity: 0.85;
+			}
+
+			&.mic-off {
+				background-image: url('/resources/images/icon_remote_mic_white_off.svg');
+			}
+
+			&.webcam-off {
+				background-image: url('/resources/images/icon_remote_webcam_white_off.svg');
+			}
+		}
+	}

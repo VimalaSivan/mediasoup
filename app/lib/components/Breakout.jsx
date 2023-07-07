@@ -725,7 +725,7 @@ class Breakout extends React.Component {
 
 		return (
 			<div data-component='Breakout' >
-				<div className={classnames('content', { visible: peerId })}>
+				<div style={{display:"none"}} id="BreakoutDiv" className={classnames('content', { visible: peerId })}>
 
 					<div className='header'>
 						<div className='info'>
@@ -819,6 +819,15 @@ class Breakout extends React.Component {
 											<div class="css-14p5y54-nameContainer">
 												<div class="css-1lacpev-name">{item.displayName}</div>
 											</div></div>
+											<div className='indicators'>
+												<If condition={!(Boolean(item.audioConsumer) && !item.audioConsumer.locallyPaused && !item.audioConsumer.remotelyPaused)}>
+													<div className='icon mic-off' />
+												</If>
+
+												<If condition={!item.videoConsumer}>
+													<div className='icon webcam-off' />
+												</If>
+											</div>
 									</div>
 								</div>
 							</div>
@@ -873,13 +882,13 @@ class Breakout extends React.Component {
 
 				{/* --------------- chat Div  */}
 
-				<div id="chatDiv"  data-component='ChatInput' className={classnames('content', { visible: peerId })}>
+				<div style={{display:"none"}} id="chatDiv"  data-component='ChatInput' className={classnames('content', { visible: peerId })}>
 					<div className='header'>
 						<div className='info'>
 							<div className='close-icon' onClick={onClose}/></div>
 						
 						<section
-						 style={{ width:'35%',height:'98%',position:'fixed',zIndex:'1000',right:'10px',bottom:'0px'}}
+						 style={{ width:'35%',height:'93%',position:'fixed',zIndex:'1000',right:'10px',bottom:'0px'}}
 						 className="msger">
 						<header className="msger-header">
 							<div style={{fontWeight: 'bold'}} className="msger-header-title">
@@ -1039,7 +1048,7 @@ const mapStateToProps = (state) => {
 	const peer = isMe ? me : peers[statsPeerId];
 	const participant = Object.keys(peers).length;
 	let peerCnt = participant + 1;
-	let peersArrCnt =	1;
+	let peersArrCnt =	0;
 	const peersId = Object.keys(peers)[0];
 	let peersArray = Object.values(peers);
 	
@@ -1127,7 +1136,20 @@ const mapStateToProps = (state) => {
 	  }
 
 	  console.log('Current room peers   :: ',curPeerArry);
-
+	  var NewcurPeerArry = curPeerArry.map(function(el) {
+		var o = Object.assign({}, el);
+		const peerArr = state.peers[o.id];
+		const consumersArray = peerArr.consumers
+			.map((consumerId) => state.consumers[consumerId]);
+		const audioConsumer =
+			consumersArray.find((consumer) => consumer.track.kind === 'audio');
+		const videoConsumer =
+			consumersArray.find((consumer) => consumer.track.kind === 'video');
+			//console.log("audioConsumer",audioConsumer);
+		o.audioConsumer = audioConsumer;
+		o.videoConsumer = videoConsumer;
+		return o;
+	  })
 
 	   let filteredData=[];
 	   let finalData=[];
@@ -1137,7 +1159,7 @@ const mapStateToProps = (state) => {
 	   }
 
 	   let filteredPeers = peersArray.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.displayName != 'Broadcaster');
-	   peersArrCnt = filteredPeers.length + 1;
+	   peersArrCnt = filteredPeers.length;
 
 	   console.log('Total peer count   :: ',peersArrCnt);
 
@@ -1227,7 +1249,7 @@ const mapStateToProps = (state) => {
 		breaksroomNotFilter:newArray1,
 		nestedMap : nestedMap,
 		currentRoomName : currentRoomName,
-		curRoomPeers : curPeerArry,
+		curRoomPeers : NewcurPeerArry,
 		fullRoomid:location.href,
 		connected : state.room.state === 'connected',
 		chatDataProducer,

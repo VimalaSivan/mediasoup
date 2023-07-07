@@ -39,6 +39,7 @@ export default class PeerView extends React.Component
 		
 		this.onStatsClick = this.onStatsClick.bind(this);
 		this.onBreakoutClick = this.onBreakoutClick.bind(this);
+		this.onExpandClick = this.onExpandClick.bind(this);
 		// Latest received video track.
 		// @type {MediaStreamTrack}
 		this._audioTrack = null;
@@ -67,6 +68,9 @@ export default class PeerView extends React.Component
 			isToggleOnBreak: !prevState.isToggleOnBreak
 		}));
 		//console.log(this.state.isToggleOnBreak);
+	  }
+	  onExpandClick(){
+		console.log('onExpandClick');
 	  }
 	render()
 	{
@@ -98,7 +102,8 @@ export default class PeerView extends React.Component
 			onChangeVideoPriority,
 			onRequestKeyFrame,
 			onStatsClick,
-			onBreakoutClick
+			onBreakoutClick,
+			onExpandClick
 		} = this.props;
 
 		const {
@@ -128,6 +133,14 @@ export default class PeerView extends React.Component
 							className={classnames('icon', 'profile')}
 							onClick={() => onBreakoutClick(peer.id,this.state.isToggleOnBreak)}
 						/>
+						<Choose>
+						<When condition={!isMe}>
+
+						<div  id={`newDivs_${peer.id}`}
+							className={classnames('icon', 'expand',peer.id)}
+							onClick={(e) => {   onExpandClick(e.target.className,peer.id);}}
+						/></When>
+						</Choose>
 					</div>
 
 					<div className={classnames('box', { visible: showInfo })}>
@@ -821,5 +834,6 @@ PeerView.propTypes =
 	onChangeVideoPriority          : PropTypes.func,
 	onRequestKeyFrame              : PropTypes.func,
 	onStatsClick                   : PropTypes.func.isRequired,
-	onBreakoutClick                : PropTypes.func.isRequired
+	onBreakoutClick                : PropTypes.func.isRequired,
+	onExpandClick 				   : PropTypes.func
 };

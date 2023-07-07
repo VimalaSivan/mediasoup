@@ -150,7 +150,10 @@ class Me extends React.Component
 						/>
 
 						<div className={classnames('button', 'broadcast')}  onClick={() => this.getData()} />
-						<div className={classnames('button', 'chat-icon')}  onClick={() => this.getData()} >
+						<div className={classnames('button', 'chat-icon')} onClick={() =>
+							{
+								roomClient.openChatDiv();
+							}} >
 						{/* <span className="badge"></span> */}
 						</div>
 
@@ -181,7 +184,14 @@ class Me extends React.Component
 						roomClient.setMaxSendingSpatialLayer(spatialLayer);
 					}}
 					onStatsClick={onSetStatsPeerId}
-					onBreakoutClick={onSetBreakoutPeerId}
+					onBreakoutClick={() =>
+					{
+						roomClient.openbreakout();
+					}}
+					onExpandClick={(className,peerId) =>
+					{
+						roomClient.windowMaxMin(className,peerId);
+					}}
 				/>
 
 				<ReactTooltip
