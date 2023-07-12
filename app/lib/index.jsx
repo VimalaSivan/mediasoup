@@ -24,6 +24,7 @@ import Room from './components/Room';
 
 
 
+
 const logger = new Logger();
 const reduxMiddlewares = [ thunk ];
 
@@ -69,10 +70,8 @@ domready(async () =>
 });
 
 
-
 async function run(flag)
 {
-	
 	let flagStatus = flag;
 
 	  const handleButtonClick = () => {
@@ -91,7 +90,7 @@ async function run(flag)
 			{/* <label for="inputText2" class="popup-label">Enter your name :</label><br></br><br></br> */}
 			<input id="dsName" type="text" placeholder="Enter your name"  class="popup-input" />
 			<div class="popup-button-group">
-			  <button id="startbtn" onClick={handleButtonClick} class="popup-button">Submit</button>
+			  <button id="startbtn" onClick={handleButtonClick} class="popup-button">Connect</button>
 			</div>
 		  </div>
 		</div>,
@@ -99,22 +98,31 @@ async function run(flag)
 		);
 	}
 	else{
-
+    
 	logger.debug('run() [environment:%s]', process.env.NODE_ENV);
 	const urlParser = new UrlParse(window.location.href, true);
 	console.log('urlParse',urlParser);
-	const peerId = randomString({ length: 8 }).toLowerCase();
 	let parentId = urlParser.query.parentId; 
 	let roomId = urlParser.query.roomId;
 	let roomName = "MainRoom"; 
 	let displayName = urlParser.query.displayName || (cookiesManager.getUser() || {}).displayName;
+	let roleFlag = urlParser.query.flag;
 
 	const element = document.getElementById('rmName');
     if (element !== null){
       //alert("Room Name : "+document.getElementById('rmName').value +"Display Name :"+document.getElementById('dsName').value);
 	  roomName = document.getElementById('rmName').value;
 	  displayName = document.getElementById('dsName').value;
+	  roleFlag = 1;
 	}
+
+	if(typeof roleFlag === "undefined")
+	 roleFlag = 0;
+
+	let peerId="";
+	peerId = urlParser.query.peerId;
+	if(peerId === "" || typeof peerId === "undefined")
+	 peerId = randomString({ length: 8 }).toLowerCase();
 
 	const handlerName = urlParser.query.handlerName || urlParser.query.handler;
 	const useSimulcast = urlParser.query.simulcast !== 'false';
@@ -148,16 +156,34 @@ async function run(flag)
 		// eslint-disable-next-line require-atomic-updates
 		window.NETWORK_THROTTLE_SECRET = throttleSecret;
 	}
-    
+   
 	if (!roomId)
 	{ 
 		roomId = randomString({ length: 8 }).toLowerCase();
-
 		urlParser.query.roomId = roomId;
-		window.history.pushState('', '', urlParser.toString());
 	}
 
-	
+
+	let displayNameSet;
+
+	// If displayName was provided via URL or Cookie, we are done.
+	if (displayName)
+	{
+		displayNameSet = true;
+	}
+	// Otherwise pick a random name and mark as "not set".
+	else
+	{
+		displayNameSet = false;
+		displayName = randomName();
+	}
+
+	urlParser.query.displayName = displayName; 
+	urlParser.query.peerId = peerId; 
+	if(roleFlag === 1)
+	 urlParser.query.flag = roleFlag; 
+
+	window.history.pushState('', '', urlParser.toString());
 
 	// Get the effective/shareable Room URL.
 	const roomUrlParser = new UrlParse(window.location.href, true);
@@ -188,6 +214,8 @@ async function run(flag)
 			case 'e2eKey':
 			case 'consumerReplicas':
 			case 'parentId':
+			case 'displayName':
+			case 'peerId':
 				break;
 
 			default:
@@ -197,21 +225,9 @@ async function run(flag)
 	delete roomUrlParser.hash;
 
 
-	const roomUrl = roomUrlParser.toString();
+	let roomUrl = roomUrlParser.toString();
 
-	let displayNameSet;
-
-	// If displayName was provided via URL or Cookie, we are done.
-	if (displayName)
-	{
-		displayNameSet = true;
-	}
-	// Otherwise pick a random name and mark as "not set".
-	else
-	{
-		displayNameSet = false;
-		displayName = randomName();
-	}
+	//roomUrl = roomUrl + '&roleFlag='+roleFlag;
 	console.log('roomUrl',roomUrl);
 
     
@@ -252,11 +268,14 @@ async function run(flag)
 			externalVideo,
 			e2eKey,
 			consumerReplicas,
-			parentId
+			parentId,
+			roleFlag
 		});
 
 	// NOTE: For debugging.
 	// eslint-disable-next-line require-atomic-updates
+	// parentId = '1';
+	// roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas,parentId });
 	window.CLIENT = roomClient;
 	// eslint-disable-next-line require-atomic-updates
 	window.CC = roomClient;

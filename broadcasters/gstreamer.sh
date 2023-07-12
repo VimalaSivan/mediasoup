@@ -62,7 +62,7 @@ fi
 
 set -e
 
-BROADCASTER_ID=$(LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w ${1:-32} | head -n 1)
+# BROADCASTER_ID=$(LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w ${1:-32} | head -n 1)
 HTTPIE_COMMAND="http --check-status --verify=no"
 AUDIO_SSRC=1111
 AUDIO_PT=100
@@ -182,6 +182,34 @@ ${HTTPIE_COMMAND} -v \
 #
 echo ">>> running gstreamer..."
 
+# set -e
+# gstCommand = "gst-launch-1.0 \
+#         rtpbin name=rtpbin \
+#         filesrc location=${MEDIA_FILE} \
+#         ! qtdemux name=demux \
+#         demux.video_0 \
+#         ! queue \
+#         ! decodebin \
+#         ! videoconvert \
+#         ! vp8enc target-bitrate=1000000 deadline=1 cpu-used=4 \
+#         ! rtpvp8pay pt=${VIDEO_PT} ssrc=${VIDEO_SSRC} picture-id-mode=2 \
+#         ! rtpbin.send_rtp_sink_0 \
+#         rtpbin.send_rtp_src_0 ! udpsink host=${videoTransportIp} port=${videoTransportPort} \
+#         rtpbin.send_rtcp_src_0 ! udpsink host=${videoTransportIp} port=${videoTransportRtcpPort} sync=false async=false \
+#         demux.audio_0 \
+#         ! queue \
+#         ! decodebin \
+#         ! audioresample \
+#         ! audioconvert \
+#         ! opusenc \
+#         ! rtpopuspay pt=${AUDIO_PT} ssrc=${AUDIO_SSRC} \
+#         ! rtpbin.send_rtp_sink_1 \
+#         rtpbin.send_rtp_src_1 ! udpsink host=${audioTransportIp} port=${audioTransportPort} \
+#     rtpbin.send_rtcp_src_1 ! udpsink host=${audioTransportIp} port=${audioTransportRtcpPort} sync=false async=false"
+
+
+
+
 gst-launch-1.0 \
         rtpbin name=rtpbin \
         filesrc location=${MEDIA_FILE} \
@@ -205,3 +233,4 @@ gst-launch-1.0 \
         ! rtpbin.send_rtp_sink_1 \
         rtpbin.send_rtp_src_1 ! udpsink host=${audioTransportIp} port=${audioTransportPort} \
     rtpbin.send_rtcp_src_1 ! udpsink host=${audioTransportIp} port=${audioTransportRtcpPort} sync=false async=false
+

@@ -186,6 +186,7 @@ async function createExpressApp()
 			req.room = rooms.get(roomId);
 			
 			logger.info("req.room",req.room);
+		
 			next();
 		});
 
@@ -211,36 +212,89 @@ async function createExpressApp()
 		// 	res.send(`Hello, ${name}!`);
 		//   });
 
-	// 	expressApp.get(
-	// 		'/rooms/:roomName/breakout', (req, res) => {
+		expressApp.get(
+			'/rooms/:roomId/deleteBroadcast/:broadcasterId', (req, res) => {
 
-	// 		let url = req.url; parentId = url.split('/')[2];
-	// 		const { roomName } = req.params;
-	// 		console.log("======= Create breakout room  ===========");
-	// 		console.log(" roomName : ",roomName);
-	// 		console.log(" parent_id : ",parentId);
-
-	//         let consumerReplicas = 0;
-
-	// 		let roomId = randomstring.generate(8);
+			let url = req.url; roomId = url.split('/')[2];broadcasterId =  url.split('/')[4];
+			console.log("======= Delete Broadcast  ===========");
+			console.log(" roomId : ",roomId);
+			console.log(" broadcasterId : ",broadcasterId);
+			const { exec } = require("child_process");
+			let cmd = "http --check-status --verify=no DELETE https://192.168.1.35:4443/rooms/"+roomId+"/broadcasters/"+broadcasterId;
+			console.log(" cmd : ",cmd);
 			
-	// 		let room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId});
+			// exec(cmd, (error, stdout, stderr) => {
+			// 	if (error) {
+			// 	  console.error(`Error: ${error.message}`);
+			// 	  return;
+			// 	}
+			// 	if (stderr) {
+			// 	  console.error(`Command execution failed: ${stderr}`);
+			// 	  return;
+			// 	}
+			  
+			// 	// The stdout variable contains the captured output of the command
+			// 	console.log('Command output:', stdout);
+			//   });
 
-			
-	// 		let data = {};
-	// 		if (!rooms.has(room_id))
-	// 		{
-	// 			const error = new Error(`room with id "${roomId}" not found`);
-	// 			error.status = 404;
-	// 			throw error;
-	// 		}
-	// 		else{
-	// 		  req.room = rooms.get(roomId);
-	// 		  data
-	// 		}
-			
-	// 		res.status(200).json(data);
-	//  });
+			//   res.status(200).send("Broadcast Deleted");
+
+
+
+			req.room.deleteBroadcaster({ broadcasterId });
+
+			res.status(200).send('broadcaster deleted');
+
+
+	 });
+
+	 expressApp.get(
+		'/rooms/:roomId/candidate/:name/chat/:text/time/:chatTime', (req, res) => {
+
+		let url = req.url; roomId = url.split('/')[2];name = url.split('/')[4];text = url.split('/')[6];chatTime = url.split('/')[8];
+		console.log("======= Save Chat  ===========",);
+		console.log(" roomId : ",roomId);
+		console.log(" name : ",name);
+		console.log(" text : ",text);
+		console.log(" chatTime : ",chatTime);
+
+		let room = rooms.get(roomId);
+		const map = new Map();
+
+		const jsonValue = {
+			name: name,
+			text: text,
+			chatTime : chatTime
+		  };
+
+		  let existMap = room._chatMap;
+		  const mapLength = existMap.size+1;
+		  existMap.set(mapLength, JSON.stringify(jsonValue));
+
+		  room._chatMap = existMap;
+
+		  console.log(" Chat Map  : ",existMap);
+
+		res.status(200).send('Chat Saved');
+
+
+ });
+
+
+	    // const shellFileContent = fs.readFileSync('../broadcasters/gstreamer.sh', 'utf-8');
+	    // const variableName = 'gstCommand';
+		// const variableRegex = new RegExp(`${variableName}=(.*)`);
+		// const match = shellFileContent.match(variableRegex);
+		// const variableValue = match && match[1];
+
+		// if (variableValue) {
+		// // Use the variable value or do further processing
+		// console.log(`Value of ${variableName}: ${variableValue}`);
+		// } else {
+		// console.error(`Value of ${variableName} not found in the shell file.`);
+		// }
+
+
 
 		expressApp.get(
 			'/rooms/:roomId/broadcast', (req, res) => {
@@ -253,13 +307,19 @@ async function createExpressApp()
   			// Get the random file from the chosen index
   			const randomFile = files[randomIndex];
 			const media_file = '../broadcasters/video/'+randomFile;
+			let BROADCASTER_ID;
 			console.log("Random file name :::",media_file);
+
+			// BROADCASTER_ID =  createBroadcastId();
+			BROADCASTER_ID = randomstring.generate(10);
+			console.log("BROADCASTER_ID from createBroadcastId :::",BROADCASTER_ID);
 
 			exec("../broadcasters/gstreamer.sh", {
 					env: {
-							'SERVER_URL': 'https://192.168.1.34:4443', 
+							'SERVER_URL': 'https://192.168.1.35:4443', 
 							'ROOM_ID': `${room_id}`,
-							'MEDIA_FILE': `${media_file}`
+							'MEDIA_FILE': `${media_file}`,
+							'BROADCASTER_ID': `${BROADCASTER_ID}`
 					}
 			}, (error, stdout, stderr) => {
 					if (error) {
@@ -269,12 +329,15 @@ async function createExpressApp()
 							console.log(`stderr: ${stderr}`);
 							return;
 					}
-					console.log(`stdout: ${stdout}`);
+					const val = parseInt(stdout);
+					console.log(`stdout: ${val}`);
 			});
+
 			console.log("Broadcast file running");
 			const msg = "Running broadcast file";
 			res.status(200).send(msg);
 	 });
+	 
 	/**
 	 * POST API to create a Broadcaster.
 	 */
@@ -530,29 +593,52 @@ async function createExpressApp()
 		});
 }
 
+// async function createBroadcastId()
+// {
+// 	logger.info('running an createBroadcastId...');
+// 	const { exec } = require("child_process");
+// 	let BROADCASTER_ID;
+
+// 	exec('LC_CTYPE=C tr -dc A-Za-z0-9 < /dev/urandom | fold -w ${1:-32} | head -n 1',
+// 	(error, stdout, stderr) => {
+// 		if (error) {
+// 			console.error(`Error: ${error.message}`);
+// 			return;
+// 		}
+// 		if (stderr) {
+// 			console.error(`Command execution failed: ${stderr}`);
+// 			return;
+// 		}
+// 		// The stdout variable contains the captured output of the command
+// 		BROADCASTER_ID = stdout;
+//     });
+
+// 	return BROADCASTER_ID;
+// }
+
 /**
  * Create a Node.js HTTPS server. It listens in the IP and port given in the
  * configuration file and reuses the Express application as request listener.
  */
-async function runHttpsServer()
-{
-	logger.info('running an HTTPS server...');
-
-	// HTTPS server for the protoo WebSocket server.
-	const tls =
-	{
-		cert : fs.readFileSync(config.https.tls.cert),
-		key  : fs.readFileSync(config.https.tls.key)
-	};
-
-	httpsServer = https.createServer(tls, expressApp);
-
-	await new Promise((resolve) =>
-	{
-		httpsServer.listen(
-			Number(config.https.listenPort), config.https.listenIp, resolve);
-	});
-}
+ async function runHttpsServer()
+ {
+	 logger.info('running an HTTPS server...');
+ 
+	 // HTTPS server for the protoo WebSocket server.
+	 const tls =
+	 {
+		 cert : fs.readFileSync(config.https.tls.cert),
+		 key  : fs.readFileSync(config.https.tls.key)
+	 };
+ 
+	 httpsServer = https.createServer(tls, expressApp);
+ 
+	 await new Promise((resolve) =>
+	 {
+		 httpsServer.listen(
+			 Number(config.https.listenPort), config.https.listenIp, resolve);
+	 });
+ }
 
 /**
  * Create a protoo WebSocketServer to allow WebSocket connections from browsers.
@@ -600,6 +686,7 @@ async function runProtooWebSocketServer()
 		logger.info('Room Id --> ', roomId);
 		logger.info('parentId --> ', parentId);
 		logger.info('peerId --> ', peerId);
+
 		
 
 		//const roomId ="pqupbb9x";
@@ -690,16 +777,19 @@ async function runProtooWebSocketServer()
 				    myMap = room._childId;
 					myMap.set(roomId, roomName);
 					room._childId = myMap;
-
 					room = await getAllNestedPeers({ room });
 					room = await createPeer(room,protooWebSocketTransport,accept,roomId,roomName);
+					// set all peers in current room after child room creation
+					room = await getAllNestedPeers({ room });
 					logger.info('::Room Peers ::',room._protooRoom._peers);
 					logger.info('::All Peers ::',room._breakoutRoomsObj);
 				}
 				else{
 					let roomInfo={};
-					parentId = '0';
+					 parentId = roomId;
+					 let roleFlag = 0;
 				     room = rooms.get(roomId);
+
 	 				// if (!room){
 					//  roomInfo = await checkRoomInfo({roomId});
 
@@ -714,22 +804,26 @@ async function runProtooWebSocketServer()
 
 					//  parentId = (parentId === '0')? roomId : parentId;
 					logger.info('::: Else  ::');
-
-					 logger.info('Parent Id::',parentId);
 					 logger.info('Room Name ::',roomName);
 
-					 if (!room)
+					 if (!room){
 					   init_flag = true;
+					   roleFlag = 1;
+					 }
 
 					room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId,protooWebSocketTransport});
+
+					logger.info('_breakoutRoomsObj ::',room._breakoutRoomsObj);
 
 					// if(init_flag)
 					//   room = await createInitPeer(room,protooWebSocketTransport);
 
 					room = await getAllNestedPeers({ room });
+
+					logger.info('_breakoutRoomsObj ::',room._breakoutRoomsObj);
 					// Accept the protoo WebSocket connection.
-					//console.log("peerId Details2",peerId);
-					room.handleProtooConnection({ peerId, protooWebSocketTransport });
+					console.log("Peers in current room :",room._protooRoom._peers);
+					room.handleProtooConnection({ peerId, protooWebSocketTransport, roleFlag});
 					// logger.info('After handleProtooConnection  ::  -->', room);
 				// }
 			  //}
@@ -787,24 +881,47 @@ async function runProtooWebSocketServer()
  
 	  rooms.forEach((value, key) => {
 		
-			if (room._rootId === '0' && room._childId.has(value._roomId)){
+		let childroom=[];
+
+			if (room._rootId === room._roomId  && room._childId.has(value._roomId)){
 				// logger.info('===== Inside If =====');
 				let classValuesArray = Array.from(value._protooRoom._peers.values());
 				ass_peers = ass_peers.concat(classValuesArray.filter((peer) => peer.data.joined));
+
+				if (typeof value._breakoutRoomsObj !== "undefined" && value._breakoutRoomsObj !== "") {
+					 childroom = value._breakoutRoomsObj.filter(obj => obj._data.displayName === 'HEADER');
+					 ass_peers = ass_peers.concat(childroom);
+				   }
+
 			}
-		   else if (value._rootId === room._rootId || value._roomId === room._rootId){
-			// logger.info('===== _rootId matched =====');
+		   else if (value._roomId === room._rootId || value._roomId === room._roomId){
+			logger.info('===== _rootId matched =====');
 			 let classValuesArray = Array.from(value._protooRoom._peers.values());
 			 ass_peers = ass_peers.concat(classValuesArray.filter((peer) => peer.data.joined));
+
+			 if (typeof value._breakoutRoomsObj !== "undefined" && value._breakoutRoomsObj !== "") {
+				childroom = value._breakoutRoomsObj.filter(obj => obj._data.displayName === 'HEADER');
+				ass_peers = ass_peers.concat(childroom);
+			  }
+
 			}
 
 	   });
- 
+
+	//    if (typeof room._breakoutRoomsObj !== "undefined" && room._breakoutRoomsObj !== "") {
+	// 	logger.info('Inside If : ' );
+	//      childroom = room._breakoutRoomsObj.filter(obj => obj._data.displayName === 'HEADER');
+	// 	 logger.info('child room peer  : ',childroom);
+	// 	 ass_peers = ass_peers.concat(childroom);
+	//    }
+
 	   room._breakoutRoomsObj =  ass_peers;
       logger.info('all other ass_peers  : ', ass_peers);
 
 	  return room;
   }
+
+  
 
  /**
  * Get a Associate room peers.
@@ -897,7 +1014,8 @@ async function createChildRoom(roomName,parentRoomId)
  async function _getAssJoinedPeers(room)
  {
 
-	 let joinedPeers;
+	 let joinedPeers=[];
+	 
 
 	 if (typeof room._breakoutRoomsObj !== "undefined" && Array.isArray(room._breakoutRoomsObj) && room._breakoutRoomsObj.length !== 0)
 		 joinedPeers = room._breakoutRoomsObj;
@@ -950,6 +1068,8 @@ async function createPeer(room,protooWebSocketTransport,accept,roomId,roomName)
 	room._protooRoom.peers.push(peer);
 
 	let joinedAssPeers = await _getAssJoinedPeers(room);
+
+	logger.info('joinedAssPeers after child creation :', joinedAssPeers);
 
 	const peerInfos = joinedAssPeers
 	.filter((joinedPeer) => joinedPeer.id !== "")
@@ -1024,10 +1144,11 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId,pr
 
 		room = await Room.create({ mediasoupWorker, roomId, consumerReplicas })
 		room._roomName = roomName;
-		if(parentId !== roomId)
+		// if(parentId !== roomId)
 		room._rootId = parentId;
 		room._rooms = rooms;
 		room._childId= new Map();
+		room._chatMap= new Map();
 		
 		rooms.set(roomId, room);
 		// logger.info('New Room details  -->', room);

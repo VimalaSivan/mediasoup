@@ -83,7 +83,8 @@ export default class RoomClient {
 			e2eKey,
 			consumerReplicas,
 			breakoutRooms,
-			parentId
+			parentId,
+			roleFlag
 		}
 	) {
 		
@@ -91,6 +92,8 @@ export default class RoomClient {
 		logger.debug(
 			'constructor() in roomclient [roomId:"%s", peerId:"%s", displayName:"%s", device:%s,roomName:%s]',
 			roomId, peerId, displayName, device.flag,roomName);
+
+		console.log("roleFlag : ",roleFlag);
 
 		// Closed flag.
 		// @type {Boolean}
@@ -116,6 +119,9 @@ export default class RoomClient {
 		// @type {String}
 		this.parentId = parentId;
 
+		// Display name.
+		// @type {String}
+		this.roleFlag = roleFlag;
 
 		// Device info.
 		// @type {Object}
@@ -962,6 +968,31 @@ export default class RoomClient {
 				}));
 		}
 	}
+
+	async pauseBroadcast() {
+
+		//this._micProducer.pause();
+
+		alert(this._broadcasters);
+
+		try {
+			await this._protoo.request(
+				'pauseBroadProducer', { producerId: "0" });
+
+			// store.dispatch(
+			// 	stateActions.setProducerPaused(this._micProducer.id));
+		}
+		catch (error) {
+			logger.error('muteMic() | failed: %o', error);
+
+			store.dispatch(requestActions.notify(
+				{
+					type: 'error',
+					text: `Error pausing server-side mic Producer: ${error}`
+				}));
+		}
+	}
+
 
 	async unmuteMic() {
 		logger.debug('unmuteMic()');
@@ -1862,6 +1893,7 @@ export default class RoomClient {
 			const PERSON_NAME = this._displayName;
 
   			this.appendMessage(PERSON_NAME, "", "right", text);
+			await this.saveChatMessage(PERSON_NAME,text);
   			msgerInput.value = "";
 
 			this._chatDataProducer.send(text);
@@ -1876,6 +1908,26 @@ export default class RoomClient {
 				}));
 		}
 	}
+
+	async saveChatMessage(name,text) { 
+	  try { 
+		 let currentRoomid = location.href.split("&")[1].split("=")[1];
+		 console.log("Room Id :: ",currentRoomid);
+		 const chatTime = await this.formatDate(new Date());
+		 
+		 const res = await fetch('https://192.168.1.35:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
+				 mode: 'no-cors',
+				 method: "get",
+				 headers: {
+						 "Content-Type": "application/json"
+				 }
+		 });
+		 console.log("saveChatMessage res ::", JSON.stringify(res))
+		} catch (error) {
+				console.log("error in saveChatMessage", error)
+		}
+    }
+
 
 	async sendBotMessage(text) {
 		logger.debug('sendBotMessage() [text:"%s]', text);

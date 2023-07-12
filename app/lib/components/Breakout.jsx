@@ -324,8 +324,15 @@ class Breakout extends React.Component {
 		//const peerId = randomString({ length: 8 }).toLowerCase();
 		// Get current device info.
 		const device = deviceInfo();
+		var newURL;
+		const urlParams = new URL(location.href);
+		const role_flag = urlParams.searchParams.get('flag');
 
-		var newURL = location.href.split("&")[0] + "&roomId=" + roomId+ "&displayName=" + displayName;
+
+		if(role_flag == 1)
+		  newURL = location.href.split("&")[0] + "&roomId=" + roomId+ "&displayName=" + displayName+ "&flag=" + role_flag;
+		else
+		  newURL = location.href.split("&")[0] + "&roomId=" + roomId+ "&displayName=" + displayName;
 
 
 		var currentRoomid = location.href.split("&")[1].split("=")[1];
@@ -1234,6 +1241,13 @@ const mapStateToProps = (state) => {
 	const botDataProducer = dataProducersArray
 		.find((dataProducer) => dataProducer.label === 'bot');
 
+        // Fetch urlWithFirstTwoParams
+		const url = new URL(location.href);
+		const params = url.searchParams;
+		const keys = Array.from(params.keys()).slice(0, 2);
+		const urlWithParams = keys.map(key => `${key}=${params.get(key)}`).join('&');
+		const urlWithFirstTwoParams = `${url.origin}${url.pathname}?${urlWithParams}`;
+
 
 	return {
 		peerId: peer.id,
@@ -1250,7 +1264,7 @@ const mapStateToProps = (state) => {
 		nestedMap : nestedMap,
 		currentRoomName : currentRoomName,
 		curRoomPeers : NewcurPeerArry,
-		fullRoomid:location.href,
+		fullRoomid:urlWithFirstTwoParams,
 		connected : state.room.state === 'connected',
 		chatDataProducer,
 		botDataProducer

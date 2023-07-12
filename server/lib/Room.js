@@ -210,7 +210,7 @@ class Room extends EventEmitter
 	 * @param {protoo.WebSocketTransport} protooWebSocketTransport - The associated
 	 *   protoo WebSocket transport.
 	 */
-	handleProtooConnection({ peerId, consume, protooWebSocketTransport })
+	handleProtooConnection({ peerId, consume, protooWebSocketTransport, roleFlag })
 	{
 
 		logger.info('-------- Inside handleProtooConnection  -------');
@@ -248,6 +248,7 @@ class Room extends EventEmitter
 		peer.data.device = undefined;
 		peer.data.rtpCapabilities = undefined;
 		peer.data.sctpCapabilities = undefined;
+		peer.data.roleFlag = roleFlag;
 
 		// Have mediasoup related maps ready even before the Peer joins since we
 		// allow creating Transports before joining.
@@ -288,15 +289,19 @@ class Room extends EventEmitter
 
 			console.log("<------ Inside Close -----> ");
 
-			if (this._closed)
+			logger.info('peers in close :: ', this._protooRoom.peers);
+
+			if (this._closed){
+				logger.debug('Inside _closed...');
 				return;
+			}
 
 			logger.debug('protoo Peer "close" event [peerId:%s]', peer.id);
 			// console.log("Peer Id :: ", peer.id);
 			// console.log("Peer Obj :: ", this._breakoutRoomsObj);
 
 			let joinedAsspeers = this._getAssJoinedPeers();
-			// console.log("Joined peers :: ", joinedAsspeers);
+			console.log("Joined peers :: ", joinedAsspeers);
 
 			logger.info('peers in close :: ', this._protooRoom.peers);
 
@@ -380,6 +385,9 @@ class Room extends EventEmitter
 
 		if (this._broadcasters.has(id))
 			throw new Error(`broadcaster with id "${id}" already exists`);
+
+
+		console.log("Broadcast ID in room :: ",id);
 
 		const broadcaster =
 		{
@@ -474,6 +482,9 @@ class Room extends EventEmitter
 	deleteBroadcaster({ broadcasterId })
 	{
 		const broadcaster = this._broadcasters.get(broadcasterId);
+
+		console.log("broadcasterId in deleteBroadcaster :: ",broadcasterId);
+		console.log("broadcaster in deleteBroadcaster :: ",broadcaster);
 
 		if (!broadcaster)
 			throw new Error(`broadcaster with id "${broadcasterId}" does not exist`);
@@ -1154,7 +1165,8 @@ class Room extends EventEmitter
 						device      : joinedPeer.data.device,	
 						breakoutroomName : joinedPeer.data.breakoutroomName,
 						roomId : joinedPeer.data.roomId,
-						parentId : joinedPeer.data.parentId
+						parentId : joinedPeer.data.parentId,
+						roleFlag : joinedPeer.data.roleFlag
 					}));
 
 					console.info('peerInfos :::',peerInfos);
@@ -1659,6 +1671,55 @@ class Room extends EventEmitter
 				break;
 			}
 
+			case 'pauseBroadProducer':
+			{
+				console.log("--------- Inside pauseBroadProducer -----");
+				let producerId;
+				let audioProducer;
+				let videoProducer;
+				let i=0;
+				if (typeof this._broadcasters.values() !== "undefined"){
+					const valuesArray = Array.from(this._broadcasters.values());
+					console.log("this._broadcasters.values() ::",this._broadcasters.values());
+					const firstValue = valuesArray[0];
+					if (typeof firstValue !== "undefined"){
+						
+						console.log("firstValue.data.producers ::",firstValue.data.producers);
+
+						firstValue.data.producers.forEach((value, key) => {
+							console.log(key, value);
+							if(i == 0)
+							  audioProducer = value;
+							 else
+							  videoProducer = value;
+
+							 i++;
+						 });
+
+						// const firstArry = firstValue.data.producers.entries().next().value;
+						// console.log("producer ::",firstArry);
+						// let firstKey = firstArry[0];
+						// producerId = firstKey;
+					    // console.log("ProdId ::",firstKey);
+						// producer = firstValue.data.producers.get(firstKey);
+
+					}
+				}
+		
+
+				if (!audioProducer || !videoProducer)
+					throw new Error(`producer with id "${producerId}" not found`);
+				
+				if (audioProducer)
+				 await audioProducer.pause();
+				if (videoProducer)
+				 await videoProducer.pause();
+
+				accept();
+
+				break;
+			}
+
 			case 'pauseProducer':
 			{
 				// Ensure the Peer is joined.
@@ -1670,6 +1731,7 @@ class Room extends EventEmitter
 				const { producerId } = request.data;
 				console.log("producerId ===> ",producerId);
 				const producer = peer.data.producers.get(producerId);
+				console.log("peer.data.producers ===> ",peer.data.producers);
 				console.log("peer ===> ",peer);
 
 				if (!producer)

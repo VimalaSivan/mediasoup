@@ -51,6 +51,7 @@ class Room extends React.Component {
 		console.log('roomClient._roomName',roomClient._roomName)
 		return (
 			<Appear duration={300}>
+				<table><tr><td>
 				<div data-component='Room'>
 					<Notifications />
 
@@ -141,12 +142,12 @@ class Room extends React.Component {
 
 
 					{/* <If condition={room.isOpenbreak}> */}
-					<Breakout 
+					{/* <Breakout 
 						onAddRoom={(displayName) =>
 							{
 								roomClient.addRoom(displayName);
 							}}
-					/>
+					/> */}
 					{/* </If> */}
 
 					<If condition={window.NETWORK_THROTTLE_SECRET}>
@@ -163,6 +164,17 @@ class Room extends React.Component {
 						delayUpdate={50}
 					/>
 				</div>
+				</td>
+				<td>
+				<Breakout 
+						onAddRoom={(displayName) =>
+							{
+								roomClient.addRoom(displayName);
+							}}
+					/>
+				</td>
+				</tr>
+				</table>
 			</Appear>
 		);
 	}
@@ -186,12 +198,21 @@ Room.propTypes =
 const mapStateToProps = (state) => {
 	console.log('all data rooms', state);
 	//console.log('room name ::::', roomClient._roomName);
+
+	const url = new URL(location.href);
+	const params = url.searchParams;
+	const keys = Array.from(params.keys()).slice(0, 2);
+	const urlWithParams = keys.map(key => `${key}=${params.get(key)}`).join('&');
+	const urlWithFirstTwoParams = `${url.origin}${url.pathname}?${urlWithParams}`;
+
+    console.log(urlWithFirstTwoParams);
+
 	
 	return {
 		room: state.room,
 		me: state.me,
 		amActiveSpeaker: state.me.id === state.room.activeSpeakerId,
-		fullRoomid:location.href
+		fullRoomid:urlWithFirstTwoParams
 	};
 };
 
