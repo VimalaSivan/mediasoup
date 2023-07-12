@@ -269,8 +269,8 @@ async function createExpressApp()
 
 		  let existMap = room._chatMap;
 		  const mapLength = existMap.size+1;
-		  existMap.set(mapLength, JSON.stringify(jsonValue));
-
+		  //existMap.set(mapLength, JSON.stringify(jsonValue));
+		  existMap.set(mapLength, jsonValue);
 		  room._chatMap = existMap;
 
 		  console.log(" Chat Map  : ",existMap);
@@ -813,21 +813,44 @@ async function runProtooWebSocketServer()
 
 					room = await getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId,protooWebSocketTransport});
 
-					logger.info('_breakoutRoomsObj ::',room._breakoutRoomsObj);
+					//logger.info('_breakoutRoomsObj ::',room._breakoutRoomsObj);
 
 					// if(init_flag)
 					//   room = await createInitPeer(room,protooWebSocketTransport);
 
 					room = await getAllNestedPeers({ room });
 
-					logger.info('_breakoutRoomsObj ::',room._breakoutRoomsObj);
+					//logger.info('_breakoutRoomsObj ::',room._breakoutRoomsObj);
 					// Accept the protoo WebSocket connection.
-					console.log("Peers in current room :",room._protooRoom._peers);
+					
 					room.handleProtooConnection({ peerId, protooWebSocketTransport, roleFlag});
 					// logger.info('After handleProtooConnection  ::  -->', room);
 				// }
 			  //}
 			}
+			let curRoomPeers = Array.from(room._protooRoom._peers.values());
+			curPeer = curRoomPeers.filter((peer) => peer._id == peerId);
+			let roomArr = rooms.get(curPeer[0].data.roomId);
+			//console.log('_chatMap',roomArr._chatMap);
+			
+			
+			let chatMapArr =[];
+			for (let keys of roomArr._chatMap.values()) {
+				chatMapArr.push(keys);
+			}
+			for (const singlePeer of curPeer)
+			{
+				singlePeer.notify(
+						'newChatData',
+						{
+							peerId           : peerId,
+							roomId : singlePeer.data.roomId,
+							chatData: chatMapArr
+						})
+						.catch(() => {});
+			}
+			console.log("Peers in current room :",curPeer);
+			
 		})
 			.catch((error) =>
 			{
@@ -1131,10 +1154,9 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId,pr
 {
 	
 	let room = rooms.get(roomId);
-
-	 if (room)
-	  logger.info('Current room peers ::: ', room._protooRoom._peers);
-
+	// if (room)
+	// logger.info('Current room peers ::: ', room._protooRoom._peers);
+	
 	// If the Room does not exist create a new one.
 	if (!room)
 	{
@@ -1153,12 +1175,14 @@ async function getOrCreateRoom({ roomId, roomName, consumerReplicas, parentId,pr
 		rooms.set(roomId, room);
 		// logger.info('New Room details  -->', room);
 		
+		
 		room.on('close', () => rooms.delete(roomId));
 	}
 
 	logger.info('All rooms  -->', rooms);
 	
 	
+
 	return room;
 	
 }

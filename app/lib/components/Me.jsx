@@ -132,6 +132,7 @@ class Me extends React.Component
 			audioProducer,
 			videoProducer,
 			faceDetection,
+			chatMap,
 			onSetStatsPeerId,
 			onSetBreakoutPeerId,
 			broadcast_id
@@ -253,7 +254,7 @@ class Me extends React.Component
 
 						<div className={classnames('button', 'chat-icon')} onClick={() =>
 							{
-								roomClient.openChatDiv();
+								roomClient.openChatDiv(chatMap);
 							}} >
 						{/* <span className="badge"></span> */}
 						</div>
@@ -373,6 +374,7 @@ const mapStateToProps = (state) =>
 		audioProducer : audioProducer,
 		videoProducer : videoProducer,
 		faceDetection : state.room.faceDetection,
+		chatMap:state.room.chatData,
 		broadcast_id  : broadcast_id,
 		role_flag  : role_flag
 	};

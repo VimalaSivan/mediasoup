@@ -574,7 +574,7 @@ export default class RoomClient {
 											const PERSON_NAME = sendingPeer.displayName;
 											this.appendMessage(PERSON_NAME, "", "left", message);
 
-
+											
 											store.dispatch(requestActions.notify(
 												{
 													title: `${sendingPeer.displayName} says:`,
@@ -667,6 +667,14 @@ export default class RoomClient {
 
 						break;
 					}
+					case 'newChatData':
+						{
+							const {peerId,roomId,chatData} = notification.data;
+							store.dispatch(
+										stateActions.setRoomChat(peerId,roomId,chatData));
+	
+							break;
+						}
 				case 'newaddedRoom':
 					{
 						console.log("notification.data", notification.data);
@@ -1908,14 +1916,22 @@ export default class RoomClient {
 				}));
 		}
 	}
-
+	async displaychatHistory(DataArr) { 
+		logger.debug('displaychatHistory() [DataArr:"%s]', DataArr);
+		const msgerInput = this.get(".msger-input");
+		msgerInput.value = "";
+		for (const chats of DataArr) {
+		this.appendMessage(chats.name, chats.chatTime, "left", chats.text);
+		}
+		
+	}
 	async saveChatMessage(name,text) { 
 	  try { 
 		 let currentRoomid = location.href.split("&")[1].split("=")[1];
 		 console.log("Room Id :: ",currentRoomid);
 		 const chatTime = await this.formatDate(new Date());
 		 
-		 const res = await fetch('https://192.168.1.35:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
+		 const res = await fetch('https://192.168.1.6:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
 				 mode: 'no-cors',
 				 method: "get",
 				 headers: {
@@ -1972,7 +1988,21 @@ export default class RoomClient {
 		}
 		
 	}
-	async openChatDiv() {
+	async closeBreakoutDiv() {
+	
+			
+		document.getElementById('BreakoutDiv').style.display='none';
+		
+		
+	}
+	async closeChatDiv() {
+	
+			
+		document.getElementById('chatDiv').style.display='none';
+		
+		
+	}
+	async openChatDiv(chatMap) {
 		//console.log('opned',document.getElementById('chatDiv').style.display)
 		if(document.getElementById('chatDiv').style.display == 'block'){
 			
@@ -1983,6 +2013,10 @@ export default class RoomClient {
 			
 			document.getElementById('BreakoutDiv').style.display='none';
 			document.getElementById('chatDiv').style.display='block';
+			const msgerInput = this.get(".msger-input");
+			for (const chats of chatMap) {
+			this.appendMessage(chats.name, chats.chatTime, "left", chats.text);
+			}
 		}
 		
 		

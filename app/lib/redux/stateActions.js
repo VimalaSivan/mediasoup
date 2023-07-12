@@ -5,6 +5,13 @@ export const setRoomUrl = (url) =>
 		payload : { url }
 	};
 };
+export const setRoomChat = (peersId,roomId,chatData) =>
+{
+	return {
+		type    : 'SET_ROOM_CHAT',
+		payload : { peersId,roomId,chatData }
+	};
+};
 export const addRoom = (room) =>
 {
 	return {

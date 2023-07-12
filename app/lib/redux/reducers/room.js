@@ -1,6 +1,7 @@
 const initialState =
 {
 	url             : null,
+	chatData        : null,
 	state           : 'new', // new/connecting/connected/disconnected/closed,
 	activeSpeakerId : null,
 	statsPeerId     : null,
@@ -9,7 +10,7 @@ const initialState =
 
 const room = (state = initialState, action) =>
 {
-	//console.log('action test',action);
+	console.log('action test',action);
 	switch (action.type)
 	{
 		case 'SET_ROOM_URL':
@@ -18,7 +19,12 @@ const room = (state = initialState, action) =>
 
 			return { ...state, url };
 		}
+		case 'SET_ROOM_CHAT':
+		{
+			const { peersId,roomId,chatData } = action.payload;
 
+			return { ...state, chatData: chatData};
+		}
 		case 'SET_ROOM_STATE':
 		{
 			const roomState = action.payload.state;

@@ -738,7 +738,7 @@ class Breakout extends React.Component {
 						<div className='info'>
 							<div
 								className='close-icon'
-								onClick={onClose}
+								onClick={this.onCloseBreak.bind(this)}
 							/></div>
 						<div style={{ color: '#FFF' }} className='stats'>
 
@@ -891,9 +891,7 @@ class Breakout extends React.Component {
 
 				<div style={{display:"none"}} id="chatDiv"  data-component='ChatInput' className={classnames('content', { visible: peerId })}>
 					<div className='header'>
-						<div className='info'>
-							<div className='close-icon' onClick={onClose}/></div>
-						
+					
 						<section
 						 style={{ width:'35%',height:'93%',position:'fixed',zIndex:'1000',right:'10px',bottom:'0px'}}
 						 className="msger">
@@ -901,6 +899,8 @@ class Breakout extends React.Component {
 							<div style={{fontWeight: 'bold'}} className="msger-header-title">
 							<i className="fas fa-comment-alt"></i>Chat
 							</div>
+							<div className='info-added'>
+							<div className='close-icon-added' onClick={this.onCloseChatDiv.bind(this)}/></div>
 							<div className="msger-header-options">
 							<span><i className="fas fa-cog"></i></span>
 							</div>
@@ -980,7 +980,14 @@ class Breakout extends React.Component {
 		const text = event.target.value;
 		this.setState({ text });
 	}
-
+	onCloseBreak(){
+		const { roomClient } = this.props;
+		roomClient.closeBreakoutDiv();
+	}
+	onCloseChatDiv(){
+		const { roomClient } = this.props;
+		roomClient.closeChatDiv();
+	}
 	handleKeyPress(event)
 	{
 		// If Shift + Enter do nothing.
@@ -1273,7 +1280,10 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
 	return {
-		onClose: () => dispatch(stateActions.setBreakoutPeerId(null)),
+		//onClose: () => dispatch(stateActions.setBreakoutPeerId(null)),
+		onClose : () => {
+			RoomClient.closeBreakoutDiv()
+		},
 		onRoomLinkCopy: () => {
 			dispatch(requestActions.notify(
 				{
