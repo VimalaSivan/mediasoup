@@ -2013,9 +2013,9 @@ export default class RoomClient {
 			
 			document.getElementById('BreakoutDiv').style.display='none';
 			document.getElementById('chatDiv').style.display='block';
-			const msgerInput = this.get(".msger-input");
+			document.getElementById('msgCnt').innerHTML = "";
 			for (const chats of chatMap) {
-				console.log('chats.text',chats.text);
+				//console.log('chats.text',chats.text);
 			this.appendMessage(chats.name, chats.chatTime, "left", decodeURI(chats.text));
 			}
 		}
