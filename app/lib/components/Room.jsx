@@ -54,7 +54,9 @@ class Room extends React.Component {
 				<div data-component='Room'>
 					<Notifications />
 
-					<div className='state'>
+					<div id="flagDiv"></div>
+
+					<div id="stateDiv" className='state'  >
 						<div className={classnames('icon', room.state)} />
 						<p className={classnames('text', room.state)}>{room.state}</p>
 					</div>

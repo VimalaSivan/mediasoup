@@ -8,6 +8,10 @@ import Peer from './Peer';
 
 const Peers = ({ peers, activeSpeakerId }) =>
 {
+
+
+
+
 	return (
 		<div>
 		<div id="fullDiv"> </div>
@@ -17,10 +21,18 @@ const Peers = ({ peers, activeSpeakerId }) =>
 			{
 				peers.map((peer) =>
 				{
+
+					const peerStyles = {
+						width: '280px',
+						height: '250px',
+						
+					  };
+
 					return (
 						<Appear key={peer.id} duration={1000}>
 						
 								<div  id={`div_register_${peer.id}`}
+									style={peerStyles}
 									className={classnames('peer-container', {
 										'active-speaker' : peer.id === activeSpeakerId
 									})}

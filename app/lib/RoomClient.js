@@ -1931,7 +1931,7 @@ export default class RoomClient {
 		 console.log("Room Id :: ",currentRoomid);
 		 const chatTime = await this.formatDate(new Date());
 		 
-		 const res = await fetch('https://192.168.1.6:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
+		 const res = await fetch('https://192.168.1.36:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
 				 mode: 'no-cors',
 				 method: "get",
 				 headers: {
@@ -2020,7 +2020,6 @@ export default class RoomClient {
 			}
 		}
 		
-		
 	}
 	async windowMaxMin(className,peerId) {
 		
@@ -2064,6 +2063,9 @@ export default class RoomClient {
 
 			// append new peer into fullDiv
 			targetDiv.appendChild(sourceDiv);
+
+			document.getElementById("stateDiv").style.top ='0px';
+			document.getElementById("stateDiv").style.left ='110px';
 		
 		   document.getElementById(divIds).style.top='0';
 		   document.getElementById(divIds).style.position='fixed';
@@ -2088,8 +2090,8 @@ export default class RoomClient {
 		   document.getElementById("contentDiv").style.overflowY='auto';
 		   document.getElementById("contentDiv").style.overflowX='hidden';
 
-		   document.getElementById(iconDivsIds).style.marginLeft = '27%';
-		   document.getElementById(DisplayNameIds).style.marginLeft = '25%';
+		//    document.getElementById(iconDivsIds).style.marginLeft = '27%';
+		//    document.getElementById(DisplayNameIds).style.marginLeft = '25%';
 		   const parentDiv = document.getElementById('contentDiv');
 		   // Get all div elements inside the parent div using the class name
 		   const divs = parentDiv.querySelectorAll('.peer-container');
@@ -2103,11 +2105,12 @@ export default class RoomClient {
 		}
 		else{
 			let expands = "icon expand"+' '+peerId;
-
+			document.getElementById("stateDiv").style.top ='0px';
+			document.getElementById("stateDiv").style.left ='0px';
 			// Getting existing peer from fullDiv and put back to contentDiv
 			// Get all div elements inside the fullDiv div using the class name
 			const fulllDiv = document.getElementById('fullDiv');
-			const isPeerAvail = fulllDiv.querySelector('.peer-container');
+			const isPeerAvail = fulllDiv.querySelector('.peer-container'); 
 
 			if(isPeerAvail !== null){
 				let id = fulllDiv.querySelector('.peer-container').id;
@@ -2119,7 +2122,7 @@ export default class RoomClient {
 				sourceDiv1.style.removeProperty('left');
 				sourceDiv1.style.removeProperty('background-color');
 				document.getElementById(newDivsIds).setAttribute("class",expands);
-				document.getElementById(iconDivsIds).style.marginLeft = '30%';
+				// document.getElementById(iconDivsIds).style.marginLeft = '30%';
 				//document.getElementById(sourceDiv1).setAttribute("class",expands);
 				contDiv.appendChild(sourceDiv1);
 			}
