@@ -2050,7 +2050,7 @@ export default class RoomClient {
 				const sourceDiv1 = document.getElementById(id);
 				const contDiv = document.getElementById("contentDiv");
 				//document.getElementById(sourceDiv1).setAttribute("class",expands);
-				document.getElementById(newDivsIds).setAttribute("class",expands);
+				document.getElementById(newDivsIds).setAttribute("class",minimum);
 				
 				// sourceDiv1.classList.add(expands);
 				// Remove specific style attribute
