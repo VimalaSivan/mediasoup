@@ -17,7 +17,9 @@ const Peer = (props) =>
 		faceDetection,
 		onExpandClick,
 		onSetStatsPeerId,
-		onSetBreakoutPeerId
+		onSetBreakoutPeerId,
+		consumerValue,
+		peersArr
 	} = props;
 
 	const audioEnabled = (
@@ -31,8 +33,27 @@ const Peer = (props) =>
 		!videoConsumer.locallyPaused &&
 		!videoConsumer.remotelyPaused
 	);
-
+	
+	if(consumerValue){
+		//console.log('ClassName',peer.id);
+		console.log('consumerValue Id',consumerValue);
+		console.log('consumerValue peerId',peersArr);
+		
+		
+	   var peersNew  = peersArr.find(item =>
+		{
+			return item.consumers.find(item =>  (item=consumerValue.id));			
+		}			
+		); 
+		console.log('consumerValue peersArr New',peersNew);
+		let ClassName = "icon expand "+peersNew.id;
+		console.log('consumerValue peersArr New',peersNew);
+		roomClient.windowMaxMin(ClassName,peersNew.id);
+	}
+	
 	return (
+		
+		//console.log(this.props.peersArr);
 		<div data-component='Peer'>
 			<div className='indicators'>
 				<If condition={!audioEnabled}>
@@ -126,13 +147,19 @@ const mapStateToProps = (state, { id }) =>
 		consumersArray.find((consumer) => consumer.track.kind === 'audio');
 	const videoConsumer =
 		consumersArray.find((consumer) => consumer.track.kind === 'video');
-	console.log("audioConsumer",audioConsumer);
+	//console.log("consumersArray",state.consumers);
+	const consumersNewArray = Object.values(state.consumers);
+	const consumerValue = consumersNewArray.find(consumers => consumers.type == 'simulcast');
+	
+	
 	return {
 		peer,
 		audioConsumer,
 		videoConsumer,
 		audioMuted    : me.audioMuted,
-		faceDetection : state.room.faceDetection
+		faceDetection : state.room.faceDetection,
+		consumerValue:consumerValue,
+		peersArr : Object.values(state.peers)
 	};
 };
 
