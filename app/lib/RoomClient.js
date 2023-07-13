@@ -2015,7 +2015,6 @@ export default class RoomClient {
 			document.getElementById('chatDiv').style.display='block';
 			const msgerInput = this.get(".msger-input");
 			for (const chats of chatMap) {
-				console.log('chats.text',chats.text);
 			this.appendMessage(chats.name, chats.chatTime, "left", decodeURI(chats.text));
 			}
 		}

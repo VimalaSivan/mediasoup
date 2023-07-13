@@ -24,6 +24,7 @@ class Me extends React.Component
 		let BROADCASTER_ID;
 
 		if(this.broadcast_flag == 0){ 
+
 				try { 
 					   let currentRoomid = location.href.split("&")[1].split("=")[1];
 						console.log("Room Id :: ",currentRoomid);

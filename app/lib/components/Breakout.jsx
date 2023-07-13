@@ -841,8 +841,8 @@ class Breakout extends React.Component {
 						})}
 
 
-						<br></br>
-						{/* <If condition={this.state.removeHideShow}>
+						{/* <br></br>
+						<If condition={this.state.removeHideShow}>
 
 							<button 
 							onClick={(e) => {
