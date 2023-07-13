@@ -2029,19 +2029,113 @@ export default class RoomClient {
 		
 		let divIds = 'div_register_'+peerId;
 		let newDivsIds = 'newDivs_'+peerId;
+
 		if(className == newAdd){
 			let minimum = "icon minimum"+' '+peerId;
+			let expands = "icon expand"+' '+peerId;
 			document.getElementById(newDivsIds).setAttribute("class",minimum);
+			// Get the source div
+			const sourceDiv = document.getElementById(divIds);
+			// Get the target div
+			const targetDiv = document.getElementById('fullDiv');
+
+			// Getting existing peer from fullDiv and put back to contentDiv
+			// Get all div elements inside the fullDiv div using the class name
+			const isPeerAvail = targetDiv.querySelector('.peer-container');
+
+			if(isPeerAvail !== null){
+				let id = targetDiv.querySelector('.peer-container').id;
+				const sourceDiv1 = document.getElementById(id);
+				const contDiv = document.getElementById("contentDiv");
+				//document.getElementById(sourceDiv1).setAttribute("class",expands);
+				// sourceDiv1.classList.add(expands);
+				// Remove specific style attribute
+				sourceDiv1.style.removeProperty('top');
+				sourceDiv1.style.removeProperty('position');
+				sourceDiv1.style.removeProperty('left');
+				sourceDiv1.style.removeProperty('background-color');
+				
+				contDiv.appendChild(sourceDiv1);
+			}
+
+			// append new peer into fullDiv
+			targetDiv.appendChild(sourceDiv);
+		
+		   document.getElementById(divIds).style.top='0';
+		   document.getElementById(divIds).style.position='fixed';
+		   document.getElementById(divIds).style.left='0';
 		   document.getElementById(divIds).style.width='100%';
 		   document.getElementById(divIds).style.height='100%';
+		   document.getElementById(divIds).style.backgroundColor='#f1f1f1';
+
+		   document.getElementById('fullDiv').style.top='0';
+		   document.getElementById('fullDiv').style.position='fixed';
+		   document.getElementById('fullDiv').style.left='0';
+		   document.getElementById('fullDiv').style.width='100%';
+		   document.getElementById('fullDiv').style.height='100%';
+		   document.getElementById('fullDiv').style.backgroundColor='#f1f1f1';
+
+		   document.getElementById("contentDiv").style.position='absolute';
+		   document.getElementById("contentDiv").style.top='0';
+		   document.getElementById("contentDiv").style.right='0';
+		   document.getElementById("contentDiv").style.width='300px';
+		   document.getElementById("contentDiv").style.height='100%';
+		   document.getElementById("contentDiv").style.backgroundColor='#ccc'; 
+		   document.getElementById("contentDiv").style.overflowY='auto';
+		   document.getElementById("contentDiv").style.overflowX='hidden';
+
+
+		   const parentDiv = document.getElementById('contentDiv');
+		   // Get all div elements inside the parent div using the class name
+		   const divs = parentDiv.querySelectorAll('.peer-container');
+		   // Apply styles to each div element
+		   divs.forEach(div => {
+			 div.style.width = '280px';
+			 div.style.height = '250px';
+		   });
+
+
 		}
 		else{
 			let expands = "icon expand"+' '+peerId;
+
+			// Getting existing peer from fullDiv and put back to contentDiv
+			// Get all div elements inside the fullDiv div using the class name
+			const fulllDiv = document.getElementById('fullDiv');
+			const isPeerAvail = fulllDiv.querySelector('.peer-container');
+
+			if(isPeerAvail !== null){
+				let id = fulllDiv.querySelector('.peer-container').id;
+				const sourceDiv1 = document.getElementById(id);
+				const contDiv = document.getElementById("contentDiv");
+				// Remove specific style attribute
+				sourceDiv1.style.removeProperty('top');
+				sourceDiv1.style.removeProperty('position');
+				sourceDiv1.style.removeProperty('left');
+				sourceDiv1.style.removeProperty('background-color');
+				//document.getElementById(sourceDiv1).setAttribute("class",expands);
+				contDiv.appendChild(sourceDiv1);
+			}
+
+			const parentDiv = document.getElementById('contentDiv');
+			// Get all div elements inside the parent div using the class name
+			const divs = parentDiv.querySelectorAll('.peer-container');
+			// Apply styles to each div element
+			divs.forEach(div => {
+			  div.style.width = '450px';
+			  div.style.height = '382px';
+			});
+
+			parentDiv.style = '';
+			fulllDiv.style = '';
 			
-			document.getElementById(newDivsIds).setAttribute("class",expands);
-		    document.getElementById(divIds).style.width='450px';
-			document.getElementById(divIds).style.height='382px';
-			console.log('divIds width',document.getElementById(divIds).style.width);
+			fulllDiv.innerHTML = '';
+			
+			
+			// document.getElementById(newDivsIds).setAttribute("class",expands);
+		    // document.getElementById(divIds).style.width='450px';
+			// document.getElementById(divIds).style.height='382px';
+			// console.log('divIds width',document.getElementById(divIds).style.width);
 		}
 
 	}

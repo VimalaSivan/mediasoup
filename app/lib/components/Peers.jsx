@@ -9,25 +9,31 @@ import Peer from './Peer';
 const Peers = ({ peers, activeSpeakerId }) =>
 {
 	return (
-		<div data-component='Peers'>
+		<div>
+		<div id="fullDiv"> </div>
+		<div id="contentDiv" data-component='Peers'>
+			{/* <div id="rootDiv"> */}
 		
 			{
 				peers.map((peer) =>
 				{
 					return (
 						<Appear key={peer.id} duration={1000}>
-							<div  id={`div_register_${peer.id}`}
-								className={classnames('peer-container', {
-									'active-speaker' : peer.id === activeSpeakerId
-								})}
-							>
-								<Peer id={peer.id} />
-							</div>
+						
+								<div  id={`div_register_${peer.id}`}
+									className={classnames('peer-container', {
+										'active-speaker' : peer.id === activeSpeakerId
+									})}
+								>
+									<Peer id={peer.id} />
+								</div>
+							
 						</Appear>
 					);
 				})
 			}
-		</div>
+			{/* </div> */}
+	   </div></div>
 	);
 };
 

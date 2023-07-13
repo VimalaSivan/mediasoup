@@ -51,7 +51,6 @@ class Room extends React.Component {
 		console.log('roomClient._roomName',roomClient._roomName)
 		return (
 			<Appear duration={300}>
-				<table><tr><td>
 				<div data-component='Room'>
 					<Notifications />
 
@@ -88,9 +87,9 @@ class Room extends React.Component {
 							</a>
 						</div>
 					</div>
-
+					
 					<Peers />
-
+					
 					<div
 						className={classnames('me-container', {
 							'active-speaker': amActiveSpeaker
@@ -142,12 +141,12 @@ class Room extends React.Component {
 
 
 					{/* <If condition={room.isOpenbreak}> */}
-					{/* <Breakout 
+					<Breakout 
 						onAddRoom={(displayName) =>
 							{
 								roomClient.addRoom(displayName);
 							}}
-					/> */}
+					/>
 					{/* </If> */}
 
 					<If condition={window.NETWORK_THROTTLE_SECRET}>
@@ -164,17 +163,6 @@ class Room extends React.Component {
 						delayUpdate={50}
 					/>
 				</div>
-				</td>
-				<td>
-				<Breakout 
-						onAddRoom={(displayName) =>
-							{
-								roomClient.addRoom(displayName);
-							}}
-					/>
-				</td>
-				</tr>
-				</table>
 			</Appear>
 		);
 	}
