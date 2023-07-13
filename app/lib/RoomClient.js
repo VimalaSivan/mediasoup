@@ -2015,7 +2015,8 @@ export default class RoomClient {
 			document.getElementById('chatDiv').style.display='block';
 			const msgerInput = this.get(".msger-input");
 			for (const chats of chatMap) {
-			this.appendMessage(chats.name, chats.chatTime, "left", chats.text);
+				console.log('chats.text',chats.text);
+			this.appendMessage(chats.name, chats.chatTime, "left", decodeURI(chats.text));
 			}
 		}
 		
@@ -2029,7 +2030,8 @@ export default class RoomClient {
 		
 		let divIds = 'div_register_'+peerId;
 		let newDivsIds = 'newDivs_'+peerId;
-
+		let iconDivsIds = 'iconDivs_'+peerId;
+		let DisplayNameIds = 'peerNames_'+peerId;
 		if(className == newAdd){
 			let minimum = "icon minimum"+' '+peerId;
 			let expands = "icon expand"+' '+peerId;
@@ -2048,6 +2050,8 @@ export default class RoomClient {
 				const sourceDiv1 = document.getElementById(id);
 				const contDiv = document.getElementById("contentDiv");
 				//document.getElementById(sourceDiv1).setAttribute("class",expands);
+				document.getElementById(newDivsIds).setAttribute("class",expands);
+				
 				// sourceDiv1.classList.add(expands);
 				// Remove specific style attribute
 				sourceDiv1.style.removeProperty('top');
@@ -2084,7 +2088,8 @@ export default class RoomClient {
 		   document.getElementById("contentDiv").style.overflowY='auto';
 		   document.getElementById("contentDiv").style.overflowX='hidden';
 
-
+		   document.getElementById(iconDivsIds).style.marginLeft = '27%';
+		   document.getElementById(DisplayNameIds).style.marginLeft = '25%';
 		   const parentDiv = document.getElementById('contentDiv');
 		   // Get all div elements inside the parent div using the class name
 		   const divs = parentDiv.querySelectorAll('.peer-container');
@@ -2113,6 +2118,8 @@ export default class RoomClient {
 				sourceDiv1.style.removeProperty('position');
 				sourceDiv1.style.removeProperty('left');
 				sourceDiv1.style.removeProperty('background-color');
+				document.getElementById(newDivsIds).setAttribute("class",expands);
+				document.getElementById(iconDivsIds).style.marginLeft = '30%';
 				//document.getElementById(sourceDiv1).setAttribute("class",expands);
 				contDiv.appendChild(sourceDiv1);
 			}

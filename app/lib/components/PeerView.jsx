@@ -119,7 +119,7 @@ export default class PeerView extends React.Component
 		return (
 			<div data-component='PeerView'>
 				<div className='info'>
-					<div className='icons'>
+					<div className='icons' id={`iconDivs_${peer.id}`}>
 						<div
 							className={classnames('icon', 'info', { on: showInfo })}
 							onClick={() => this.setState({ showInfo: !showInfo })}
@@ -429,7 +429,7 @@ export default class PeerView extends React.Component
 						</If>
 					</div>
 
-					<div className={classnames('peer', { 'is-me': isMe })}>
+					<div className={classnames('peer', { 'is-me': isMe })} id={`peerNames_${peer.id}`}>
 						<Choose>
 							<When condition={isMe}>
 								<EditableInput
@@ -449,6 +449,7 @@ export default class PeerView extends React.Component
 							</When>
 
 							<Otherwise>
+							
 							<EditableInput
 									value={peer.displayName}
 									propName='displayName'
@@ -466,7 +467,7 @@ export default class PeerView extends React.Component
 							</Otherwise>
 						</Choose>
 
-						<div className='row'>
+						<div className='row' id={`peerNames_${peer.id}`}>
 							<span
 								className={classnames('device-icon', peer.device.flag)}
 							/>
