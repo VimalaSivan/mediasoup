@@ -2034,7 +2034,7 @@ export default class RoomClient {
 		if(className == newAdd){
 			let minimum = "icon minimum"+' '+peerId;
 			let expands = "icon expand"+' '+peerId;
-			document.getElementById(newDivsIds).setAttribute("class",minimum);
+			//document.getElementById(newDivsIds).setAttribute("class",minimum);
 			// Get the source div
 			const sourceDiv = document.getElementById(divIds);
 			// Get the target div
@@ -2049,7 +2049,7 @@ export default class RoomClient {
 				const sourceDiv1 = document.getElementById(id);
 				const contDiv = document.getElementById("contentDiv");
 				//document.getElementById(sourceDiv1).setAttribute("class",expands);
-				document.getElementById(newDivsIds).setAttribute("class",minimum);
+				//document.getElementById(newDivsIds).setAttribute("class",minimum);
 				
 				// sourceDiv1.classList.add(expands);
 				// Remove specific style attribute
@@ -2067,13 +2067,19 @@ export default class RoomClient {
 			document.getElementById("stateDiv").style.top ='0px';
 			document.getElementById("stateDiv").style.left ='110px';
 		
+			let newSingleId = divIds.split("_").pop();
 		   document.getElementById(divIds).style.top='0';
 		   document.getElementById(divIds).style.position='fixed';
 		   document.getElementById(divIds).style.left='0';
 		   document.getElementById(divIds).style.width='100%';
 		   document.getElementById(divIds).style.height='100%';
 		   document.getElementById(divIds).style.backgroundColor='#f1f1f1';
-
+		   let SingleBigId = 'newDivs_'+newSingleId;
+		   let minimumSingleBigId = "icon minimum"+' '+newSingleId;
+		   document.getElementById(SingleBigId).setAttribute("class",minimumSingleBigId);
+		   let DisplayNameIdsSingle = 'peerNames_'+newSingleId;
+		   document.getElementById(DisplayNameIdsSingle).style.marginLeft = '25%';
+		   
 		   document.getElementById('fullDiv').style.top='0';
 		   document.getElementById('fullDiv').style.position='fixed';
 		   document.getElementById('fullDiv').style.left='0';
@@ -2097,6 +2103,10 @@ export default class RoomClient {
 		   const divs = parentDiv.querySelectorAll('.peer-container');
 		   // Apply styles to each div element
 		   divs.forEach(div => {
+			let newOtherId = div.id.split("_").pop();
+			let OtherSmallId = 'newDivs_'+newOtherId;
+		    let maxOtherSmallId = "icon expand"+' '+newOtherId;
+		   document.getElementById(OtherSmallId).setAttribute("class",maxOtherSmallId);
 			 div.style.width = '280px';
 			 div.style.height = '250px';
 		   });
@@ -2121,7 +2131,7 @@ export default class RoomClient {
 				sourceDiv1.style.removeProperty('position');
 				sourceDiv1.style.removeProperty('left');
 				sourceDiv1.style.removeProperty('background-color');
-				document.getElementById(newDivsIds).setAttribute("class",expands);
+				//document.getElementById(newDivsIds).setAttribute("class",expands);
 				// document.getElementById(iconDivsIds).style.marginLeft = '30%';
 				//document.getElementById(sourceDiv1).setAttribute("class",expands);
 				contDiv.appendChild(sourceDiv1);
@@ -2132,6 +2142,11 @@ export default class RoomClient {
 			const divs = parentDiv.querySelectorAll('.peer-container');
 			// Apply styles to each div element
 			divs.forEach(div => {
+				let newOtherId = div.id.split("_").pop();
+				let OtherSmallId = 'newDivs_'+newOtherId;
+				let maxOtherSmallId = "icon expand"+' '+newOtherId;
+			
+			  document.getElementById(OtherSmallId).setAttribute("class",maxOtherSmallId);
 			  div.style.width = '450px';
 			  div.style.height = '382px';
 			});
