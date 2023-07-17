@@ -459,7 +459,7 @@ class Breakout extends React.Component {
 
 		try {
 			const currentRoomid = location.href.split("&")[1].split("=")[1];
-			 const res =  fetch('https://192.168.1.36:4443/rooms/'+currentRoomid+'/addroom',{
+			 const res =  fetch('https://192.168.1.6:4443/rooms/'+currentRoomid+'/addroom',{
 					 mode: 'no-cors',
 					 method: "get",
 					 headers: {

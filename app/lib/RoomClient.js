@@ -1931,7 +1931,7 @@ export default class RoomClient {
 		 console.log("Room Id :: ",currentRoomid);
 		 const chatTime = await this.formatDate(new Date());
 		 
-		 const res = await fetch('https://192.168.1.36:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
+		 const res = await fetch('https://192.168.1.6:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
 				 mode: 'no-cors',
 				 method: "get",
 				 headers: {
@@ -2076,9 +2076,13 @@ export default class RoomClient {
 		   document.getElementById(divIds).style.backgroundColor='#f1f1f1';
 		   let SingleBigId = 'newDivs_'+newSingleId;
 		   let minimumSingleBigId = "icon minimum"+' '+newSingleId;
+		   var li = document.getElementById(SingleBigId);
+		   if(li.className.includes('expand')){
+			let DisplayNameIdsSingle = 'peerNames_'+newSingleId;
+			document.getElementById(DisplayNameIdsSingle).style.marginLeft = '25%';
+		   }
 		   document.getElementById(SingleBigId).setAttribute("class",minimumSingleBigId);
-		   let DisplayNameIdsSingle = 'peerNames_'+newSingleId;
-		   document.getElementById(DisplayNameIdsSingle).style.marginLeft = '25%';
+		   
 		   
 		   document.getElementById('fullDiv').style.top='0';
 		   document.getElementById('fullDiv').style.position='fixed';
@@ -2096,8 +2100,7 @@ export default class RoomClient {
 		   document.getElementById("contentDiv").style.overflowY='auto';
 		   document.getElementById("contentDiv").style.overflowX='hidden';
 
-		//    document.getElementById(iconDivsIds).style.marginLeft = '27%';
-		//    document.getElementById(DisplayNameIds).style.marginLeft = '25%';
+	
 		   const parentDiv = document.getElementById('contentDiv');
 		   // Get all div elements inside the parent div using the class name
 		   const divs = parentDiv.querySelectorAll('.peer-container');
@@ -2106,7 +2109,9 @@ export default class RoomClient {
 			let newOtherId = div.id.split("_").pop();
 			let OtherSmallId = 'newDivs_'+newOtherId;
 		    let maxOtherSmallId = "icon expand"+' '+newOtherId;
-		   document.getElementById(OtherSmallId).setAttribute("class",maxOtherSmallId);
+			let DisplayNameIdsSingle = 'peerNames_'+newOtherId;
+			document.getElementById(DisplayNameIdsSingle).style.marginLeft = '0px';
+		   	document.getElementById(OtherSmallId).setAttribute("class",maxOtherSmallId);
 			 div.style.width = '280px';
 			 div.style.height = '250px';
 		   });
@@ -2131,9 +2136,6 @@ export default class RoomClient {
 				sourceDiv1.style.removeProperty('position');
 				sourceDiv1.style.removeProperty('left');
 				sourceDiv1.style.removeProperty('background-color');
-				//document.getElementById(newDivsIds).setAttribute("class",expands);
-				// document.getElementById(iconDivsIds).style.marginLeft = '30%';
-				//document.getElementById(sourceDiv1).setAttribute("class",expands);
 				contDiv.appendChild(sourceDiv1);
 			}
 
@@ -2145,10 +2147,11 @@ export default class RoomClient {
 				let newOtherId = div.id.split("_").pop();
 				let OtherSmallId = 'newDivs_'+newOtherId;
 				let maxOtherSmallId = "icon expand"+' '+newOtherId;
-			
-			  document.getElementById(OtherSmallId).setAttribute("class",maxOtherSmallId);
-			  div.style.width = '450px';
-			  div.style.height = '382px';
+				let DisplayNameIdsSingle = 'peerNames_'+newOtherId;
+				document.getElementById(DisplayNameIdsSingle).style.marginLeft = '0px';
+			    document.getElementById(OtherSmallId).setAttribute("class",maxOtherSmallId);
+			    div.style.width = '280px';
+			    div.style.height = '250px';
 			});
 
 			parentDiv.style = '';
@@ -2157,10 +2160,6 @@ export default class RoomClient {
 			fulllDiv.innerHTML = '';
 			
 			
-			// document.getElementById(newDivsIds).setAttribute("class",expands);
-		    // document.getElementById(divIds).style.width='450px';
-			// document.getElementById(divIds).style.height='382px';
-			// console.log('divIds width',document.getElementById(divIds).style.width);
 		}
 
 	}
