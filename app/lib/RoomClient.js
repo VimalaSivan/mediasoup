@@ -290,19 +290,15 @@ export default class RoomClient {
 		store.dispatch(
 			stateActions.setRoomState('closed'));
 			
-
-		
 	}
+	
+
 	closePeer() {
-		
-
 		logger.debug('closePeer()');
-
 		// Close protoo Peer
 		this._protoo.close();
-
-		
 	}
+
 	async join() {
 		console.log('roomId vimala',this.breakoutRooms);
 		console.log(this._protooUrl,"this._protooUrl");
@@ -2198,132 +2194,13 @@ export default class RoomClient {
 		}
 	}
 
-
-
-
 	async _addRoom() {
-		// logger.debug('addRoom() method...');
-		// const assId = this.roomId;
-		
-		// // Store in cookie.
-		// //cookiesManager.setUser({ displayName });
-
-		// try {
-        // console.log('Current URL ----> :: ',this._protooUrl);
-		// console.log('Room Id   ----> :: ',this.roomId);
-		// console.log('Room Name ----> :: ',this._roomName);
-
-		// const roomId = this.roomId;
-		// const roomName = this._roomName;
-		// const consumerReplicas = "";
-		// const peerId = 0;
-
-		// let br_name = document.getElementById('brId').value;
-		// document.getElementById('brId').value = '';
-
-		// this._protoo.request('addRoom', { parentId, br_name });
-
-		// }
-		// catch (error) {
-		// 	logger.error('Add room() | failed: %o', error);
-
-		// 	store.dispatch(requestActions.notify(
-		// 		{
-		// 			type: 'error',
-		// 			text: `Could not add room: ${error}`
-		// 		}));
-
-		// 	// We need to refresh the component for it to render the previous
-		// 	// displayName again.
-		// 	store.dispatch(
-		// 		stateActions.setDisplayName());
-		// }
-
-		
 		const protooTransport = new protooClient.WebSocketTransport(this._protooUrl);
 		this._protoo = new protooClient.Peer(protooTransport);
 		this._protoo.on('open',"");
 	}
 
-
-	// async _addChildRoom()
-	// {
-	// 	logger.debug('addRoom() method...');
-	// 	const assId = this.roomId;
-		
-	// 	try {
-    //     console.log('Current URL ----> :: ',this._protooUrl);
-	// 	console.log('Room Id   ----> :: ',this.roomId);
-	// 	console.log('Room Name ----> :: ',this._roomName);
-
-	// 	const roomId = this.roomId;
-	// 	const roomName = this._roomName;
-	// 	const consumerReplicas = "";
-	// 	const peerId = 0;
-
-	// 	let br_name = document.getElementById('brId').value;
-	// 	document.getElementById('brId').value = '';
-
-	// 	this._protoo.request('addRoom', { parentId, br_name });
-
-	// 	}
-	// 	catch (error) {
-	// 		logger.error('Add room() | failed: %o', error);
-
-	// 		store.dispatch(requestActions.notify(
-	// 			{
-	// 				type: 'error',
-	// 				text: `Could not add room: ${error}`
-	// 			}));
-
-	// 		// We need to refresh the component for it to render the previous
-	// 		// displayName again.
-	// 		store.dispatch(
-	// 			stateActions.setDisplayName());
-	// 	}
-	// }
-
-
-	async addbreakRooms(breakRooms) {
-		logger.info('addbreakRooms() [breakRooms:"%s"]', breakRooms);
-
-		try {
-			await this._protoo.request('addbreakRooms', breakRooms);
-			//console.log('_protooUrl', this._protooUrl);
-			//this._breakoutRooms.set(breakRooms.id,breakRooms);
-			//this._breakoutRooms.push({breakRooms });
-			// Store in cookie.
-			//cookiesManager.setBreakouts({...breakRooms});
-			console.log('_breakoutRooms', this._displayName);
-			console.log('_breakoutRooms', this._breakoutRooms);
-			store.dispatch(
-				stateActions.addRoom({ ...breakRooms }));
-
-			store.dispatch(
-					stateActions.setRoomState('connected'));
-
-			store.dispatch(requestActions.notify(
-				{
-					text: 'Break Room added'
-				}));
-
-			
-		}
-		catch (error) {
-			logger.error('addbreakRooms() | failed: %o', error);
-			store.dispatch(requestActions.notify(
-				{
-					type: 'error',
-					text: `Could not add breakout room: ${error}`
-				}));
-
-			// We need to refresh the component for it to render the previous
-			// displayName again.
-			store.dispatch(
-				stateActions.addRoom());
-
-		}
-	}
+	
 	async getSendTransportRemoteStats() {
 		logger.debug('getSendTransportRemoteStats()');
 
