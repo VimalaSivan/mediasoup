@@ -65,19 +65,11 @@ class Breakout extends React.Component {
 		console.log('roomName', roomName);
 
 		const list = [...this.state.list]
-		//console.log('current peerId', this.props.peerId);
-		//console.log('current Breakout roomId', roomId);
-		//this.props.roomClient.closePeer();
-		//const peerId = this.props.peerId;
-		//const displayName = '';
 		const urlParser = new UrlParse(window.location.href, true);
-		console.log('urlParser', urlParser);
-		//const peerId = randomString({ length: 8 }).toLowerCase();
 		// Get current device info.
 		const device = deviceInfo();
 
 		var newURL = location.href.split("&")[0] + "&roomId=" + roomId;
-
 
 		var currentRoomid = location.href.split("&")[1].split("=")[1];
 		const consumerReplicas = urlParser.query.consumerReplicas;
@@ -106,9 +98,6 @@ class Breakout extends React.Component {
 		list.push({ id: currentRoomid, name: "Main room" });
 		this.setState({ list: list });
 		this.state.mainRoomId = roomId;
-		//this.props.roomClient.breakoutRooms = { id: currentRoomid, name: "Main room" };
-		//console.log("addbreakRooms", this.props.roomClient);
-		//this.props.roomClient.addbreakRooms({ id: currentRoomid, name: "Main room" });
 		
 		window.history.pushState({}, document.title, newURL);
 		console.log('newlist', JSON.stringify(list));
@@ -142,7 +131,6 @@ class Breakout extends React.Component {
 		this.props.roomClient.e2eKey = urlParser.query.e2eKey;
 		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
 		this.props.roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas,parentId });
-		console.log("joinParticipant", this.props.roomClient);
 
 		this.props.roomClient.join();
 	}
@@ -283,11 +271,7 @@ class Breakout extends React.Component {
 		this.props.roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas,parentId });
 		console.log("joinParticipant", this.props.roomClient);
 	
-		 window.CLIENT = this.props.roomClient;
-
-		//  setTimeout(() => {
-		// 	location.reload();
-		//   }, 1000);
+		window.CLIENT = this.props.roomClient;
 		
 		window.location.reload(true);
 		
