@@ -38,7 +38,7 @@ const Peer = (props) =>
 		//console.log('ClassName',peer.id);
 		console.log('consumerValue Id',consumerValue);
 		console.log('consumerValue peerId',peersArr);
-		if(typeof (consumerValue) != "undefined"){
+		if(typeof (consumerValue) !== "undefined"){
 		    if(peersArr.length > 0){
 				var peersNew  = peersArr.find(item =>
 					{

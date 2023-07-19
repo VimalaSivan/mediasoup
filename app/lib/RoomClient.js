@@ -2018,7 +2018,7 @@ export default class RoomClient {
 			
 			document.getElementById('BreakoutDiv').style.display='none';
 			document.getElementById('chatDiv').style.display='block';
-			document.getElementById('msgCnt').innerHTML = "";
+			//document.getElementById('msgCnt').innerHTML = "";
 			for (const chats of chatMap) {
 				//console.log('chats.text',chats.text);
 			this.appendMessage(chats.name, chats.chatTime, "left", decodeURI(chats.text));

@@ -21,12 +21,31 @@ class Me extends React.Component
 	}
 	async getData() {
 		
-		let BROADCASTER_ID;
+		
 
 		if(this.broadcast_flag == 0){ 
+			console.log('this.props.broadcast_id',this.props.broadcast_id);
 
 				try { 
-					   let currentRoomid = location.href.split("&")[1].split("=")[1];
+					if(this.props.broadcast_id != 0){
+						this.deleteBroadcasting(this.props.broadcast_id);
+					}
+					this.addBroadCasting();
+				 } catch (error) {
+						console.log("error----", error)
+				 }
+			}
+		  else{  
+
+		         this.deleteBroadcasting(this.props.broadcast_id);
+
+			 }
+				
+
+		}
+		async addBroadCasting(){
+						let BROADCASTER_ID;
+						let currentRoomid = location.href.split("&")[1].split("=")[1];
 						console.log("Room Id :: ",currentRoomid);
 						this.broadcast_flag  = 1;
 						const res = await fetch('https://192.168.1.6:4443/rooms/'+currentRoomid+'/broadcast',{
@@ -38,19 +57,14 @@ class Me extends React.Component
 		                });
 						console.log("Broadcasting res ::", JSON.stringify(res))
 						BROADCASTER_ID = JSON.stringify(res);
-				 } catch (error) {
-						console.log("error----", error)
-				 }
-			}
-		  else{  
-
-		         BROADCASTER_ID = this.props.broadcast_id;
-				 console.log("BROADCASTER_ID :: ",BROADCASTER_ID);
+		}
+	    async deleteBroadcasting(broadcast_id){
+				 console.log("broadcast_id :: ",broadcast_id);
 				 this.broadcast_flag  = 0;
 				 let currentRoomid = location.href.split("&")[1].split("=")[1];
 				 console.log("Room Id :: ",currentRoomid);
 
-				let qryUrl = 'https://192.168.1.6:4443/rooms/'+currentRoomid+'/deleteBroadcast/'+BROADCASTER_ID;
+				let qryUrl = 'https://192.168.1.6:4443/rooms/'+currentRoomid+'/deleteBroadcast/'+broadcast_id;
 
 				 try { 
 					 const res = await fetch(qryUrl,{
@@ -65,55 +79,7 @@ class Me extends React.Component
 					} catch (error) {
 							console.log("error----", error)
 					}
-
-
-
-				// try { 
-				// 	let currentRoomid = location.href.split("&")[1].split("=")[1];
-				// 	 console.log("Room Id :: ",currentRoomid);
-					//  const res = await fetch('https://192.168.1.35:4443/rooms/'+currentRoomid+'/broadcasters/'+BROADCASTER_ID,{
-					// 		 mode: 'no-cors',
-					// 		 method: "get",
-					// 		 headers: {
-					// 				 "Content-Type": "application/json"
-					// 		 }
-					//  });
-					//  console.log("Response :: ", JSON.stringify(res))
-					// } catch (error) {
-					// 		console.log("error----", error)
-					// }
-
-					// try {
-					// 	// Make the DELETE request using fetch
-					// 	const response = await fetch('https://192.168.1.35:4443/rooms/'+currentRoomid+'/broadcasters/'+BROADCASTER_ID, {
-					// 	  method: 'DELETE',
-					// 	  mode: 'no-cors',
-					// 	  headers: {
-					// 		'Content-Type': 'application/json',
-					// 		// Add any other headers if required
-					// 	  },
-					// 	  // You can include a request body if necessary
-					// 	  // body: JSON.stringify({ key: value }),
-					// 	});
-					
-					// 	// Check the response status
-					// 	if (response.ok) {
-					// 	  // Handle success
-					// 	  console.log('Resource deleted successfully');
-					// 	} else {
-					// 	  // Handle error
-					// 	  console.error('Error deleting resource');
-					// 	}
-					//   } catch (error) {
-					// 	// Handle network or other errors
-					// 	console.error('Error:', error);
-					//   }
-
-			 }
-				
-
-		}
-
+	}
   	 async pauseProducer() {
 			try { 
 				   
