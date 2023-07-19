@@ -290,19 +290,15 @@ export default class RoomClient {
 		store.dispatch(
 			stateActions.setRoomState('closed'));
 			
-
-		
 	}
+	
+
 	closePeer() {
-		
-
 		logger.debug('closePeer()');
-
 		// Close protoo Peer
 		this._protoo.close();
-
-		
 	}
+
 	async join() {
 		console.log('roomId vimala',this.breakoutRooms);
 		console.log(this._protooUrl,"this._protooUrl");
@@ -1843,24 +1839,29 @@ export default class RoomClient {
 
         const msgerChat = await this.get(".msger-chat");
 		let chatTime = await this.formatDate(new Date()); 
-		const msgHTML = `
-		  <div class="msg ${side}-msg">
-			<div class="msg-img"></div>
-	  
-			<div class="msg-bubble">
-			  <div class="msg-info">
-				<div class="msg-info-name">${name}</div>
-				<div class="msg-info-time">${chatTime}</div>
-			  </div>
-	  
-			  <div class="msg-text">${text}</div>
+		try {
+			const msgHTML = `
+			<div class="msg ${side}-msg">
+				<div class="msg-img"></div>
+		
+				<div class="msg-bubble">
+				<div class="msg-info">
+					<div class="msg-info-name">${name}</div>
+					<div class="msg-info-time">${chatTime}</div>
+				</div>
+		
+				<div class="msg-text">${text}</div>
+				</div>
 			</div>
-		  </div>
-		`;
+			`;
 
-	  
-		msgerChat.insertAdjacentHTML("beforeend", msgHTML);
-		msgerChat.scrollTop += 500;
+		
+			msgerChat.insertAdjacentHTML("beforeend", msgHTML);
+			msgerChat.scrollTop += 500;
+		}
+		catch (error) {
+			logger.error('error in appendMessage :%o', error);
+		}
 	  }
 	  
 	  // Utils
@@ -1884,18 +1885,17 @@ export default class RoomClient {
 	async sendChatMessage(text) { 
 		logger.debug('sendChatMessage() [text:"%s]', text);
 		const msgerInput = this.get(".msger-input");
-
-		if (!this._chatDataProducer) {
-			store.dispatch(requestActions.notify(
-				{
-					type: 'error',
-					text: 'No chat DataProducer'
-				}));
-
-			return;
-		}
-
 		try {
+			if (!this._chatDataProducer) {
+				store.dispatch(requestActions.notify(
+					{
+						type: 'error',
+						text: 'No chat DataProducer'
+					}));
+
+				return;
+			}
+
   			if (!text) return;
 
 			const PERSON_NAME = this._displayName;
@@ -1918,11 +1918,16 @@ export default class RoomClient {
 	}
 	async displaychatHistory(DataArr) { 
 		logger.debug('displaychatHistory() [DataArr:"%s]', DataArr);
+		try { 
 		const msgerInput = this.get(".msger-input");
 		msgerInput.value = "";
 		for (const chats of DataArr) {
 		this.appendMessage(chats.name, chats.chatTime, "left", chats.text);
 		}
+	  }
+	   catch (error) {
+		console.log("error in displaychatHistory", error)
+	   }
 		
 	}
 	async saveChatMessage(name,text) { 
@@ -2031,6 +2036,8 @@ export default class RoomClient {
 		let newDivsIds = 'newDivs_'+peerId;
 		let iconDivsIds = 'iconDivs_'+peerId;
 		let DisplayNameIds = 'peerNames_'+peerId;
+
+	try {
 		if(className == newAdd){
 			let minimum = "icon minimum"+' '+peerId;
 			let expands = "icon expand"+' '+peerId;
@@ -2159,8 +2166,11 @@ export default class RoomClient {
 			
 			fulllDiv.innerHTML = '';
 			
-			
 		}
+	  }
+	  catch (error) {
+		logger.error('An error occurred:', error.message);
+	  } 
 
 	}
 	async changeDisplayName(displayName) {
@@ -2198,132 +2208,13 @@ export default class RoomClient {
 		}
 	}
 
-
-
-
 	async _addRoom() {
-		// logger.debug('addRoom() method...');
-		// const assId = this.roomId;
-		
-		// // Store in cookie.
-		// //cookiesManager.setUser({ displayName });
-
-		// try {
-        // console.log('Current URL ----> :: ',this._protooUrl);
-		// console.log('Room Id   ----> :: ',this.roomId);
-		// console.log('Room Name ----> :: ',this._roomName);
-
-		// const roomId = this.roomId;
-		// const roomName = this._roomName;
-		// const consumerReplicas = "";
-		// const peerId = 0;
-
-		// let br_name = document.getElementById('brId').value;
-		// document.getElementById('brId').value = '';
-
-		// this._protoo.request('addRoom', { parentId, br_name });
-
-		// }
-		// catch (error) {
-		// 	logger.error('Add room() | failed: %o', error);
-
-		// 	store.dispatch(requestActions.notify(
-		// 		{
-		// 			type: 'error',
-		// 			text: `Could not add room: ${error}`
-		// 		}));
-
-		// 	// We need to refresh the component for it to render the previous
-		// 	// displayName again.
-		// 	store.dispatch(
-		// 		stateActions.setDisplayName());
-		// }
-
-		
 		const protooTransport = new protooClient.WebSocketTransport(this._protooUrl);
 		this._protoo = new protooClient.Peer(protooTransport);
 		this._protoo.on('open',"");
 	}
 
-
-	// async _addChildRoom()
-	// {
-	// 	logger.debug('addRoom() method...');
-	// 	const assId = this.roomId;
-		
-	// 	try {
-    //     console.log('Current URL ----> :: ',this._protooUrl);
-	// 	console.log('Room Id   ----> :: ',this.roomId);
-	// 	console.log('Room Name ----> :: ',this._roomName);
-
-	// 	const roomId = this.roomId;
-	// 	const roomName = this._roomName;
-	// 	const consumerReplicas = "";
-	// 	const peerId = 0;
-
-	// 	let br_name = document.getElementById('brId').value;
-	// 	document.getElementById('brId').value = '';
-
-	// 	this._protoo.request('addRoom', { parentId, br_name });
-
-	// 	}
-	// 	catch (error) {
-	// 		logger.error('Add room() | failed: %o', error);
-
-	// 		store.dispatch(requestActions.notify(
-	// 			{
-	// 				type: 'error',
-	// 				text: `Could not add room: ${error}`
-	// 			}));
-
-	// 		// We need to refresh the component for it to render the previous
-	// 		// displayName again.
-	// 		store.dispatch(
-	// 			stateActions.setDisplayName());
-	// 	}
-	// }
-
-
-	async addbreakRooms(breakRooms) {
-		logger.info('addbreakRooms() [breakRooms:"%s"]', breakRooms);
-
-		try {
-			await this._protoo.request('addbreakRooms', breakRooms);
-			//console.log('_protooUrl', this._protooUrl);
-			//this._breakoutRooms.set(breakRooms.id,breakRooms);
-			//this._breakoutRooms.push({breakRooms });
-			// Store in cookie.
-			//cookiesManager.setBreakouts({...breakRooms});
-			console.log('_breakoutRooms', this._displayName);
-			console.log('_breakoutRooms', this._breakoutRooms);
-			store.dispatch(
-				stateActions.addRoom({ ...breakRooms }));
-
-			store.dispatch(
-					stateActions.setRoomState('connected'));
-
-			store.dispatch(requestActions.notify(
-				{
-					text: 'Break Room added'
-				}));
-
-			
-		}
-		catch (error) {
-			logger.error('addbreakRooms() | failed: %o', error);
-			store.dispatch(requestActions.notify(
-				{
-					type: 'error',
-					text: `Could not add breakout room: ${error}`
-				}));
-
-			// We need to refresh the component for it to render the previous
-			// displayName again.
-			store.dispatch(
-				stateActions.addRoom());
-
-		}
-	}
+	
 	async getSendTransportRemoteStats() {
 		logger.debug('getSendTransportRemoteStats()');
 
