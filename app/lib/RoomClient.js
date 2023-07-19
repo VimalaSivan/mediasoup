@@ -2086,7 +2086,7 @@ export default class RoomClient {
 		   var li = document.getElementById(SingleBigId);
 		   if(li.className.includes('expand')){
 			let DisplayNameIdsSingle = 'peerNames_'+newSingleId;
-			document.getElementById(DisplayNameIdsSingle).style.marginLeft = '25%';
+			document.getElementById(DisplayNameIdsSingle).style.marginLeft = '50%';
 		   }
 		   document.getElementById(SingleBigId).setAttribute("class",minimumSingleBigId);
 		   
@@ -2102,8 +2102,8 @@ export default class RoomClient {
 		   document.getElementById("contentDiv").style.top='0';
 		   document.getElementById("contentDiv").style.right='0';
 		   document.getElementById("contentDiv").style.width='300px';
-		   document.getElementById("contentDiv").style.height='100%';
-		   document.getElementById("contentDiv").style.backgroundColor='#ccc'; 
+		//    document.getElementById("contentDiv").style.height='100%';
+		//    document.getElementById("contentDiv").style.backgroundColor='#ccc'; 
 		   document.getElementById("contentDiv").style.overflowY='auto';
 		   document.getElementById("contentDiv").style.overflowX='hidden';
 
