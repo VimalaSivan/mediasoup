@@ -136,7 +136,7 @@ export default class PeerView extends React.Component
 						<Choose>
 						<When condition={!isMe}>
 
-						<div  id={`newDivs_${peer.id}`}
+						<div  id={`newDivs_${peer.id}`}  style={{width:"20px"}}
 							className={classnames('icon', 'expand',peer.id)}
 							onClick={(e) => {   onExpandClick(e.target.className,peer.id);}}
 						/></When>

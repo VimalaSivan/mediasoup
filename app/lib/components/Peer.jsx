@@ -162,7 +162,7 @@ const mapStateToProps = (state, { id }) =>
 		consumersArray.find((consumer) => consumer.track.kind === 'audio');
 	const videoConsumer =
 		consumersArray.find((consumer) => consumer.track.kind === 'video');
-	//console.log("consumersArray",state.consumers);
+	console.log("consumersArray ::",state.consumers);
 	const consumersNewArray = Object.values(state.consumers);
 	const consumerValue = consumersNewArray.find(consumers => consumers.type == 'simulcast');
 	console.log("consumerValue",consumerValue);
