@@ -38,17 +38,20 @@ const Peer = (props) =>
 		//console.log('ClassName',peer.id);
 		console.log('consumerValue Id',consumerValue);
 		console.log('consumerValue peerId',peersArr);
-		
-		
-	   var peersNew  = peersArr.find(item =>
-		{
-			return item.consumers.find(item =>  (item=consumerValue.id));			
-		}			
-		); 
-		console.log('consumerValue peersArr New',peersNew);
-		let ClassName = "icon expand "+peersNew.id;
-		console.log('consumerValue peersArr New',peersNew);
-		roomClient.windowMaxMin(ClassName,peersNew.id);
+		if(typeof (consumerValue) != "undefined"){
+		    if(peersArr.length > 0){
+				var peersNew  = peersArr.find(item =>
+					{
+						return item.consumers.find(item =>  (item==consumerValue.id));			
+					}			
+					); 
+					console.log('consumerValue peersArr New',peersNew);
+					let ClassName = "icon expand "+peersNew.id;
+					console.log('consumerValue peersArr New',peersNew);
+					roomClient.windowMaxMin(ClassName,peersNew.id);
+					
+			}
+	    }
 	}
 	
 	return (
@@ -150,7 +153,7 @@ const mapStateToProps = (state, { id }) =>
 	//console.log("consumersArray",state.consumers);
 	const consumersNewArray = Object.values(state.consumers);
 	const consumerValue = consumersNewArray.find(consumers => consumers.type == 'simulcast');
-	
+	console.log("consumerValue",consumerValue);
 	
 	return {
 		peer,

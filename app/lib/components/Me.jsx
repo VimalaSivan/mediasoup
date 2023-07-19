@@ -114,7 +114,7 @@ class Me extends React.Component
 
 		}
 
-	 async pauseProducer() {
+  	 async pauseProducer() {
 			try { 
 				   
 

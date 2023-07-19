@@ -699,8 +699,11 @@ class Breakout extends React.Component {
 				
 			   {nestedArray.map((value, index) => (
 				<If condition={(value.displayName != 'HEADER')}>
-				<div className={(this.state.activeIdList.find(element => element == key))? "list-item-container css-1nxmpxc-container active-div" :" list-item-container css-1nxmpxc-container hide"} 
-				id="participant-item-aacb482d-1a35-482e-93a9-2cf5a35b5fce@meet.jit.si/FYpi0ONSgGFh">
+				<div className={(this.state.activeIdList.find(element => element == key))? "list-item-container css-i7if01-container active-div" :" list-item-container css-i7if01-container"} 
+				id="participant-item-00353cc3">
+				<div><div class="avatar participant-avatar jss40">
+				<text dominant-baseline="central" fill="rgba(255,255,255,1)" font-size="40pt" text-anchor="middle" x="50" y="50">{value.displayName.substring(0, 1)}
+				</text></div></div>
 				<div class="css-1qbw81c-detailsContainer">
 				<div class="css-1dkn5fp-name"><div class="css-14p5y54-nameContainer">
 				<div style={{color: 'white'}} class="css-1lacpev-name">
