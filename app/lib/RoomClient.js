@@ -1839,24 +1839,29 @@ export default class RoomClient {
 
         const msgerChat = await this.get(".msger-chat");
 		let chatTime = await this.formatDate(new Date()); 
-		const msgHTML = `
-		  <div class="msg ${side}-msg">
-			<div class="msg-img"></div>
-	  
-			<div class="msg-bubble">
-			  <div class="msg-info">
-				<div class="msg-info-name">${name}</div>
-				<div class="msg-info-time">${chatTime}</div>
-			  </div>
-	  
-			  <div class="msg-text">${text}</div>
+		try {
+			const msgHTML = `
+			<div class="msg ${side}-msg">
+				<div class="msg-img"></div>
+		
+				<div class="msg-bubble">
+				<div class="msg-info">
+					<div class="msg-info-name">${name}</div>
+					<div class="msg-info-time">${chatTime}</div>
+				</div>
+		
+				<div class="msg-text">${text}</div>
+				</div>
 			</div>
-		  </div>
-		`;
+			`;
 
-	  
-		msgerChat.insertAdjacentHTML("beforeend", msgHTML);
-		msgerChat.scrollTop += 500;
+		
+			msgerChat.insertAdjacentHTML("beforeend", msgHTML);
+			msgerChat.scrollTop += 500;
+		}
+		catch (error) {
+			logger.error('error in appendMessage :%o', error);
+		}
 	  }
 	  
 	  // Utils
@@ -1880,18 +1885,17 @@ export default class RoomClient {
 	async sendChatMessage(text) { 
 		logger.debug('sendChatMessage() [text:"%s]', text);
 		const msgerInput = this.get(".msger-input");
-
-		if (!this._chatDataProducer) {
-			store.dispatch(requestActions.notify(
-				{
-					type: 'error',
-					text: 'No chat DataProducer'
-				}));
-
-			return;
-		}
-
 		try {
+			if (!this._chatDataProducer) {
+				store.dispatch(requestActions.notify(
+					{
+						type: 'error',
+						text: 'No chat DataProducer'
+					}));
+
+				return;
+			}
+
   			if (!text) return;
 
 			const PERSON_NAME = this._displayName;
@@ -1914,11 +1918,16 @@ export default class RoomClient {
 	}
 	async displaychatHistory(DataArr) { 
 		logger.debug('displaychatHistory() [DataArr:"%s]', DataArr);
+		try { 
 		const msgerInput = this.get(".msger-input");
 		msgerInput.value = "";
 		for (const chats of DataArr) {
 		this.appendMessage(chats.name, chats.chatTime, "left", chats.text);
 		}
+	  }
+	   catch (error) {
+		console.log("error in displaychatHistory", error)
+	   }
 		
 	}
 	async saveChatMessage(name,text) { 
@@ -2027,6 +2036,8 @@ export default class RoomClient {
 		let newDivsIds = 'newDivs_'+peerId;
 		let iconDivsIds = 'iconDivs_'+peerId;
 		let DisplayNameIds = 'peerNames_'+peerId;
+
+	try {
 		if(className == newAdd){
 			let minimum = "icon minimum"+' '+peerId;
 			let expands = "icon expand"+' '+peerId;
@@ -2155,8 +2166,11 @@ export default class RoomClient {
 			
 			fulllDiv.innerHTML = '';
 			
-			
 		}
+	  }
+	  catch (error) {
+		logger.error('An error occurred:', error.message);
+	  } 
 
 	}
 	async changeDisplayName(displayName) {
