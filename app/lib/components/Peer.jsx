@@ -53,7 +53,19 @@ const Peer = (props) =>
 			}
 	    }
 	}
-	
+	if(peersArr.length > 0){
+		var peersBroadCast  = peersArr.find(item =>
+			{
+				return (item.displayName=="Broadcaster");			
+			}			
+			); 
+			if(typeof (peersBroadCast) !== "undefined"){
+				console.log('peersBroadCast',peersBroadCast);
+				let ClassNameBroadCast = "icon expand "+peersBroadCast.id;
+				roomClient.windowMaxMin(ClassNameBroadCast,peersBroadCast.id);
+			}
+			
+	}
 	return (
 		
 		//console.log(this.props.peersArr);
