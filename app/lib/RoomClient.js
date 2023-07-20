@@ -419,7 +419,8 @@ export default class RoomClient {
 									preferredTemporalLayer: temporalLayers - 1,
 									priority: 1,
 									codec: consumer.rtpParameters.codecs[0].mimeType.split('/')[1],
-									track: consumer.track
+									track: consumer.track,
+									appData: { ...appData, peerId }
 								},
 								peerId));
 
@@ -1119,7 +1120,11 @@ export default class RoomClient {
 					track,
 					encodings,
 					codecOptions,
-					codec
+					codec,
+					appData:
+					{
+						webcamflag: true
+					}
 				});
 
 			if (this._e2eKey && e2e.isSupported()) {

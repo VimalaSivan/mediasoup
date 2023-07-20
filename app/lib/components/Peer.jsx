@@ -18,7 +18,7 @@ const Peer = (props) =>
 		onExpandClick,
 		onSetStatsPeerId,
 		onSetBreakoutPeerId,
-		consumerValue,
+		consumerValueArr,
 		peersArr
 	} = props;
 
@@ -33,38 +33,63 @@ const Peer = (props) =>
 		!videoConsumer.locallyPaused &&
 		!videoConsumer.remotelyPaused
 	);
-	
-	if(consumerValue){
-		console.log('consumerValue Id',consumerValue);
-		console.log('consumerValue peerId',peersArr);
-		if(typeof (consumerValue) !== "undefined"){
-		    if(peersArr.length > 0){
-				var peersNew  = peersArr.find(item =>
-					{
-						return item.consumers.find(item =>  (item==consumerValue.id));			
-					}			
-					); 
-					console.log('consumerValue peersArr New',peersNew);
-					let ClassName = "icon expand "+peersNew.id;
-					console.log('consumerValue peersArr New',peersNew);
-					roomClient.windowMaxMin(ClassName,peersNew.id);
-					
-			}
-	    }
-	}
-	if(peersArr.length > 0){
-		var peersBroadCast  = peersArr.find(item =>
+	if(consumerValueArr.length > 0){
+		var shareArr  = consumerValueArr.find(item =>
+							{
+								return (item.appData.share);			
+							}			
+							); 
+		var webCamArr  = consumerValueArr.find(item =>
 			{
-				return (item.displayName=="Broadcaster");			
+				return (item.appData.webcamflag);			
 			}			
 			); 
-			if(typeof (peersBroadCast) !== "undefined"){
-				console.log('peersBroadCast',peersBroadCast);
-				let ClassNameBroadCast = "icon expand "+peersBroadCast.id;
-				roomClient.windowMaxMin(ClassNameBroadCast,peersBroadCast.id);
-			}
-			
+		if(typeof (shareArr) !== "undefined"){
+					console.log('shareArr',shareArr);
+					let peersIdShare = shareArr.appData.peerId;
+					let ClassName = "icon expand "+peersIdShare;
+					roomClient.windowMaxMin(ClassName,peersIdShare);
+		}
+		else if(typeof (webCamArr) !== "undefined"){
+					console.log('webCamArr',webCamArr);
+					let peersId = webCamArr.appData.peerId;
+					let ClassName = "icon expand "+peersId;
+					roomClient.windowMaxMin(ClassName,peersId);
+		}
+		
+		
 	}
+	// if(consumerValue){
+	// 	console.log('consumerValue Id',consumerValue);
+	// 	console.log('consumerValue peerId',peersArr);
+	// 	if(typeof (consumerValue) !== "undefined"){
+	// 	    if(peersArr.length > 0){
+	// 			var peersNew  = peersArr.find(item =>
+	// 				{
+	// 					return item.consumers.find(item =>  (item==consumerValue.id));			
+	// 				}			
+	// 				); 
+	// 				console.log('consumerValue peersArr New',peersNew);
+	// 				let ClassName = "icon expand "+peersNew.id;
+	// 				console.log('consumerValue peersArr New',peersNew);
+	// 				roomClient.windowMaxMin(ClassName,peersNew.id);
+					
+	// 		}
+	//     }
+	// }
+	// if(peersArr.length > 0){
+	// 	var peersBroadCast  = peersArr.find(item =>
+	// 		{
+	// 			return (item.displayName=="Broadcaster");			
+	// 		}			
+	// 		); 
+	// 		if(typeof (peersBroadCast) !== "undefined"){
+	// 			console.log('peersBroadCast',peersBroadCast);
+	// 			let ClassNameBroadCast = "icon expand "+peersBroadCast.id;
+	// 			roomClient.windowMaxMin(ClassNameBroadCast,peersBroadCast.id);
+	// 		}
+			
+	// }
 	return (
 		
 		//console.log(this.props.peersArr);
@@ -163,8 +188,8 @@ const mapStateToProps = (state, { id }) =>
 		consumersArray.find((consumer) => consumer.track.kind === 'video');
 	console.log("consumersArray ::",state.consumers);
 	const consumersNewArray = Object.values(state.consumers);
-	const consumerValue = consumersNewArray.find(consumers => consumers.type == 'simulcast');
-	console.log("consumerValue",consumerValue);
+	const consumerValueArr = consumersNewArray.filter(consumers => consumers.type == 'simulcast');
+	console.log("consumerValueArr",consumerValueArr);
 	
 	return {
 		peer,
@@ -172,7 +197,7 @@ const mapStateToProps = (state, { id }) =>
 		videoConsumer,
 		audioMuted    : me.audioMuted,
 		faceDetection : state.room.faceDetection,
-		consumerValue:consumerValue,
+		consumerValueArr:consumerValueArr,
 		peersArr : Object.values(state.peers)
 	};
 };
