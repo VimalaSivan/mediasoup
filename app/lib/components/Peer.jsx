@@ -35,7 +35,6 @@ const Peer = (props) =>
 	);
 	
 	if(consumerValue){
-		//console.log('ClassName',peer.id);
 		console.log('consumerValue Id',consumerValue);
 		console.log('consumerValue peerId',peersArr);
 		if(typeof (consumerValue) !== "undefined"){

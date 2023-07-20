@@ -220,7 +220,7 @@ async function createExpressApp()
 			console.log(" roomId : ",roomId);
 			console.log(" broadcasterId : ",broadcasterId);
 			const { exec } = require("child_process");
-			let cmd = "http --check-status --verify=no DELETE https://192.168.1.36:4443/rooms/"+roomId+"/broadcasters/"+broadcasterId;
+			let cmd = "http --check-status --verify=no DELETE https://192.168.43.239:4443/rooms/"+roomId+"/broadcasters/"+broadcasterId;
 			console.log(" cmd : ",cmd);
 			
 			// exec(cmd, (error, stdout, stderr) => {
@@ -316,7 +316,7 @@ async function createExpressApp()
 
 			exec("../broadcasters/gstreamer.sh", {
 					env: {
-							'SERVER_URL': 'https://192.168.1.36:4443', 
+							'SERVER_URL': 'https://192.168.43.239:4443', 
 							'ROOM_ID': `${room_id}`,
 							'MEDIA_FILE': `${media_file}`,
 							'BROADCASTER_ID': `${BROADCASTER_ID}`
@@ -750,28 +750,26 @@ async function runProtooWebSocketServer()
 					room = await getAllNestedPeers({ room });
 					
 					room.handleProtooConnection({ peerId, protooWebSocketTransport, roleFlag});
-			}
 
-			let curRoomPeers = Array.from(room._protooRoom._peers.values());
-			curPeer = curRoomPeers.filter((peer) => peer._id == peerId);
-			let roomArr = rooms.get(curPeer[0].data.roomId);
-			
-			let chatMapArr =[];
-			for (let keys of roomArr._chatMap.values()) {
-				chatMapArr.push(keys);
+					// Fetch chat history for the current room
+					let curRoomPeers = Array.from(room._protooRoom._peers.values());
+					let curPeer		 = curRoomPeers.filter((peer) => peer._id == peerId);
+					let roomArr 	 = rooms.get(roomId);
+
+					const chatMapArr = Array.from(roomArr._chatMap.values());
+
+					for (const singlePeer of curPeer)
+					{
+						singlePeer.notify(
+								'newChatData',
+								{
+									peerId : peerId,
+									roomId : singlePeer.data.roomId,
+									chatData: chatMapArr
+								})
+								.catch(() => {});
+					}
 			}
-			for (const singlePeer of curPeer)
-			{
-				singlePeer.notify(
-						'newChatData',
-						{
-							peerId           : peerId,
-							roomId : singlePeer.data.roomId,
-							chatData: chatMapArr
-						})
-						.catch(() => {});
-			}
-			console.log("Peers in current room :",curPeer);
 			
 		})
 			.catch((error) =>
