@@ -2033,8 +2033,8 @@ export default class RoomClient {
 		
 	}
 	async hideShowOtherWindows() {
-		const declaration = document.getElementById("contentDiv").style;
-		const value = declaration.getPropertyValue("display"); 
+		const value = document.getElementById("contentDiv").style.display;
+		//const value = declaration.getPropertyValue("display"); 
 		console.log('style display id',value);
 		if(value == 'inline-flex'){
 			document.getElementById("contentDiv").style.display='none';
