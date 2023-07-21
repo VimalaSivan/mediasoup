@@ -1450,6 +1450,8 @@ class Room extends EventEmitter
 				// NOTE: Don't require that the Peer is joined here, so the client can
 				// initiate mediasoup Transports and be ready when he later joins.
 
+				console.log("createWebRtcTransport");
+
 				const {
 					forceTcp,
 					producing,
@@ -1537,6 +1539,7 @@ class Room extends EventEmitter
 
 			case 'connectWebRtcTransport':
 			{
+				console.log("connectWebRtcTransport");
 				const { transportId, dtlsParameters } = request.data;
 				const transport = peer.data.transports.get(transportId);
 
@@ -1567,6 +1570,7 @@ class Room extends EventEmitter
 
 			case 'produce':
 			{
+				console.log("produce");
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
@@ -1574,6 +1578,10 @@ class Room extends EventEmitter
 				const { transportId, kind, rtpParameters } = request.data;
 				let { appData } = request.data;
 				const transport = peer.data.transports.get(transportId);
+
+				console.log("kind ::",kind);
+				console.log("rtpParameters ::",rtpParameters);
+				console.log("appData ::",appData);
 
 				if (!transport)
 					throw new Error(`transport with id "${transportId}" not found`);
@@ -1651,6 +1659,7 @@ class Room extends EventEmitter
 
 			case 'closeProducer':
 			{
+				console.log("closeProducer");
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
@@ -1860,6 +1869,7 @@ class Room extends EventEmitter
 
 			case 'produceData':
 			{
+				console.log("produceData");
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
@@ -2207,6 +2217,7 @@ class Room extends EventEmitter
 	 */
 	async _createConsumer({ consumerPeer, producerPeer, producer })
 	{
+		console.log("_createConsumer");
 		// Optimization:
 		// - Create the server-side Consumer in paused mode.
 		// - Tell its Peer about it and wait for its response.

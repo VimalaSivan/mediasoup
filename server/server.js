@@ -220,7 +220,7 @@ async function createExpressApp()
 			console.log(" roomId : ",roomId);
 			console.log(" broadcasterId : ",broadcasterId);
 			const { exec } = require("child_process");
-			let cmd = "http --check-status --verify=no DELETE https://192.168.43.239:4443/rooms/"+roomId+"/broadcasters/"+broadcasterId;
+			let cmd = "http --check-status --verify=no DELETE https://192.168.1.34:4443/rooms/"+roomId+"/broadcasters/"+broadcasterId;
 			console.log(" cmd : ",cmd);
 			
 			// exec(cmd, (error, stdout, stderr) => {
@@ -316,7 +316,7 @@ async function createExpressApp()
 
 			exec("../broadcasters/gstreamer.sh", {
 					env: {
-							'SERVER_URL': 'https://192.168.43.239:4443', 
+							'SERVER_URL': 'https://192.168.1.34:4443', 
 							'ROOM_ID': `${room_id}`,
 							'MEDIA_FILE': `${media_file}`,
 							'BROADCASTER_ID': `${BROADCASTER_ID}`

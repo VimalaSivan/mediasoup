@@ -92,7 +92,7 @@ class Room extends React.Component {
 					
 					<Peers />
 					
-					<div
+					<div id="meDiv"
 						className={classnames('me-container', {
 							'active-speaker': amActiveSpeaker
 						})}

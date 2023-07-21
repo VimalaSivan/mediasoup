@@ -48,7 +48,7 @@ class Me extends React.Component
 						let currentRoomid = location.href.split("&")[1].split("=")[1];
 						console.log("Room Id :: ",currentRoomid);
 						this.broadcast_flag  = 1;
-						const res = await fetch('https://192.168.43.239:4443/rooms/'+currentRoomid+'/broadcast',{
+						const res = await fetch('https://192.168.1.34:4443/rooms/'+currentRoomid+'/broadcast',{
 								mode: 'no-cors',
 								method: "get",
 								headers: {
@@ -64,7 +64,7 @@ class Me extends React.Component
 				 let currentRoomid = location.href.split("&")[1].split("=")[1];
 				 console.log("Room Id :: ",currentRoomid);
 
-				let qryUrl = 'https://192.168.43.239:4443/rooms/'+currentRoomid+'/deleteBroadcast/'+broadcast_id;
+				let qryUrl = 'https://192.168.1.34:4443/rooms/'+currentRoomid+'/deleteBroadcast/'+broadcast_id;
 
 				 try { 
 					 const res = await fetch(qryUrl,{

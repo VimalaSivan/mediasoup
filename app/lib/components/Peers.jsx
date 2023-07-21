@@ -9,14 +9,30 @@ import Peer from './Peer';
 const Peers = ({ peers, activeSpeakerId }) =>
 {
 
-
+	const slideStyles = {
+		position: 'absolute',
+		top: '10px',
+		right: '10px',
+		cursor: 'pointer',
+		backgroundcolor: '#fff',
+		border: '1px solid #ccc',
+		height: '25px',
+		display: 'flex',
+		justifycontent: 'center',
+		alignitems: 'center',
+		display:'none'
+	  };
 
 
 	return (
 		<div>
 		<div id="fullDiv"> </div>
 		<div id="contentDiv" data-component='Peers'>
-			{/* <div id="rootDiv"> */}
+		
+			<div id="slideDiv" style={slideStyles}>
+				{/* <!-- Your close icon here (e.g., "X" or an actual icon) --> */}
+				<span className='icon-background'></span>
+			</div>
 		
 			{
 				peers.map((peer) =>

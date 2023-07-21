@@ -33,66 +33,39 @@ const Peer = (props) =>
 		!videoConsumer.locallyPaused &&
 		!videoConsumer.remotelyPaused
 	);
-	if(consumerValueArr.length > 0){
-		var shareArr  = consumerValueArr.find(item =>
-							{
-								return (item.appData.share);			
-							}			
-							); 
-		var webCamArr  = consumerValueArr.find(item =>
-			{
-				return (item.appData.webcamflag);			
-			}			
-			); 
-		if(typeof (shareArr) !== "undefined"){
-					console.log('shareArr',shareArr);
-					let peersIdShare = shareArr.appData.peerId;
-					let ClassName = "icon expand "+peersIdShare;
-					roomClient.windowMaxMin(ClassName,peersIdShare);
-		}
-		else if(typeof (webCamArr) !== "undefined"){
-					console.log('webCamArr',webCamArr);
-					let peersId = webCamArr.appData.peerId;
-					let ClassName = "icon expand "+peersId;
-					roomClient.windowMaxMin(ClassName,peersId);
-		}
-		
-		
+
+	let peersBroadCast;
+	let shareArr;
+	let webCamArr;
+
+	if(peersArr.length > 0){
+		peersBroadCast  = peersArr.find(item =>{return (item.displayName=="Broadcaster");}); 
 	}
-	// if(consumerValue){
-	// 	console.log('consumerValue Id',consumerValue);
-	// 	console.log('consumerValue peerId',peersArr);
-	// 	if(typeof (consumerValue) !== "undefined"){
-	// 	    if(peersArr.length > 0){
-	// 			var peersNew  = peersArr.find(item =>
-	// 				{
-	// 					return item.consumers.find(item =>  (item==consumerValue.id));			
-	// 				}			
-	// 				); 
-	// 				console.log('consumerValue peersArr New',peersNew);
-	// 				let ClassName = "icon expand "+peersNew.id;
-	// 				console.log('consumerValue peersArr New',peersNew);
-	// 				roomClient.windowMaxMin(ClassName,peersNew.id);
-					
-	// 		}
-	//     }
-	// }
-	// if(peersArr.length > 0){
-	// 	var peersBroadCast  = peersArr.find(item =>
-	// 		{
-	// 			return (item.displayName=="Broadcaster");			
-	// 		}			
-	// 		); 
-	// 		if(typeof (peersBroadCast) !== "undefined"){
-	// 			console.log('peersBroadCast',peersBroadCast);
-	// 			let ClassNameBroadCast = "icon expand "+peersBroadCast.id;
-	// 			roomClient.windowMaxMin(ClassNameBroadCast,peersBroadCast.id);
-	// 		}
-			
-	// }
+
+	if(consumerValueArr.length > 0){
+		 shareArr   = consumerValueArr.find(item =>{return (item.appData.share);}); 
+		 webCamArr  = consumerValueArr.find(item =>{return (item.appData.webcamflag);}); 
+	}
+
+	if(typeof (shareArr) !== "undefined"){
+		console.log('shareArr',shareArr);
+		let peersIdShare = shareArr.appData.peerId;
+		let ClassName = "icon expand "+peersIdShare;
+		roomClient.windowMaxMin(ClassName,peersIdShare);
+	}
+	else if(typeof (peersBroadCast) !== "undefined"){
+	let ClassNameBroadCast = "icon expand "+peersBroadCast.id;
+	roomClient.windowMaxMin(ClassNameBroadCast,peersBroadCast.id);
+	}
+	// else if(typeof (webCamArr) !== "undefined"){
+	// 	console.log('webCamArr',webCamArr);
+	// 	let peersId = webCamArr.appData.peerId;
+	// 	let ClassName = "icon expand "+peersId;
+	// 	roomClient.windowMaxMin(ClassName,peersId);
+	// }	
+	
+	
 	return (
-		
-		//console.log(this.props.peersArr);
 		<div data-component='Peer'>
 			<div className='indicators'>
 				<If condition={!audioEnabled}>

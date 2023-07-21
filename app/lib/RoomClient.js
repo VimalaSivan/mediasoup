@@ -268,7 +268,7 @@ export default class RoomClient {
 		console.log('breakoutRooms new', breakoutRooms);
 	}
 
-	close() {
+	close() { 
 		
 		if (this._closed)
 			return;
@@ -293,7 +293,7 @@ export default class RoomClient {
 	}
 	
 
-	closePeer() {
+	closePeer() { 
 		logger.debug('closePeer()');
 		// Close protoo Peer
 		this._protoo.close();
@@ -690,7 +690,8 @@ export default class RoomClient {
 					{
 						const { peerId } = notification.data;
 
-					
+						let ClassName = "icon minimum "+peerId;
+						this.windowMaxMin(ClassName,peerId);
 
 						store.dispatch(
 							stateActions.removePeer(peerId));
@@ -1941,7 +1942,7 @@ export default class RoomClient {
 		 console.log("Room Id :: ",currentRoomid);
 		 const chatTime = await this.formatDate(new Date());
 		 
-		 const res = await fetch('https://192.168.43.239:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
+		 const res = await fetch('https://192.168.1.34:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
 				 mode: 'no-cors',
 				 method: "get",
 				 headers: {
@@ -2044,6 +2045,8 @@ export default class RoomClient {
 
 	try {
 		if(className == newAdd){
+			let slideDiv = document.getElementById('slideDiv');
+			slideDiv.style.display = 'flex';
 			let minimum = "icon minimum"+' '+peerId;
 			let expands = "icon expand"+' '+peerId;
 			//document.getElementById(newDivsIds).setAttribute("class",minimum);
@@ -2131,6 +2134,8 @@ export default class RoomClient {
 
 		}
 		else{
+			let slideDiv = document.getElementById('slideDiv');
+			slideDiv.style.display = 'none';
 			let expands = "icon expand"+' '+peerId;
 			document.getElementById("stateDiv").style.top ='0px';
 			document.getElementById("stateDiv").style.left ='0px';
