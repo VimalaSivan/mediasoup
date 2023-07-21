@@ -27,12 +27,9 @@ const Peers = ({ peers, activeSpeakerId }) =>
 	return (
 		<div>
 		<div id="fullDiv"> </div>
-		<div id="contentDiv" data-component='Peers'>
+		<div id="contentDiv" style={{display:"inline-flex" }} data-component='Peers'>
 		
-			<div id="slideDiv" style={slideStyles}>
-				{/* <!-- Your close icon here (e.g., "X" or an actual icon) --> */}
-				<span className='icon-background'></span>
-			</div>
+			
 		
 			{
 				peers.map((peer) =>

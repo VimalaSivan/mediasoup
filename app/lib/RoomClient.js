@@ -2032,6 +2032,22 @@ export default class RoomClient {
 		}
 		
 	}
+	async hideShowOtherWindows() {
+		const declaration = document.getElementById("contentDiv").style;
+		const value = declaration.getPropertyValue("display"); 
+		console.log('style display id',value);
+		if(value == 'inline-flex'){
+			document.getElementById("contentDiv").style.display='none';
+			document.getElementById("meDiv").style.display='none';
+			document.getElementById('BreakoutDiv').style.display='none';
+			document.getElementById('chatDiv').style.display='none';
+		}
+		else{
+			document.getElementById("contentDiv").style.display='inline-flex';
+			document.getElementById("meDiv").style.display='block';
+		}
+		
+	}
 	async windowMaxMin(className,peerId) {
 		
 		let newAdd = "icon expand"+' '+peerId;

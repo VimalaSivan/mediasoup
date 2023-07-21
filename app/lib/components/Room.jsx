@@ -25,7 +25,19 @@ class Room extends React.Component {
 			amActiveSpeaker,
 			onRoomLinkCopy
 		} = this.props;
-
+		const slideStyles = {
+			position: 'absolute',
+			top: '-35px',
+			right: '7px',
+			cursor: 'pointer',
+			backgroundcolor: '#fff',
+			border: '1px solid #ccc',
+			height: '25px',
+			display: 'flex',
+			justifycontent: 'center',
+			alignitems: 'center',
+			display:'none'
+		  };
 
 		if (room.isOpenbreak == undefined) {
 			room.isOpenbreak = false;
@@ -100,9 +112,9 @@ class Room extends React.Component {
 						<Me />
 					</div>
 
-					<div className='chat-input-container'>
+					{/* <div className='chat-input-container'>
 						<ChatInput />
-					</div>
+					</div> */}
 
 					<div className='sidebar'>
 						<div
@@ -137,6 +149,13 @@ class Room extends React.Component {
 							data-tip='Restart ICE'
 							onClick={() => roomClient.restartIce()}
 						/>
+						<div id="slideDiv" style={slideStyles}
+						onClick={() => roomClient.hideShowOtherWindows()}
+						data-tip='Hide/Show'
+						>
+				
+							<span className='icon-background'></span>
+						</div>
 					</div>
 					{/* { room.isOpenState && (<Stats />)} */}
 					{/* {room.isOpenbreak && (<Breakout />)} */}

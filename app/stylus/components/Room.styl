@@ -2,7 +2,11 @@
 	position: relative;
 	height: 100%;
 	width: 100%;
-
+	.icon-background {
+		width: 25px;
+		background-image: url('/resources/images/hide.png');
+		background-size: cover; /* Adjust the background size as needed */
+	}
 	AppearFadeIn(300ms);
 
 	> .state {
@@ -152,7 +156,7 @@
 		+desktop() {
 			height: 250px;
 			width: 280px;
-			bottom: 60px;
+			bottom: 12px;
 			left: 20px;
 			border: 1px solid rgba(#fff, 0.15);
 		}
@@ -160,7 +164,7 @@
 		+mobile() {
 			height: 220px;
 			width: 200px;
-			bottom: 50px;
+			bottom: 10px;
 			left: 10px;
 			border: 1px solid rgba(#fff, 0.25);
 		}
