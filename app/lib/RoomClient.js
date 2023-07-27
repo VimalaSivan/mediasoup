@@ -59,7 +59,6 @@ export default class RoomClient {
 	 */
 	static init(data) {
 		store = data.store;
-		console.log('store data', data);
 	}
 
 	constructor(
@@ -93,7 +92,7 @@ export default class RoomClient {
 			'constructor() in roomclient [roomId:"%s", peerId:"%s", displayName:"%s", device:%s,roomName:%s]',
 			roomId, peerId, displayName, device.flag,roomName);
 
-		console.log("roleFlag : ",roleFlag);
+		
 
 		// Closed flag.
 		// @type {Boolean}
@@ -265,7 +264,7 @@ export default class RoomClient {
 			e2e.setCryptoKey('setCryptoKey', this._e2eKey, true);
 		}
 
-		console.log('breakoutRooms new', breakoutRooms);
+		
 	}
 
 	close() { 
@@ -300,12 +299,9 @@ export default class RoomClient {
 	}
 
 	async join() {
-		console.log('roomId vimala',this.breakoutRooms);
-		console.log(this._protooUrl,"this._protooUrl");
+		
 		const protooTransport = new protooClient.WebSocketTransport(this._protooUrl);
-		console.log(protooTransport,"protooTransport");
 		this._protoo = new protooClient.Peer(protooTransport);
-		console.log('this._protoo',this._protoo);
 		store.dispatch(
 			stateActions.setRoomState('connecting'));
 
@@ -345,7 +341,6 @@ export default class RoomClient {
 		this._protoo.on('close', () => {
 			if (this._closed)
 				return;
-			//localStorage.removeItem("testObject");
 			window.sessionStorage.removeItem("testObject");
 			this.close();
 		});
@@ -355,8 +350,7 @@ export default class RoomClient {
 			logger.debug(
 				'proto "request" event [method:%s, data:%o]',
 				request.method, request.data);
-				console.log('====== proto "request" event [method:%s, data:%o]',
-				request.method, request.data);
+			
 			switch (request.method) {
 				case 'newConsumer':
 					{
@@ -376,7 +370,7 @@ export default class RoomClient {
 							appData,
 							producerPaused
 						} = request.data;
-						console.log('Dharshan Data',request.data);
+						
 						try {
 							const consumer = await this._recvTransport.consume(
 								{
@@ -627,7 +621,7 @@ export default class RoomClient {
 					}
 					case 'addnewRoom':
 					{
-						console.log('addnewRoom');
+					
 						break;
 					}
 			}
@@ -674,7 +668,7 @@ export default class RoomClient {
 						}
 				case 'newaddedRoom':
 					{
-						console.log("notification.data", notification.data);
+						
 						const breakoutRoomData = notification.data.breakoutRoomData;
 						store.dispatch(
 							stateActions.addRoom({ ...breakoutRoomData }));
@@ -704,7 +698,7 @@ export default class RoomClient {
 
 				case 'peerDisplayNameChanged':
 					{
-						console.log("peerDisplayNameChanged data", notification.data);
+						
 						const { peerId, displayName, oldDisplayName } = notification.data;
 
 						store.dispatch(
@@ -1939,17 +1933,16 @@ export default class RoomClient {
 	async saveChatMessage(name,text) { 
 	  try { 
 		 let currentRoomid = location.href.split("&")[1].split("=")[1];
-		 console.log("Room Id :: ",currentRoomid);
 		 const chatTime = await this.formatDate(new Date());
 		 
-		 const res = await fetch('https://192.168.1.34:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
+		 const res = await fetch('https://18.118.5.122:4443/rooms/'+currentRoomid+'/candidate/'+name+'/chat/'+text+'/time/'+chatTime,{
 				 mode: 'no-cors',
 				 method: "get",
 				 headers: {
 						 "Content-Type": "application/json"
 				 }
 		 });
-		 console.log("saveChatMessage res ::", JSON.stringify(res))
+		
 		} catch (error) {
 				console.log("error in saveChatMessage", error)
 		}
@@ -2014,7 +2007,7 @@ export default class RoomClient {
 		
 	}
 	async openChatDiv(chatMap) {
-		//console.log('opned',document.getElementById('chatDiv').style.display)
+		
 		if(document.getElementById('chatDiv').style.display == 'block'){
 			
 			document.getElementById('BreakoutDiv').style.display='none';
@@ -2026,7 +2019,7 @@ export default class RoomClient {
 			document.getElementById('chatDiv').style.display='block';
 			//document.getElementById('msgCnt').innerHTML = "";
 			for (const chats of chatMap) {
-				//console.log('chats.text',chats.text);
+				
 			this.appendMessage(chats.name, chats.chatTime, "left", decodeURI(chats.text));
 			}
 		}
@@ -2034,8 +2027,6 @@ export default class RoomClient {
 	}
 	async hideShowOtherWindows() {
 		const value = document.getElementById("contentDiv").style.display;
-		//const value = declaration.getPropertyValue("display"); 
-		console.log('style display id',value);
 		if(value == 'inline-flex'){
 			document.getElementById("contentDiv").style.display='none';
 			document.getElementById("meDiv").style.display='none';
@@ -2051,8 +2042,6 @@ export default class RoomClient {
 	async windowMaxMin(className,peerId) {
 		
 		let newAdd = "icon expand"+' '+peerId;
-		console.log('changed add',newAdd);
-		console.log('changed className',className);
 		
 		let divIds = 'div_register_'+peerId;
 		let newDivsIds = 'newDivs_'+peerId;
@@ -2422,7 +2411,7 @@ export default class RoomClient {
 		logger.debug('_joinRoom()');
 
 		try {
-			console.log('cookiesManager.getBreakouts()', (cookiesManager.getBreakouts() || {}));
+			
 			this._mediasoupDevice = new mediasoupClient.Device(
 				{
 					handlerName: this._handlerName
@@ -2606,7 +2595,7 @@ export default class RoomClient {
 						.catch(errback);
 				});
 			}
-			console.log("local _breakoutRooms", this.breakoutRooms);
+			
 			// Join now into the room.
 			// NOTE: Don't send our RTP capabilities if we don't want to consume.
 			const { peers } = await this._protoo.request(
@@ -2640,14 +2629,14 @@ export default class RoomClient {
 					text: 'You are in the room!',
 					timeout: 3000
 				}));
-			console.log("local peers", peers);
+			
 			for (const peer of peers) {
 				store.dispatch(
 					stateActions.addPeer(
 						{ ...peer, consumers: [], dataConsumers: [] }));
 			}
 			 var retrievedObject = window.sessionStorage.getItem('testObject');
-			 console.log('retrievedObject: ', JSON.parse(retrievedObject));
+			
 			 if(JSON.parse(retrievedObject)){
 				for (const breaks of JSON.parse(retrievedObject)) {
 					store.dispatch(
@@ -2690,7 +2679,6 @@ export default class RoomClient {
 			// NOTE: For testing.
 			if (window.SHOW_INFO) {
 				const { me } = store.getState();
-				console.log("SHOW_INFO",);
 				store.dispatch(
 					stateActions.setRoomStatsPeerId(me.id));
 			}

@@ -57,7 +57,7 @@ const Peers = ({ peers, activeSpeakerId }) =>
 					);
 				})
 			}
-			{/* </div> */}
+			
 	   </div></div>
 	);
 };
@@ -71,34 +71,15 @@ Peers.propTypes =
 const mapStateToProps = (state) =>
 {
 	const peersArray = Object.values(state.peers);
-	console.log("peers from backend ::",peersArray);
-	console.log(' peersArray state.me.id',state.me.id);
-	console.log(' state ---> ',state);
-	//for (const peersId of peersArray) {
-		//console.log("peersId",peersId.id);
-
 	const currentRoomid = location.href.split("&")[1].split("=")[1];
-	console.log(' currentRoomid ---> ',currentRoomid);
+
 		
 	const filteredData =peersArray.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.roomId == currentRoomid)
-	console.log("peersArray filteredData",filteredData);
+
 	const finalData = filteredData.filter((peersId)=> state.me.id != peersId.id )
 
 
-	// let filteredData =peersArray.filter((peersId)=> peersId.displayName != 'HEADER');
-	// console.log(' filteredData 1 ---> ',filteredData);
-	// let filteredCast =filteredData.filter((peersId)=> peersId.roomId === currentRoomid &&  peersId.displayName === 'Broadcaster');
-	// console.log(' filteredCast 1 ---> ',filteredCast);
-	// let exceptCast = filteredData.filter((peersId)=> peersId.displayName !== 'Broadcaster');
-	// console.log(' exceptCast 1 ---> ',filteredCast);
-    // exceptCast = exceptCast.concat(filteredCast);
-	// console.log("peersArray filteredData",filteredData);
-	// const finalData = exceptCast.filter((peersId)=> state.me.id != peersId.id );
-
-
 	
-	//}
-	console.log("peersArray remove",finalData);
 	return {
 		peers           : finalData,
 		activeSpeakerId : state.room.activeSpeakerId

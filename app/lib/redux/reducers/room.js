@@ -10,7 +10,7 @@ const initialState =
 
 const room = (state = initialState, action) =>
 {
-	console.log('action test',action);
+	
 	switch (action.type)
 	{
 		case 'SET_ROOM_URL':

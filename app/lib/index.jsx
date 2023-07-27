@@ -28,18 +28,7 @@ import Room from './components/Room';
 const logger = new Logger();
 const reduxMiddlewares = [ thunk ];
 
-// if (process.env.NODE_ENV === 'development')
-// {
-// 	const reduxLogger = createReduxLogger(
-// 		{
-// 			duration  : true,
-// 			timestamp : false,
-// 			level     : 'log',
-// 			logErrors : true
-// 		});
 
-// 	reduxMiddlewares.push(reduxLogger);
-// }
 
 let roomClient;
 
@@ -48,7 +37,7 @@ const store = createReduxStore(
 	undefined,
 	applyReduxMiddleware(...reduxMiddlewares)
 );
-console.log('reducers store',store);
+
 window.STORE = store;
 
 RoomClient.init({ store });
@@ -62,7 +51,6 @@ domready(async () =>
 	const regex = new RegExp(`[?&]${parameterName}(=([^&#]*)|&|#|$)`);
 
 	if (regex.test(url)) {
-		console.log('Contains room Id');
 		run(false);
 	}
 	else
@@ -99,9 +87,7 @@ async function run(flag)
 	}
 	else{
     
-	logger.debug('run() [environment:%s]', process.env.NODE_ENV);
 	const urlParser = new UrlParse(window.location.href, true);
-	console.log('urlParse',urlParser);
 	let parentId = urlParser.query.parentId; 
 	let roomId = urlParser.query.roomId;
 	let roomName = "MainRoom"; 
@@ -227,8 +213,7 @@ async function run(flag)
 
 	let roomUrl = roomUrlParser.toString();
 
-	//roomUrl = roomUrl + '&roleFlag='+roleFlag;
-	console.log('roomUrl',roomUrl);
+	
 
     
 	// Get current device info.
@@ -244,7 +229,6 @@ async function run(flag)
 	store.dispatch(
 		stateActions.setMe({ peerId, displayName, displayNameSet, device }));
 
-		console.log(" ParentID :: ",parentId);
 
 	
 
@@ -279,9 +263,6 @@ async function run(flag)
 	window.CLIENT = roomClient;
 	// eslint-disable-next-line require-atomic-updates
 	window.CC = roomClient;
-	console.log("room client :: ",roomClient);
-	
-	console.log("window.CLIENT",window.CLIENT);
 	
 	render(
 		<Provider store={store}>

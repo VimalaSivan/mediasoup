@@ -106,7 +106,7 @@ $ npm run connect
 ```
 $ cd server
 $ docker/build.sh
-$ MEDIASOUP_ANNOUNCED_IP=192.168.1.34 ./docker/run.sh
+$ MEDIASOUP_ANNOUNCED_IP=18.118.5.122 ./docker/run.sh
 ```
 
 ### Considerations for (config.js)[server/config.example.js]

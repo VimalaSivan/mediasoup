@@ -54,11 +54,6 @@ class Room extends EventEmitter
 
 		const bot = await Bot.create({ mediasoupRouter });
 
-		//const breakoutRooms = protooRoom.breakoutRooms;
-		//console.log("breakoutRooms Details",breakoutRooms);
-
-
-
 		return new Room(
 			{
 				roomId,
@@ -213,9 +208,8 @@ class Room extends EventEmitter
 	handleProtooConnection({ peerId, consume, protooWebSocketTransport, roleFlag })
 	{
 
-		logger.info('-------- Inside handleProtooConnection  -------');
+		
 		const existingPeer = this._protooRoom.getPeer(peerId);
-		// logger.info('after peerId    ::  -->', peerId);
 		
 		if (existingPeer)
 		{
@@ -258,7 +252,6 @@ class Room extends EventEmitter
 		peer.data.dataProducers = new Map();
 		peer.data.dataConsumers = new Map();
 		peer.data.breakoutroom = this._breakoutRoomsObj;
-		//peer.data.breakoutroomId = "0";
 		peer.data.roomId = this._roomId;
 		peer.data.parentId = '0';
 
@@ -267,13 +260,6 @@ class Room extends EventEmitter
 			logger.debug(
 				'protoo Peer "request" event [method:%s, peerId:%s]',
 				request.method, peer.id);
-
-			// logger.info('peer inside request handler :: ');
-			// let eventFlag = '0';
-			// if(peer.id === '0'){
-			//   eventFlag = '1';
-			//   peer = randomstring.generate(8);
-			// }
 
 			this._handleProtooRequest(peer, request, accept, reject,protooWebSocketTransport)
 				.catch((error) =>
@@ -287,46 +273,28 @@ class Room extends EventEmitter
 		peer.on('close', () =>
 		{
 
-			console.log("<------ Inside Close -----> ");
-
-			logger.info('peers in close :: ', this._protooRoom.peers);
-
 			if (this._closed){
 				logger.debug('Inside _closed...');
 				return;
 			}
 
-			logger.debug('protoo Peer "close" event [peerId:%s]', peer.id);
-			// console.log("Peer Id :: ", peer.id);
-			// console.log("Peer Obj :: ", this._breakoutRoomsObj);
 
 			let joinedAsspeers = this._getAssJoinedPeers();
-			console.log("Joined peers :: ", joinedAsspeers);
-
-			logger.info('peers in close :: ', this._protooRoom.peers);
 
 			let filteredArray = joinedAsspeers.filter(obj => obj._data.displayName === 'HEADER' || obj._data.displayName === 'INIT');
-			// console.log("filteredArray :: ", filteredArray);
 			let rooms = new Map();
 			rooms = this._rooms;
 
-			// console.log("rooms:: ", rooms);
-			
-
 			for (const joinedPeer of filteredArray)
 				{
-					// console.log("Room Id  :: ", joinedPeer._data.roomId);
 					let room = rooms.get(joinedPeer._data.roomId);
-					// console.log("Room obj  :: ", room);
 					if (typeof room !== "undefined" && room !== "") {
 						let classValuesArray = Array.from(room._protooRoom._peers.values());
 						let ass_peers = classValuesArray.filter((peer) => peer.data.joined);
-						// console.log("ass_peers :: ", ass_peers);
 						joinedAsspeers = joinedAsspeers.concat(ass_peers);
 					}
 				}
 
-			 console.log("Joined peers in close :: ", joinedAsspeers);
 
 			// If the Peer was joined, notify all Peers.
 			if (peer.data.joined)
@@ -385,9 +353,6 @@ class Room extends EventEmitter
 
 		if (this._broadcasters.has(id))
 			throw new Error(`broadcaster with id "${id}" already exists`);
-
-
-		console.log("Broadcast ID in room :: ",id);
 
 		const broadcaster =
 		{
@@ -482,9 +447,6 @@ class Room extends EventEmitter
 	deleteBroadcaster({ broadcasterId })
 	{
 		const broadcaster = this._broadcasters.get(broadcasterId);
-
-		console.log("broadcasterId in deleteBroadcaster :: ",broadcasterId);
-		console.log("broadcaster in deleteBroadcaster :: ",broadcaster);
 
 		if (!broadcaster)
 			throw new Error(`broadcaster with id "${broadcasterId}" does not exist`);
@@ -661,14 +623,7 @@ class Room extends EventEmitter
 		// Store it.
 		broadcaster.data.producers.set(producer.id, producer);
 
-		// Set Producer events.
-		// producer.on('score', (score) =>
-		// {
-		// 	logger.debug(
-		// 		'broadcaster producer "score" event [producerId:%s, score:%o]',
-		// 		producer.id, score);
-		// });
-
+		
 		producer.on('videoorientationchange', (videoOrientation) =>
 		{
 			logger.debug(
@@ -842,8 +797,7 @@ class Room extends EventEmitter
 		if (!broadcaster)
 			throw new Error(`broadcaster with id "${broadcasterId}" does not exist`);
 
-		// if (!broadcaster.data.sctpCapabilities)
-		// 	throw new Error('broadcaster does not have sctpCapabilities');
+		
 
 		const transport = broadcaster.data.transports.get(transportId);
 
@@ -868,16 +822,7 @@ class Room extends EventEmitter
 			broadcaster.data.dataProducers.delete(dataProducer.id);
 		});
 
-		// // Optimization: Create a server-side Consumer for each Peer.
-		// for (const peer of this._getJoinedPeers())
-		// {
-		// 	this._createDataConsumer(
-		// 		{
-		// 			dataConsumerPeer : peer,
-		// 			dataProducerPeer : broadcaster,
-		// 			dataProducer: dataProducer
-		// 		});
-		// }
+	
 
 		return {
 			id : dataProducer.id
@@ -889,10 +834,6 @@ class Room extends EventEmitter
 		this._audioLevelObserver.on('volumes', (volumes) =>
 		{
 			const { producer, volume } = volumes[0];
-
-			// logger.debug(
-			// 	'audioLevelObserver "volumes" event [producerId:%s, volume:%s]',
-			// 	producer.id, volume);
 
 			// Notify all Peers.
 			for (const peer of this._getJoinedPeers())
@@ -909,8 +850,6 @@ class Room extends EventEmitter
 
 		this._audioLevelObserver.on('silence', () =>
 		{
-			// logger.debug('audioLevelObserver "silence" event');
-
 			// Notify all Peers.
 			for (const peer of this._getJoinedPeers())
 			{
@@ -939,74 +878,18 @@ class Room extends EventEmitter
 	async _handleProtooRequest(peer, request, accept, reject,protooWebSocketTransport)
 	{
 
-		console.info('######### Inside _handleProtooRequest #############');
 		switch (request.method)
 		{
 			case 'getRouterRtpCapabilities':
 			{
 				accept(this._mediasoupRouter.rtpCapabilities);
-				console.info('######### Inside getRouterRtpCapabilities #############');
 				break;
 			}
 			case 'join':
 			{
-			// 	if(eventFlag === '1')
-			// 	{
-			// 	console.info('########### Add dummy peer ###############');
-			// 	const {
-			// 		rtpCapabilities,
-			// 		sctpCapabilities,
-			// 	} = request.data;
-
-			// 	let device = {
-			// 		flag    : 'broadcaster',
-			// 		name    : 'Unknown device',
-			// 		version : '0'
-			// 	};
-
-			// 	let peer;
-			// 	let { parentId } = request.data;
-			// 	let displayName = 'BreakOutRoom' + randomstring.generate(8);
-			// 	let roomId  = randomstring.generate(8);
-            //     let peerId ='0';
-			// 	try
-			// 	{
-			// 		peer = this._protooRoom.createPeer(peerId, protooWebSocketTransport);
-			// 		// Not joined after a custom protoo 'join' request is later received.
-			// 		peer.data.breakoutroomName = this._roomName;
-			// 		peer.data.consume = '';
-			// 		peer.data.joined = true;
-			// 		peer.data.displayName = 'HEADER';				
-
-			// 		// Have mediasoup related maps ready even before the Peer joins since we
-			// 		// allow creating Transports before joining.
-			// 		peer.data.transports = new Map();
-			// 		peer.data.producers = new Map();
-			// 		peer.data.consumers = new Map();
-			// 		peer.data.dataProducers = new Map();
-			// 		peer.data.dataConsumers = new Map();
-			// 		peer.data.roomId = this._roomId;
-			// 		peer.data.parentId = '0';
-					
-					
-
-			// 		peer.data.device = device;
-			// 		peer.data.rtpCapabilities = rtpCapabilities;
-			// 		peer.data.sctpCapabilities = sctpCapabilities;
-			// 		this._protooRoom.peers.push(peer);
-			// 	}
-			// 	catch (error)
-			// 	{
-			// 		logger.error('protooRoom.createPeer() failed:%o', error);
-			// 	}
-
-			// }
-           
-				console.info('######### Inside join #############');
 				// Ensure the Peer is not already joined.
 				if (peer.data.joined)
 					throw new Error('Peer already joined');
-				//console.log('My try',request.data);
 				
 				const {
 					displayName,
@@ -1025,137 +908,32 @@ class Room extends EventEmitter
 				peer.data.breakoutroomName = this._roomName;
 				peer.data.roomId = this._roomId;
 				
-				
-				 
-				
-				//console.log('My try',breakoutroom);
-				//console.log('My try',request.data);
-				// Tell the new Peer about already joined Peers.
-				// And also create Consumers for existing Producers.
 				let newDatas = 	{};
-
-				// console.log('this._getJoinedPeers() ===> ',this._getJoinedPeers());
-
 				let joinedPeers =
 				[
 					...this._getJoinedPeers(),
 					...this._broadcasters.values()
 				];
-				//console.log('this._broadcasters.values() --> ',this._broadcasters.values());
-				 //let newDatas = {};
-				//if (typeof breakoutroom.name !== 'undefined') {
-					// if(breakoutroom?.name?.includes('Break')){
-					// 	//let dataarr = JSON.stringify(breakoutroom);
-						
-						
-					// 	let dataarr = JSON.stringify(breakoutroom, null, 2);
-					// 	console.log('dataarr',dataarr);
-					// 	const file = fs.readFileSync('student.json')
-					// 	//fs.writeFileSync('student.json', dataarr);
-					// 	// fs.writeFileSync('student.json', dataarr, (err) => {
-					// 	// 	if (err) throw err;
-					// 	// 	console.log('Data written to file');
-					// 	// });
-					// 	if (file.length == 0) {
-					// 		//add data to json file
-					// 		fs.writeFileSync("student.json", JSON.stringify([breakoutroom]))
-					// 		newDatas = 	{};
-					// 	} else {
-					// 		//append data to jso file
-					// 		const json = JSON.parse(file.toString())
-					// 		//add json element to json object
-					// 		json.push(breakoutroom);
-					// 		fs.writeFileSync("student.json", JSON.stringify(json))
-					// 		newDatas = require('../student.json');
-					// 	}
-						
-						
-						
-					// 	//peer.data.breakoutroom = breakoutroom;
-					// 	//peer.data.breakoutroom.set(breakoutroom.id, breakoutroom);
-					// 	//newDatas = breakoutroom;
-					// 	//this._breakoutRoomsObj.set(breakoutroom.id, breakoutroom);
-					// }
-					// else{
-
-					
-					
-					// 	//newDatas = 	{};
-						
-					// }  
-				// }
-				// else{
-
-					
-					
-				// 	newDatas = 	{};
-					
-				// }  
-				//console.log('peer newDatas',newDatas);
-				// Store the Broadcaster into the map.
-			// Read student.json file.
-				// fs.readFile("student.json", function(err, data) {
-				// 	// Check for the errors.
-				// 	if (err) throw err;
-				
-				// 	// Converting to JSON.
-				// 	const newDatas = JSON.parse(data);   
-				// 	console.log(newDatas); // Print users 
-
-
-				// });
 				let fileDetname = this._roomId;
 				let fileExists = fs.existsSync(fileDetname+'.json')  
 				
 				
 				if(fileExists)
 				{
-					console.log('fileExists',fileExists);
 					const file = fs.readFileSync(fileDetname+'.json')
 				
 					if (file.length == 0) {
 						newDatas = 	{};
 					}else{
 						newDatas = JSON.parse(fs.readFileSync(fileDetname+'.json', 'utf8'));
-						
-						///newDatas = require('../student.json');
-						// peer.data.breakoutroom.set(newDatas.id, newDatas);
 					}
-					}
-
-					
-
-				// _breakoutRoomsObj contains breakout room's peers
-				//   console.info(' JoinedPeers :::',joinedPeers);
-				  //console.info('peer.breakoutroom :::',this._breakoutRoomsObj);
-
-
-				//   let notifyPeers = this._getJoinedPeers({ excludePeer: peer })
-
-
-				//   if (typeof this._breakoutRoomsObj !== "undefined" && Array.isArray(this._breakoutRoomsObj) && this._breakoutRoomsObj.length !== 0){
-				// 	joinedPeers = joinedPeers.concat(this._breakoutRoomsObj);
-				//   }
-
+				}
 				let joinedAssPeers =
 				[
 					...this._getAssJoinedPeers(),
 					...this._broadcasters.values()
 				];
 
-
-				console.info(' joinedAssPeers :::',joinedAssPeers);
-
-				// for (const peer of joinedAssPeers){
-				// 	const existingPeer = this._protooRoom.getPeer(peer._id);
-				// 	console.info('peer checking :::',peer);
-				// 	if (!existingPeer)
-				// 	{
-				// 	  this._protooRoom.peers.push(peer);
-				// 	}
-				//  }
-
-				   //joinedAssPeers.push(peer);
 
 					const peerInfos = joinedAssPeers
 					.filter((joinedPeer) => joinedPeer.id !== "")
@@ -1168,8 +946,6 @@ class Room extends EventEmitter
 						parentId : joinedPeer.data.parentId,
 						roleFlag : joinedPeer.data.roleFlag
 					}));
-
-					console.info('peerInfos :::',peerInfos);
 					
 					accept({ peers: peerInfos });
 
@@ -1212,8 +988,7 @@ class Room extends EventEmitter
 						dataProducerPeer : null,
 						dataProducer     : this._bot.dataProducer
 					});
-					//console.log('peer addres',peer);
-				console.log('joinedAssPeers :: ',joinedAssPeers);
+				
 				// Notify the new Peer to all other Peers.
 				for (const otherPeer of this._getAssJoinedPeers({ excludePeer: peer }))
 				{
@@ -1264,33 +1039,6 @@ class Room extends EventEmitter
 			case 'addRoom':
 			{
 
-				console.info('########### Add Room ###############');
-				// const { exec } = require("child_process");
-
-				// let ROOM_ID = "12345";
-
-				// const command = `http --check-status --verify=no POST https://192.168.1.35:4443/rooms/${ROOM_ID}/addroom > /dev/null`;
-
-				// console.info('command ===> ',command);
-				// exec(command, (error, stdout, stderr) => {
-				// 	if (error) {
-				// 		logger.error(`Error executing the command: ${error}`);
-				// 	  return;
-				// 	}
-
-				// 	logger.info('Command executed successfully',stdout);
-
-			    // });
-				// // Ensure the Peer is joined.
-				// if (!peer.data.joined)
-				// 	throw new Error('Peer not yet joined');
-
-				// const { displayName } = request.data;
-				// const oldDisplayName = peer.data.displayName;
-
-				// // Store the display name into the custom data Object of the protoo
-				// // Peer.
-				// peer.data.displayName = displayName;
 
 				const {
 					rtpCapabilities,
@@ -1303,16 +1051,14 @@ class Room extends EventEmitter
 					version : '0'
 				};
 
-				//logger.info('Peer payload before ::: ', this._protooRoom.peers);
+				
 
 				let peer;
 				let { parentId,br_name } = request.data;
-				//let displayName = 'BreakOutRoom' + randomstring.generate(8);
 				let peerId  = randomstring.generate(8);
 				let roomId  = randomstring.generate(8);
 				let cnt     = 1;
 				let displayName = '';
-				console.info('###########Breakout room name : ',br_name);
 
 				try
 				{
@@ -1322,19 +1068,7 @@ class Room extends EventEmitter
 					peer.data.joined = true;
 					peer.data.displayName = 'HEADER';	
 
-					// let filteredArray = this._protooRoom.peers.filter(obj => obj.data.displayName === 'HEADER');
-					// let largestObject = filteredArray.reduce((acc, curr) => {
-					// 	return (curr.data.serial > acc.data.serial) ? curr : acc;
-					//   }, filteredArray[0]);
-
-					//   console.log("largestObject :: ",largestObject);
-					//   console.log("largestObject no :: ",largestObject.data.serial);
-					//   if (typeof largestObject.data.serial !== "undefined" && largestObject.data.serial !== "") 
-					//   cnt = cnt  + largestObject.data.serial;
-
-					// peer.data.serial = cnt;		
-
-				    // displayName = 'BreakOutRoom# ' + cnt;
+				
 
 					peer.data.breakoutroomName = br_name;	
 
@@ -1359,11 +1093,8 @@ class Room extends EventEmitter
 					logger.error('protooRoom.createPeer() failed:%o', error);
 				}
 
-				//logger.info('Dummy Peer  ::: ', peer);
 
 				this._protooRoom.peers.push(peer);
-
-				//logger.info('this._getJoinedPeers:::', this._getJoinedPeers);
 
 
 				let joinedPeers =
@@ -1378,8 +1109,6 @@ class Room extends EventEmitter
 					...this._broadcasters.values()
 				];
 
-				// _breakoutRoomsObj contains breakout room's peers
-				  console.info(' JoinedPeers :::',joinedPeers);
 			
 				
 				for (const joinedPeer of joinedPeers)
@@ -1450,7 +1179,6 @@ class Room extends EventEmitter
 				// NOTE: Don't require that the Peer is joined here, so the client can
 				// initiate mediasoup Transports and be ready when he later joins.
 
-				console.log("createWebRtcTransport");
 
 				const {
 					forceTcp,
@@ -1539,7 +1267,6 @@ class Room extends EventEmitter
 
 			case 'connectWebRtcTransport':
 			{
-				console.log("connectWebRtcTransport");
 				const { transportId, dtlsParameters } = request.data;
 				const transport = peer.data.transports.get(transportId);
 
@@ -1570,7 +1297,6 @@ class Room extends EventEmitter
 
 			case 'produce':
 			{
-				console.log("produce");
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
@@ -1578,10 +1304,6 @@ class Room extends EventEmitter
 				const { transportId, kind, rtpParameters } = request.data;
 				let { appData } = request.data;
 				const transport = peer.data.transports.get(transportId);
-
-				console.log("kind ::",kind);
-				console.log("rtpParameters ::",rtpParameters);
-				console.log("appData ::",appData);
 
 				if (!transport)
 					throw new Error(`transport with id "${transportId}" not found`);
@@ -1604,9 +1326,7 @@ class Room extends EventEmitter
 				// Set Producer events.
 				producer.on('score', (score) =>
 				{
-					// logger.debug(
-					// 	'producer "score" event [producerId:%s, score:%o]',
-					// 	producer.id, score);
+					
 
 					peer.notify('producerScore', { producerId: producer.id, score })
 						.catch(() => {});
@@ -1619,10 +1339,7 @@ class Room extends EventEmitter
 						producer.id, videoOrientation);
 				});
 
-				// NOTE: For testing.
-				// await producer.enableTraceEvent([ 'rtp', 'keyframe', 'nack', 'pli', 'fir' ]);
-				// await producer.enableTraceEvent([ 'pli', 'fir' ]);
-				// await producer.enableTraceEvent([ 'keyframe' ]);
+			
 
 				producer.on('trace', (trace) =>
 				{
@@ -1659,7 +1376,6 @@ class Room extends EventEmitter
 
 			case 'closeProducer':
 			{
-				console.log("closeProducer");
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
@@ -1682,21 +1398,16 @@ class Room extends EventEmitter
 
 			case 'pauseBroadProducer':
 			{
-				console.log("--------- Inside pauseBroadProducer -----");
 				let producerId;
 				let audioProducer;
 				let videoProducer;
 				let i=0;
 				if (typeof this._broadcasters.values() !== "undefined"){
 					const valuesArray = Array.from(this._broadcasters.values());
-					console.log("this._broadcasters.values() ::",this._broadcasters.values());
 					const firstValue = valuesArray[0];
 					if (typeof firstValue !== "undefined"){
-						
-						console.log("firstValue.data.producers ::",firstValue.data.producers);
 
 						firstValue.data.producers.forEach((value, key) => {
-							console.log(key, value);
 							if(i == 0)
 							  audioProducer = value;
 							 else
@@ -1705,12 +1416,7 @@ class Room extends EventEmitter
 							 i++;
 						 });
 
-						// const firstArry = firstValue.data.producers.entries().next().value;
-						// console.log("producer ::",firstArry);
-						// let firstKey = firstArry[0];
-						// producerId = firstKey;
-					    // console.log("ProdId ::",firstKey);
-						// producer = firstValue.data.producers.get(firstKey);
+					
 
 					}
 				}
@@ -1735,13 +1441,8 @@ class Room extends EventEmitter
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
 
-					console.log("--------- Inside pauseProducer -----");
-
 				const { producerId } = request.data;
-				console.log("producerId ===> ",producerId);
 				const producer = peer.data.producers.get(producerId);
-				console.log("peer.data.producers ===> ",peer.data.producers);
-				console.log("peer ===> ",peer);
 
 				if (!producer)
 					throw new Error(`producer with id "${producerId}" not found`);
@@ -1869,7 +1570,6 @@ class Room extends EventEmitter
 
 			case 'produceData':
 			{
-				console.log("produceData");
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
@@ -1905,7 +1605,6 @@ class Room extends EventEmitter
 					case 'chat':
 					{
 						// Create a server-side DataConsumer for each Peer.
-						console.log("Chat this._getAssJoinedPeers ::: ",this._getAssJoinedPeers);
 						for (const otherPeer of this._getAssJoinedPeers({ excludePeer: peer }))
 						{
 							this._createDataConsumer(
@@ -1938,7 +1637,6 @@ class Room extends EventEmitter
 			
 			case 'addbreakRooms':
 			{
-				console.info('addbreakRooms checking : ');
 				// Ensure the Peer is joined.
 				if (!peer.data.joined)
 					throw new Error('Peer not yet joined');
@@ -1948,70 +1646,12 @@ class Room extends EventEmitter
 				// Store the breakRooms into the custom data Object of the protoo
 				// Peer.
 				peer.data.breakoutroom = breakoutRoomData;
-				//peer.data.breakoutroom.set(breakoutRoomData.id,breakoutRoomData);
-				console.log('breakoutroom',breakoutRoomData)
-				//peer.data.breakoutroom.set(breakoutRoomData);
-				//accept({ breakoutroom: breakoutRoomData });
 
 				const joinedPeers =
 				[
 					...this._getJoinedPeers(),
 					...this._broadcasters.values()
 				];
-				// console.log('peers addr',peer);
-				// let dataarr = JSON.stringify(breakoutRoomData, null, 2);
-				// console.log('dataarr',dataarr);
-				// let fileDetname = this._roomId;
-				// let fileExists = fs.existsSync(fileDetname+'.json')
-				// if(fileExists){
-				// 	const file = fs.readFileSync(fileDetname+'.json')
-				
-				// 	//fs.writeFileSync('student.json', dataarr);
-				// 	// fs.writeFileSync('student.json', dataarr, (err) => {
-				// 	// 	if (err) throw err;
-				// 	// 	console.log('Data written to file');
-				// 	// });
-				// 	if (file.length == 0) {
-				// 		//add data to json file
-				// 		fs.writeFileSync(fileDetname+'.json', JSON.stringify([breakoutRoomData], null, 2))
-				// 		newDatas = 	{};
-				// 	} else {
-				// 		//append data to jso file
-				// 		const json = JSON.parse(file.toString())
-				// 		//add json element to json object
-				// 		json.push(breakoutRoomData);
-				// 		fs.writeFileSync(fileDetname+'.json', JSON.stringify(json), null, 2)
-				// 		//newDatas = require('../student.json');
-				// 		newDatas = JSON.parse(fs.readFileSync(fileDetname+'.json', 'utf8'));
-				// 	}
-				// }
-				// else{
-				// 	fs.writeFileSync(fileDetname+'.json', JSON.stringify([breakoutRoomData], null, 2))
-				// }
-				
-				
-
-				// // for (const joinedPeer of joinedPeers)
-				// // {
-				// // 	console.log('joinedPeers',joinedPeer.data.breakoutroom);
-
-				// // 		// Store the Consumer into the protoo consumerPeer data Object.
-				// // 		peer.data.breakoutroom.set(joinedPeer.data.breakoutroom);
-				// // }
-
-
-				// // Notify other joined Peers.
-				// for (const otherPeer of this._getJoinedPeers({ excludePeer: peer }))
-				// {
-					
-						
-				// 		otherPeer.notify(
-				// 			'newaddedRoom',
-				// 			{
-				// 				breakoutRoomData:breakoutRoomData
-				// 			})
-				// 			.catch(() => {});
-				// }
 				
 				
 				accept();
@@ -2196,14 +1836,14 @@ class Room extends EventEmitter
 		 if (typeof this._breakoutRoomsObj !== "undefined" && Array.isArray(this._breakoutRoomsObj) && this._breakoutRoomsObj.length !== 0)
 			 joinedPeers = joinedPeers.concat(this._breakoutRoomsObj);
 
-            // console.log("Before Filter --> ",joinedPeers);
+            
 			 const uniqueArray = joinedPeers.filter((obj, index, self) => {
 				return index === self.findIndex((el) => (
 				  el._id === obj._id && el._data.displayName === obj._data.displayName && el._data.breakoutroomName === obj._data.breakoutroomName
 				));
 			  });
 			  
-			//   console.log("After filter --> ",uniqueArray);
+			
 		   
 		 return uniqueArray;
 
@@ -2217,7 +1857,7 @@ class Room extends EventEmitter
 	 */
 	async _createConsumer({ consumerPeer, producerPeer, producer })
 	{
-		console.log("_createConsumer");
+		
 		// Optimization:
 		// - Create the server-side Consumer in paused mode.
 		// - Tell its Peer about it and wait for its response.
@@ -2336,11 +1976,7 @@ class Room extends EventEmitter
 							.catch(() => {});
 					});
 
-					// NOTE: For testing.
-					// await consumer.enableTraceEvent([ 'rtp', 'keyframe', 'nack', 'pli', 'fir' ]);
-					// await consumer.enableTraceEvent([ 'pli', 'fir' ]);
-					// await consumer.enableTraceEvent([ 'keyframe' ]);
-
+				
 					consumer.on('trace', (trace) =>
 					{
 						logger.debug(
@@ -2442,7 +2078,7 @@ class Room extends EventEmitter
 		}
 
 		// Store the DataConsumer into the protoo dataConsumerPeer data Object.
-		//dataConsumerPeer.data.dataConsumers.set(dataConsumer.id, dataConsumer);
+		dataConsumerPeer.data.dataConsumers.set(dataConsumer.id, dataConsumer);
 
 		// Set DataConsumer events.
 		dataConsumer.on('transportclose', () =>

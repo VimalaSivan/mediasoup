@@ -24,7 +24,6 @@ class Me extends React.Component
 		
 
 		if(this.broadcast_flag == 0){ 
-			console.log('this.props.broadcast_id',this.props.broadcast_id);
 
 				try { 
 					if(this.props.broadcast_id != 0){
@@ -46,25 +45,20 @@ class Me extends React.Component
 		async addBroadCasting(){
 						let BROADCASTER_ID;
 						let currentRoomid = location.href.split("&")[1].split("=")[1];
-						console.log("Room Id :: ",currentRoomid);
 						this.broadcast_flag  = 1;
-						const res = await fetch('https://192.168.1.34:4443/rooms/'+currentRoomid+'/broadcast',{
+						const res = await fetch('https://18.118.5.122:4443/rooms/'+currentRoomid+'/broadcast',{
 								mode: 'no-cors',
 								method: "get",
 								headers: {
 										"Content-Type": "application/json"
 								}
 		                });
-						console.log("Broadcasting res ::", JSON.stringify(res))
 						BROADCASTER_ID = JSON.stringify(res);
 		}
 	    async deleteBroadcasting(broadcast_id){
-				 console.log("broadcast_id :: ",broadcast_id);
 				 this.broadcast_flag  = 0;
 				 let currentRoomid = location.href.split("&")[1].split("=")[1];
-				 console.log("Room Id :: ",currentRoomid);
-
-				let qryUrl = 'https://192.168.1.34:4443/rooms/'+currentRoomid+'/deleteBroadcast/'+broadcast_id;
+				let qryUrl = 'https://18.118.5.122:4443/rooms/'+currentRoomid+'/deleteBroadcast/'+broadcast_id;
 
 				 try { 
 					 const res = await fetch(qryUrl,{
@@ -75,7 +69,6 @@ class Me extends React.Component
 							 }
 					 });
 					 this.broadcast_flag  = 0;
-					 console.log("Delete Broadcasting res ::", JSON.stringify(res))
 					} catch (error) {
 							console.log("error----", error)
 					}
@@ -165,13 +158,7 @@ class Me extends React.Component
 							}}
 						/>
 
-							{/* <div
-							className={classnames('button', 'mic', micState)}
-							onClick={() =>
-							{
-								roomClient.pauseBroadcast();
-							}}
-						/> */}
+						
 
 						<div
 							className={classnames('button', 'webcam', webcamState, {
@@ -217,13 +204,13 @@ class Me extends React.Component
 						</If>
 
 
-						{/* <div title="Start/Stop" className={classnames('button', 'broadcast')}  onClick={() => this.getData()} /> */}
+						
 
 						<div className={classnames('button', 'chat-icon')} onClick={() =>
 							{
 								roomClient.openChatDiv(chatMap);
 							}} >
-						{/* <span className="badge"></span> */}
+						
 						</div>
 
 					</div>
@@ -318,7 +305,6 @@ const mapStateToProps = (state) =>
 		producersArray.find((producer) => producer.track.kind === 'audio');
 	const videoProducer =
 		producersArray.find((producer) => producer.track.kind === 'video');
-		console.log('state in Me :: ', state);
 		let broadcast_id    = 0;
 
 		const currentRoomid = location.href.split("&")[1].split("=")[1];
@@ -327,9 +313,7 @@ const mapStateToProps = (state) =>
 		if(typeof (matchingValue) != "undefined" && matchingValue != "")
            broadcast_id     = matchingValue.id;
 		   
-		// const rootPeer = peersArray.find(peersId => peersId.roleFlag == 1 && peersId.roomId == currentRoomid && state.me.id == peersId.id);
-		// if(typeof (rootPeer) != "undefined" && rootPeer != "")
-        //    role_flag        = 1;
+	
 
 		const urlParams = new URL(location.href);
 		const role_flag = urlParams.searchParams.get('flag');

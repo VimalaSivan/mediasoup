@@ -47,7 +47,6 @@ const store = createReduxStore(
 	undefined,
 	applyReduxMiddleware(...reduxMiddlewares)
 );
-console.log('reducers store',store);
 window.STORE = store;
 
 RoomClient.init({ store });
@@ -69,7 +68,6 @@ async function run()
 {
 	logger.debug('run() [environment:%s]', process.env.NODE_ENV);
 	const urlParser = new UrlParse(window.location.href, true);
-	console.log('urlParse',urlParser);
 	const peerId = randomString({ length: 8 }).toLowerCase();
 	//let peerId = urlParser.query.peerId;
 	let roomId = urlParser.query.roomId;
@@ -183,7 +181,6 @@ async function run()
 		displayNameSet = false;
 		displayName = randomName();
 	}
-	console.log('roomUrl',roomUrl);
 
     
 	// Get current device info.
@@ -199,7 +196,6 @@ async function run()
 	store.dispatch(
 		stateActions.setMe({ peerId, displayName, displayNameSet, device }));
 
-		console.log("Parent ID :: ",parentId);
 
 	roomClient = new RoomClient(
 		{
@@ -229,9 +225,7 @@ async function run()
 	window.CLIENT = roomClient;
 	// eslint-disable-next-line require-atomic-updates
 	window.CC = roomClient;
-	console.log("room client :: ",roomClient);
 	
-	console.log("window.CLIENT",window.CLIENT);
 	
 	render(
 		<Provider store={store}>

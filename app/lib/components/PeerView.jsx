@@ -67,10 +67,8 @@ export default class PeerView extends React.Component
 		this.setState(prevState => ({
 			isToggleOnBreak: !prevState.isToggleOnBreak
 		}));
-		//console.log(this.state.isToggleOnBreak);
 	  }
 	  onExpandClick(){
-		console.log('onExpandClick');
 	  }
 	render()
 	{
@@ -115,7 +113,6 @@ export default class PeerView extends React.Component
 			videoElemPaused,
 			maxSpatialLayer
 	  	} = this.state;
-       //  console.log('onstasss',onBreakoutClick);
 		return (
 			<div data-component='PeerView'>
 				<div className='info'>
@@ -125,10 +122,7 @@ export default class PeerView extends React.Component
 							onClick={() => this.setState({ showInfo: !showInfo })}
 						/>
 
-						{/* <div
-							className={classnames('icon', 'stats')}
-							onClick={() => onStatsClick(peer.id,this.state.isToggleOn)}
-						/> */}
+					
 						<div
 							className={classnames('icon', 'profile')}
 							onClick={() => onBreakoutClick(peer.id,this.state.isToggleOnBreak)}

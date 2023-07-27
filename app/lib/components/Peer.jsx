@@ -48,7 +48,6 @@ const Peer = (props) =>
 	}
 
 	if(typeof (shareArr) !== "undefined"){
-		console.log('shareArr',shareArr);
 		let peersIdShare = shareArr.appData.peerId;
 		let ClassName = "icon expand "+peersIdShare;
 		roomClient.windowMaxMin(ClassName,peersIdShare);
@@ -57,12 +56,7 @@ const Peer = (props) =>
 	let ClassNameBroadCast = "icon expand "+peersBroadCast.id;
 	roomClient.windowMaxMin(ClassNameBroadCast,peersBroadCast.id);
 	}
-	// else if(typeof (webCamArr) !== "undefined"){
-	// 	console.log('webCamArr',webCamArr);
-	// 	let peersId = webCamArr.appData.peerId;
-	// 	let ClassName = "icon expand "+peersId;
-	// 	roomClient.windowMaxMin(ClassName,peersId);
-	// }	
+	
 	
 	
 	return (
@@ -159,10 +153,8 @@ const mapStateToProps = (state, { id }) =>
 		consumersArray.find((consumer) => consumer.track.kind === 'audio');
 	const videoConsumer =
 		consumersArray.find((consumer) => consumer.track.kind === 'video');
-	console.log("consumersArray ::",state.consumers);
 	const consumersNewArray = Object.values(state.consumers);
 	const consumerValueArr = consumersNewArray.filter(consumers => consumers.type == 'simulcast');
-	console.log("consumerValueArr",consumerValueArr);
 	
 	return {
 		peer,

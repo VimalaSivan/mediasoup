@@ -60,10 +60,6 @@ class Breakout extends React.Component {
 		let peerId = "0";
 		let parentId = this.state.parentId;
 
-		console.log('parentRoomId', parentId);
-		console.log('roomId', roomId);
-		console.log('roomName', roomName);
-
 		const list = [...this.state.list]
 		const urlParser = new UrlParse(window.location.href, true);
 		// Get current device info.
@@ -100,7 +96,6 @@ class Breakout extends React.Component {
 		this.state.mainRoomId = roomId;
 		
 		window.history.pushState({}, document.title, newURL);
-		console.log('newlist', JSON.stringify(list));
 		if (typeof (list) != "undefined") {
 		//	localStorage.setItem("testObject", JSON.stringify(list));
 		window.sessionStorage.setItem("testObject", JSON.stringify(list));
@@ -186,14 +181,9 @@ class Breakout extends React.Component {
 		if (typeof (parentId) === "undefined") 
 		 parentId = "0";
 
-		console.log('parentRoomId', parentId);
-		console.log('roomId', roomId);
-		console.log('roomName', roomName);
-
 		const list = [...this.state.list]
 		
 		const urlParser = new UrlParse(window.location.href, true);
-		console.log('urlParser', urlParser);
 		// Get current device info.
 		const device = deviceInfo();
 		var newURL;
@@ -269,7 +259,6 @@ class Breakout extends React.Component {
 		this.props.roomClient.consumerReplicas = urlParser.query.consumerReplicas;
 		this.props.roomClient.breakoutRooms = parentId;
 		this.props.roomClient._protooUrl = getProtooUrl({ roomId,roomName, peerId, consumerReplicas,parentId });
-		console.log("joinParticipant", this.props.roomClient);
 	
 		window.CLIENT = this.props.roomClient;
 		
@@ -306,7 +295,7 @@ class Breakout extends React.Component {
 
 		try {
 			const currentRoomid = location.href.split("&")[1].split("=")[1];
-			 const res =  fetch('https://192.168.1.34:4443/rooms/'+currentRoomid+'/addroom',{
+			 const res =  fetch('https://18.118.5.122:4443/rooms/'+currentRoomid+'/addroom',{
 					 mode: 'no-cors',
 					 method: "get",
 					 headers: {
@@ -314,7 +303,7 @@ class Breakout extends React.Component {
 					 }
           });
 
-		  console.log("add room response ---> ", JSON.stringify(res))
+		  
 	    } catch (error) {
 			 console.log("error----", error)
 	    }
@@ -324,13 +313,6 @@ class Breakout extends React.Component {
 
 
 	componentWillUpdate(nextProps, nextState) {
-		// console.log('nextState: ',nextState);
-		console.log('nextState: ',nextState);
-		//if(JSON.stringify(nextProps.breakoutRooms))
-		if (typeof (nextProps.breakoutRooms) != "undefined") {
-			
-			//localStorage.setItem("testObject", JSON.stringify(nextProps.breakoutRooms));
-		}
 
 	}
 
@@ -342,21 +324,16 @@ class Breakout extends React.Component {
 				// match all names if term is empty
 				this.state.term === "" ||
 				// otherwise see if the name starts with the term
-				//name.value.toLowerCase().startsWith(this.state.term.toLowerCase())
 				name.value.toLowerCase().indexOf(this.state.term.toLowerCase()) !== -1
 		);
 
-		console.log('Client side :::',this.props.peersNew);
 
 		var currentRoomid = location.href.split("&")[1].split("=")[1];
-		//console.log(location.href.split("&")[1].split("=")[1]);
 		var filterArrdata = this.props.breaksroomNotFilter?.filter(item => item.id === currentRoomid)
 		
 		let RoomDet = "Meeting participants";
-		console.log(filterArrdata,"filterArrdata");
 		if (filterArrdata?.length > 0) {
 			if (typeof (filterArrdata[0]?.name) != "undefined") {
-				console.log(filterArrdata[0]?.name);
 				
 				if(filterArrdata[0]?.name == 'Main room'){
 					RoomDet = "Meeting participants";
@@ -382,12 +359,7 @@ class Breakout extends React.Component {
 			this.state.inviteHideShow = true;
 			this.state.list = this.props.breaksroomNotFilter;
 		}
-		//this.state.list = this.props.breakoutRooms;
 		
-		// let updatedTasks  =     this.state.list?.filter(task => task.id !== currentRoomid);
-		
-		// console.log('Breakout room list new',this.state.list)
-		//this.setState({ tasks: updatedTasks });
 		const {
 			roomClient,
 			peerId,
@@ -410,44 +382,30 @@ class Breakout extends React.Component {
 		let updatedStateList = this.state.list?.filter(
 			(task) =>
 			task.id !== currentRoomid
-			//console.log(currentRoomid,'  ',task.id)
 			);
-			//console.log('updatedStateList',updatedStateList)
-			//console.log('updatedStateList',this.state.list)
+			
 			this.state.list = updatedStateList;
 			var currentRoomid = location.href.split("&")[1].split("=")[1];
 			if (typeof (this.state.list) != "undefined") {
 				if (this.state.list.length > 0) {
 					let updatedTasks  =     this.state.list?.filter(task => task.id == currentRoomid);
-					console.log('updatedTasks',updatedTasks)
+					
 					if (updatedTasks.length == 0) {
-			           //this.state.list = [ ...this.state.list, { id: this.state.mainRoomId, name: "Main room" } ]
+			           
 					}
 				}
 			}
-			//this.state.list.push({ id: this.state.mainRoomId, name: "Main room" });
+			
 			
 
 		const renderMap = () => {
 
 			const myMap = this.props.nestedMap;
-			console.log("Nested Map ---> ",this.props.nestedMap);
 
 			if (typeof myMap !== "undefined" && myMap !== "") {
 				return (
 					<div>
-					{/* <div>
-						{Array.from(myMap.entries()).map(([key, nestedArray]) => (
-						<div key={key}>
-							<h3>{key}</h3>
-							<ul>
-							{nestedArray.map((value, index) => (
-								<li key={index}>{value.id}</li>
-							))}
-							</ul>
-						</div>
-						))}
-					</div> */}
+					
 				
 			{Array.from(myMap.entries()).map(([key, nestedArray]) => (
 				<Fragment>
@@ -628,17 +586,7 @@ class Breakout extends React.Component {
 						})}
 
 
-						{/* <br></br>
-						<If condition={this.state.removeHideShow}>
-
-							<button 
-							onClick={(e) => {
-								this.joinParentRoom(e);
-					         }}
-							aria-label="Leave breakout room" class="css-10s0o5q-button-destructive-medium-fullWidth" title="Leave breakout room" type="button">
-								<span class="">Leave breakout room</span>
-							</button>
-						</If> */}
+						
 
 						<br></br>
 						<div id="breakout-rooms-list">
@@ -647,22 +595,12 @@ class Breakout extends React.Component {
 						</div>
 
 						<br></br>
-						{/* <If condition={this.props.breakoutbtn}> */}
-						{/* <button
-							// onClick={(e) => {
-							// 	this.joinParentRoom(e)
-							// }}
-
-							onClick={({ displayName }) => onAddRoom(currentRoomid)}
-
-							aria-label="Add breakout room" class="css-1t1ycip-button-secondary-medium-fullWidth" title="Add breakout room" type="button">
-							<span class="">Add breakout room</span></button> */}
-
+						
 
 							<div class="rmcontainer">
 								<input id="brId" type="text" style={{color: 'white'}} placeholder="Enter breakout room name" class="rmtext-box"></input>
 								<button
-								// onClick={({ displayName }) => onAddRoom(currentRoomid)}
+								
 
 								onClick={(e) => {
 								this.addBreakout(e)
@@ -695,47 +633,13 @@ class Breakout extends React.Component {
 
 						<main id="msgCnt" className="msger-chat">
 							
-							{/* <div className="msg left-msg">
-								<div
-								className="msg-img"
-								style={{ backgroundImage: `url(https://image.flaticon.com/icons/svg/327/327779.svg)`}}>
-								</div>
+							
 
-								<div className="msg-bubble">
-									<div className="msg-info">
-									<div className="msg-info-name">BOT</div>
-									<div className="msg-info-time">12:45</div>
-									</div>
-
-									<div className="msg-text">
-									Hi, welcome to SimpleChat! Go ahead and send me a message.
-									</div>
-								</div>
-							</div> */}
-
-
-							{/* <div className="msg right-msg">
-								<div
-								className="msg-img"
-								style={{ backgroundImage: `url(https://image.flaticon.com/icons/svg/145/145867.svg)`}}>	
-								</div>
-
-								<div className="msg-bubble">
-									<div className="msg-info">
-									<div className="msg-info-name">Sajad</div>
-									<div className="msg-info-time">12:46</div>
-									</div>
-
-									<div className="msg-text">
-									You can change your name in JS section!
-									</div>
-								</div>
-							</div> */}
-
+						
 						</main>
 
 						<form className="msger-inputarea">
-							{/* <input type="text" className="msger-input" placeholder="Enter your message..."/> */}
+							
 							<textarea class="msger-input" 
 								ref={(elem) => { this._textareaElem = elem; }}
 								placeholder={disabled ? 'Chat unavailable' : 'Write here...'}
@@ -746,7 +650,7 @@ class Breakout extends React.Component {
 								onChange={this.handleChange.bind(this)}
 								onKeyPress={this.handleKeyPress.bind(this)}
 							/>
-							{/* <button type="submit" className="msger-send-btn">Send</button> */}
+							
 						</form>
 						</section>
 					
@@ -836,7 +740,6 @@ Breakout.propTypes =
 
 const mapStateToProps = (state) => {
 
-	console.log('mapStateToProps method : ', state);
 
 	const breakoutroomArray = Object.values(state.breakoutroom);
 	const { room, me, peers, consumers, dataConsumers } = state;
@@ -862,22 +765,11 @@ const mapStateToProps = (state) => {
 	let curPeerArry;
 	let currentRoomid = location.href.split("&")[1].split("=")[1];
 	const matchingValue = peersArray.find(peers => peers.roomId === currentRoomid);
-
-	//console.log('Current Room Name ::',matchingValue.breakoutroomName);
-
 	let currentRoomName = (typeof (matchingValue) != "undefined") ? matchingValue.breakoutroomName : "Main Room";
 
 	floors.push({ id: me.id, value: state.me.displayName + ' (you)', roonName: currentRoomName,roomId: state.me.roomId });
 
-    //peersArray = peersArray.filter(item => item.id !== me.id);
-
-	
-	//for (const peersId of Object.keys(peers)) {
-
-		
-		
-
-		console.log('peersArray ===> ',peersArray);
+    
 
 		for (const peer of peersArray) {
 			if(peer.roomId == currentRoomid){
@@ -928,15 +820,14 @@ const mapStateToProps = (state) => {
 				}				
 		    }
 
-		console.log('Other room peers   :: ',nestedMap);
-		console.log('Current room peers   :: ',curRoomPeers);
+		
 
 	  if(typeof (matchingValue) != "undefined"){
 	   curPeerArry = curRoomPeers.get(currentRoomName);
 	   curPeerArry =curPeerArry.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.displayName != 'Broadcaster' && state.me.id != peersId.id );
 	  }
 
-	  console.log('Current room peers   :: ',curPeerArry);
+	  
 	  var NewcurPeerArry = curPeerArry.map(function(el) {
 		var o = Object.assign({}, el);
 		const peerArr = state.peers[o.id];
@@ -946,7 +837,6 @@ const mapStateToProps = (state) => {
 			consumersArray.find((consumer) => consumer.track.kind === 'audio');
 		const videoConsumer =
 			consumersArray.find((consumer) => consumer.track.kind === 'video');
-			//console.log("audioConsumer",audioConsumer);
 		o.audioConsumer = audioConsumer;
 		o.videoConsumer = videoConsumer;
 		return o;
@@ -962,26 +852,22 @@ const mapStateToProps = (state) => {
 	   let filteredPeers = peersArray.filter((peersId)=> peersId.displayName != 'HEADER' && peersId.displayName != 'Broadcaster');
 	   peersArrCnt = filteredPeers.length;
 
-	   console.log('Total peer count   :: ',peersArrCnt);
-
 		
-		// for (const peersDatas of finalData) {
-		// 	floors.push({ id: peersDatas.id, value: peersDatas.displayName, roonName: peersDatas.breakoutroomName,roomId: peersDatas.roomId });
-		// }
+		
 		const breakoutRoomsData =peersArray.filter((peersId)=> peersId.id == 0 )
 		for (const peersDatas of breakoutRoomsData) {
 			breaksroom.push({ id: peersDatas.id, name: peersDatas.breakoutroomName });
 		}
-		//floors.push({ id: peersId, value: peers[peersId].displayName, roonName: 'Main Room' });
+		
 		const urlParser = new UrlParse(window.location.href, true);
-		//console.log('urlParser roomId', urlParser.query.roomId);
+		
 		let currentRoomIds =  urlParser.query.roomId;
 		if (Object.keys(state.peers[peersId].breakoutroom || {}).length > 0) {
-			//console.log('roomId', state.peers[peersId].breakoutroom);
+			
 			for (const roomId of Object.keys(state.peers[peersId].breakoutroom)) {
-				//console.log('roomId', state.peers[peersId].breakoutroom[roomId].id);
+				
 				if(currentRoomIds != state.peers[peersId].breakoutroom[roomId].id){
-					//breaksroom.push({ id: state.peers[peersId].breakoutroom[roomId].id, name: state.peers[peersId].breakoutroom[roomId].name });
+					
 				}
 				breaksroomNotFilter.push({ id: state.peers[peersId].breakoutroom[roomId].id, name: state.peers[peersId].breakoutroom[roomId].name });
 				
@@ -997,7 +883,7 @@ const mapStateToProps = (state) => {
 	{
 		breakoutbtn = false;
 	}
-	//function removeDuplicate(arr, prop) {
+	
 		var new_arr = [];
 		var lookup = {};
 		for (var i in breaksroom) {
@@ -1020,13 +906,10 @@ const mapStateToProps = (state) => {
 			
 		}
 		var	newArray1 =  new_arr1;
-	//}
-	//var newArray = removeDuplicate(breaksroom, 'id');
-	console.log('floors   :: ',floors);
+	
+	
 	const firstletter = state.me.displayName.substring(0, 1);
-	console.log('all data', state);
 	let floorsData = floors.filter((peersId)=> peersId.roomId == state.me.roomId )
-	console.log('floors data', floorsData);
 
 	// props for chat 
 	const dataProducersArray = Object.values(state.dataProducers);
@@ -1067,7 +950,6 @@ const mapStateToProps = (state) => {
 
 const mapDispatchToProps = (dispatch) => {
 	return {
-		//onClose: () => dispatch(stateActions.setBreakoutPeerId(null)),
 		onClose : () => {
 			RoomClient.closeBreakoutDiv()
 		},

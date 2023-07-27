@@ -59,8 +59,6 @@ class Room extends React.Component {
 
 			room.isOpenbreak = false;
 		}
-		console.log('room.isOpenbreak',room.isOpenbreak)
-		console.log('roomClient._roomName',roomClient._roomName)
 		return (
 			<Appear duration={300}>
 				<div data-component='Room'>
@@ -112,9 +110,7 @@ class Room extends React.Component {
 						<Me />
 					</div>
 
-					{/* <div className='chat-input-container'>
-						<ChatInput />
-					</div> */}
+					
 
 					<div className='sidebar'>
 						<div
@@ -157,18 +153,16 @@ class Room extends React.Component {
 							<span className='icon-background'></span>
 						</div>
 					</div>
-					{/* { room.isOpenState && (<Stats />)} */}
-					{/* {room.isOpenbreak && (<Breakout />)} */}
+					
 
-
-					{/* <If condition={room.isOpenbreak}> */}
+					
 					<Breakout 
 						onAddRoom={(displayName) =>
 							{
 								roomClient.addRoom(displayName);
 							}}
 					/>
-					{/* </If> */}
+					
 
 					<If condition={window.NETWORK_THROTTLE_SECRET}>
 						<NetworkThrottle
@@ -190,7 +184,6 @@ class Room extends React.Component {
 
 	componentDidMount() {
 		const { roomClient } = this.props;
-		console.log("rooms.jsx ::: ",roomClient);
 		roomClient.join();
 	}
 }
@@ -205,16 +198,12 @@ Room.propTypes =
 };
 
 const mapStateToProps = (state) => {
-	console.log('all data rooms', state);
-	//console.log('room name ::::', roomClient._roomName);
 
 	const url = new URL(location.href);
 	const params = url.searchParams;
 	const keys = Array.from(params.keys()).slice(0, 2);
 	const urlWithParams = keys.map(key => `${key}=${params.get(key)}`).join('&');
 	const urlWithFirstTwoParams = `${url.origin}${url.pathname}?${urlWithParams}`;
-
-    console.log(urlWithFirstTwoParams);
 
 	
 	return {

@@ -2,7 +2,7 @@ const initialState = {};
 
 const breakoutroom = (state = initialState, action) =>
 {
-	console.log('action breakoutroom test',action);
+	
 	switch (action.type)
 	{
 		case 'SET_ROOM_STATE':
@@ -23,7 +23,7 @@ const breakoutroom = (state = initialState, action) =>
 		
 		case 'SET_PEER_BREAKOUT':
 		{	
-			console.log('action.payload',action.payload);
+			
 			const { room } = action.payload;
 
 			return { ...state, [room.id]: room };
